@@ -10,8 +10,11 @@ import top.srcandy.candyterminal.model.ConnectInfo;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.service.ConnectManageService;
+import top.srcandy.candyterminal.utils.AESUtils;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 @Slf4j
@@ -38,10 +41,12 @@ public class ConnectManageController {
     }
 
     @PostMapping("/addConnect")
-    public ResponseResult<ConnectInfo> insertConnect(@RequestHeader("Authorization") String token, @RequestBody AddNewConnectDTO connect) {
+    public ResponseResult<ConnectInfo> insertConnect(@RequestHeader("Authorization") String token, @RequestBody AddNewConnectDTO connect) throws GeneralSecurityException, UnsupportedEncodingException {
         String token_no_bearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(token_no_bearer).get("username").asString();
         User user = authService.getUserByUsername(username);
+        // 得到用户加密密钥
+        String salt = authService.getSaltByUsername(username);
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
@@ -53,13 +58,14 @@ public class ConnectManageController {
                 return ResponseResult.fail(null, "连接已存在");
             }
         }
+
         ConnectInfo connect_to_insert = ConnectInfo.builder()
                 .connect_creater_uid(user.getUid())
                 .connectHost(connect.getHost())
                 .connectPort(connect.getPort())
                 .connectUsername(connect.getUsername())
                 .connectMethod(connect.getMethod())
-                .connectPwd(connect.getPassword())
+                .connectPwd(AESUtils.encryptToHex(connect.getPassword(), salt))
                 .connectName(connect.getName())
                 .build();
         return connectManageService.insertConnect(connect_to_insert);

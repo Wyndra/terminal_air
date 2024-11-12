@@ -11,6 +11,7 @@ import top.srcandy.candyterminal.pojo.WebSSHData;
 import org.springframework.web.socket.TextMessage;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.service.WebSSHService;
+import top.srcandy.candyterminal.utils.AESUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -128,47 +129,63 @@ public class WebSSHServiceImpl implements WebSSHService {
         Properties config = new Properties();
         config.put("StrictHostKeyChecking", "no");
         JSch jSch = sshConnectInfo.getJSch();
+
+        // 从 WebSocketSession 中获取 UUID,UUID就是用户名
+        String uuid = (String) webSocketSession.getAttributes().get("uuid");
         log.info("尝试连接 SSH 主机: {}:{}", webSSHData.getHost(), webSSHData.getPort());
 
+        try{
+            // 获取Key
+            String salt = authService.getSaltByUsername(uuid);
+            log.info("获取到 {} 的盐值为：{}", uuid, salt);
+            // 解密密码
 
-        // 使用正确的 getSession() 方法
-        session = jSch.getSession(webSSHData.getUsername(), webSSHData.getHost(), webSSHData.getPort());
-        session.setConfig(config);
-        session.setPassword(webSSHData.getPassword());
+            String decryptedPassword = AESUtils.decryptFromHex(webSSHData.getPassword(), salt);
+            log.info("解密后的密码为：{}", decryptedPassword);
 
-        session.connect(30000);  // 设置连接超时 30s
-        log.info("SSH 会话连接成功");
+            // 创建SSH会话并设置配置
+            session = jSch.getSession(webSSHData.getUsername(), webSSHData.getHost(), webSSHData.getPort());
+            session.setConfig(config);
+            session.setPassword(decryptedPassword);
 
-        Channel channel = session.openChannel("shell");
-        channel.connect(3000);  // 设置通道连接超时 3s
-        log.info("SSH 通道连接成功");
+            session.connect(30000);  // 设置连接超时 30秒
+            log.info("SSH 会话连接成功");
 
-        sshConnectInfo.setChannel(channel);
-        transToSSH(channel, webSSHData.getCommand());
-        log.info("命令已发送到 SSH");
+            Channel channel = session.openChannel("shell");
+            channel.connect(3000);  // 设置通道连接超时 3秒
+            log.info("SSH 通道连接成功");
 
-        InputStream inputStream = channel.getInputStream();
-        try {
-            byte[] buffer = new byte[1024];
-            int i = 0;
-            while ((i = inputStream.read(buffer)) != -1) {
-                sendMessage(webSocketSession, Arrays.copyOfRange(buffer, 0, i));
+            sshConnectInfo.setChannel(channel);
+            transToSSH(channel, webSSHData.getCommand());
+            log.info("命令已发送到 SSH");
+
+            InputStream inputStream = channel.getInputStream();
+            try {
+                byte[] buffer = new byte[1024];
+                int i = 0;
+                while ((i = inputStream.read(buffer)) != -1) {
+                    sendMessage(webSocketSession, Arrays.copyOfRange(buffer, 0, i));
+                }
+            } finally {
+                if (session.isConnected()) {
+                    session.disconnect();
+                    log.info("SSH 会话断开");
+                }
+                if (channel.isConnected()) {
+                    channel.disconnect();
+                    log.info("SSH 通道断开");
+                }
+                if (inputStream != null) {
+                    inputStream.close();
+                    log.info("输入流已关闭");
+                }
             }
-        } finally {
-            if (session.isConnected()) {
-                session.disconnect();
-                log.info("SSH 会话断开");
-            }
-            if (channel.isConnected()) {
-                channel.disconnect();
-                log.info("SSH 通道断开");
-            }
-            if (inputStream != null) {
-                inputStream.close();
-                log.info("输入流已关闭");
-            }
+        } catch (Exception e) {
+            log.error("SSH 连接异常：{}", e.getMessage());
+            close(webSocketSession);
         }
     }
+
 
     /**
      * @Description: 将消息转发到终端

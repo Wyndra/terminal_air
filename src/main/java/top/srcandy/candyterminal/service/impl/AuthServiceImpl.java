@@ -41,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setUsername(user.getUsername());
         loginDTO.setPassword(user.getPassword());
+        // TODO: 自动生成salt（key）
         int rows = userDao.insert(loginDTO);
         if (rows == 0) {
             return ResponseResult.fail(null, "注册失败");
