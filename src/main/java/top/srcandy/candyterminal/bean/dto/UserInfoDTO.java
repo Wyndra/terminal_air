@@ -1,4 +1,4 @@
-package top.srcandy.candyterminal.dto;
+package top.srcandy.candyterminal.bean.dto;
 
 import lombok.Builder;
 import lombok.Data;

@@ -17,9 +17,4 @@ public class User implements Serializable {
     private String salt;
     private String email;
     private Timestamp createTime;
-
-//    public User(String username, String password) {
-//        this.username = username;
-//        this.password = password;
-//    }
 }

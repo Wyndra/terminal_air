@@ -2,9 +2,10 @@ package top.srcandy.candyterminal.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import top.srcandy.candyterminal.bean.vo.UserProfileVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.dao.UserDao;
-import top.srcandy.candyterminal.dto.LoginDTO;
+import top.srcandy.candyterminal.bean.dto.LoginDTO;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.utils.JWTUtil;
@@ -48,6 +49,18 @@ public class AuthServiceImpl implements AuthService {
         }else {
             return ResponseResult.success("注册成功");
         }
+    }
+
+    @Override
+    public ResponseResult<UserProfileVO> getUserProfile(String token_no_bearer) {
+        String username = JWTUtil.getTokenClaimMap(token_no_bearer).get("username").asString();
+        log.info("username:{}", username);
+        User user = getUserByUsername(username);
+        if (user == null) {
+            return ResponseResult.fail(null, "用户不存在");
+        }
+        UserProfileVO userProfileVO = UserProfileVO.builder().username(user.getUsername()).email(user.getEmail()).nickname(user.getNickname()).build();
+        return ResponseResult.success(userProfileVO);
     }
 
     @Override

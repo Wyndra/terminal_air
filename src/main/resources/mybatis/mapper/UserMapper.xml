@@ -9,7 +9,7 @@
     <select id="selectByUserName" parameterType="String" resultType="top.srcandy.candyterminal.model.User">
         select * from User where username = #{username}
     </select>
-    <insert id="insert" parameterType="top.srcandy.candyterminal.dto.LoginDTO">
+    <insert id="insert" parameterType="top.srcandy.candyterminal.bean.dto.LoginDTO">
         insert into User (username, password) values (#{username}, #{password})
     </insert>
 </mapper>

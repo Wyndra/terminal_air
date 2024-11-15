@@ -1,14 +1,12 @@
-package top.srcandy.candyterminal.dto;
+package top.srcandy.candyterminal.request;
 
-import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.Range;
 
 @Data
-public class RegisterDTO {
+public class RegisterRequest {
     @NotEmpty(message = "用户名不能为空")
     @Length(min = 3, max = 20, message = "用户名长度必须在3-20之间")
     private String username;

@@ -1,4 +1,4 @@
-package top.srcandy.candyterminal.dto;
+package top.srcandy.candyterminal.bean.dto;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -12,6 +12,4 @@ public class LoginDTO {
     private String username;
     @NotEmpty(message = "密码不能为空")
     private String password;
-    @NotEmpty(message = "验证码不能为空")
-    private String salt;
 }

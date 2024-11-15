@@ -1,18 +1,16 @@
 package top.srcandy.candyterminal.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import top.srcandy.candyterminal.bean.vo.UserProfileVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
-import top.srcandy.candyterminal.dto.LoginDTO;
-import top.srcandy.candyterminal.dto.RegisterDTO;
-import top.srcandy.candyterminal.dto.UserInfoDTO;
+import top.srcandy.candyterminal.bean.dto.UserInfoDTO;
 import top.srcandy.candyterminal.model.User;
+import top.srcandy.candyterminal.request.LoginRequest;
+import top.srcandy.candyterminal.request.RegisterRequest;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
@@ -25,27 +23,19 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
-    public ResponseResult<String> login(@Valid @RequestBody(required = false) @NonNull LoginDTO userdto) {
-        return authService.login(User.builder().username(userdto.getUsername()).password(userdto.getPassword()).build());
+    public ResponseResult<String> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
+        return authService.login(User.builder().username(request.getUsername()).password(request.getPassword()).build());
     }
 
     @PostMapping("/register")
-    public ResponseResult<String> register(@Valid @RequestBody(required = false) @NonNull RegisterDTO userdto) {
-        log.info("register user:{}", userdto);
-        return authService.register(User.builder().username(userdto.getUsername()).password(userdto.getPassword()).build());
+    public ResponseResult<String> register(@Valid @RequestBody(required = false) @NonNull RegisterRequest request) {
+        log.info("register user:{}", request);
+        return authService.register(User.builder().username(request.getUsername()).password(request.getPassword()).salt(request.getPassword()).build());
     }
 
-    @GetMapping("/getUserInfo")
-    public ResponseResult<UserInfoDTO> getUserInfo(@RequestHeader("Authorization") String token) {
-        String token_no_bearer = token.substring(7);
-        String username = JWTUtil.getTokenClaimMap(token_no_bearer).get("username").asString();
-        log.info("username:{}", username);
-        User user = authService.getUserByUsername(username);
-        if (user == null) {
-            return ResponseResult.fail(null, "用户不存在");
-        }
-        UserInfoDTO userInfoDTO = UserInfoDTO.builder().username(user.getUsername()).email(user.getEmail()).nickname(user.getNickname()).build();
-        return ResponseResult.success(userInfoDTO);
+    @GetMapping("/getProfile")
+    public ResponseResult<UserProfileVO> getUserInfo(@RequestHeader("Authorization") String token) {
+        return authService.getUserProfile(token.substring(7));
     }
 //
 //        @GetMapping("/updatePassword")
