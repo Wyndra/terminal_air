@@ -12,6 +12,8 @@ public interface ConnectManageService {
 
     ResponseResult<ConnectInfo> updateConnect(ConnectInfo connect);
 
-    ResponseResult<ConnectInfo> deleteConnect(Long cid);
+    ResponseResult<ConnectInfo> deleteConnect(String token,Long cid);
+
+
 
 }

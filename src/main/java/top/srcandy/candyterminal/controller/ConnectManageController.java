@@ -8,6 +8,7 @@ import top.srcandy.candyterminal.bean.dto.AddNewConnectDTO;
 import top.srcandy.candyterminal.bean.dto.DeleteConnectDTO;
 import top.srcandy.candyterminal.model.ConnectInfo;
 import top.srcandy.candyterminal.model.User;
+import top.srcandy.candyterminal.request.DeleteConnectRequest;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.service.ConnectManageService;
 import top.srcandy.candyterminal.utils.AESUtils;
@@ -83,14 +84,14 @@ public class ConnectManageController {
     }
 
     @PostMapping ("/deleteConnect")
-    public ResponseResult<ConnectInfo> deleteConnect(@RequestHeader("Authorization") String token, @RequestBody DeleteConnectDTO deleteConnectDTO) {
+    public ResponseResult<ConnectInfo> deleteConnect(@RequestHeader("Authorization") String token, @RequestBody DeleteConnectRequest request) {
         String token_no_bearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(token_no_bearer).get("username").asString();
         User user = authService.getUserByUsername(username);
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
-        return connectManageService.deleteConnect(deleteConnectDTO.getCid());
+        return connectManageService.deleteConnect(token,request.getCid());
     }
 
 }
