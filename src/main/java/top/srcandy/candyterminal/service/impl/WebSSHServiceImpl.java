@@ -182,6 +182,7 @@ public class WebSSHServiceImpl implements WebSSHService {
             }
         } catch (Exception e) {
             log.error("SSH 连接异常：{}", e.getMessage());
+
             close(webSocketSession);
         }
     }
