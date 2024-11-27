@@ -1,6 +1,6 @@
 <template>
-    <div class="add_border">
-        <n-h4 style="margin: 0px;cursor: pointer;" @click="handleTaggleConnect">{{ connectInfoValue.connectName }}</n-h4>
+    <div class="add_border" @click="handleTaggleConnect">
+        <n-h4 style="margin: 0px;cursor: pointer;">{{ connectInfoValue.connectName }}</n-h4>
         <div style="flex: 1;"></div>
         <n-popover :overlap="overlap" placement="right-start" trigger="hover">
             <template #trigger>

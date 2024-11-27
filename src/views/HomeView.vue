@@ -80,7 +80,7 @@
 
           <!-- 判断是否未登录 -->
           <div v-if="!InLogin"
-            style="background: #000000; height: 100%; color: white; display: flex; justify-content: center; align-items: center; position: relative;">
+            style="background: #1d1f20; height: 100%; color: white; display: flex; justify-content: center; align-items: center; position: relative;">
 
             <!-- 打字机效果的文字 -->
             <p id="typed-output"
@@ -89,13 +89,11 @@
           </div>
 
           <!-- 已登录状态，显示正常内容 -->
-          <div v-else>
+          <div style="height: 100%;" v-else>
             <SshDisplay />
           </div>
 
-        </n-layout-content>
-
-
+          </n-layout-content>
       </n-layout>
     </n-layout>
 
@@ -133,6 +131,10 @@ import EditConnectionDrawer from '@/components/EditConnectionDrawer.vue';
 import SshDisplay from '@/components/SshDisplay.vue';
 import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
 
+const store = useStore();
+const message = useMessage();
+
+const router = useRouter();
 import Typed from 'typed.js';
 
 const startTypingEffect = () => {
@@ -148,12 +150,7 @@ const startTypingEffect = () => {
 
   // 启动 typed.js 打字效果
   new Typed("#typed-output", options);
-};
-
-const store = useStore();
-const message = useMessage();
-
-const router = useRouter();
+}
 
 const showLoginOrRegisterModal = ref(false);
 const connect_list = ref([]);
@@ -322,6 +319,4 @@ onMounted(() => {
   text-align: center;
   font-family: 'Courier New', Courier, monospace;
 }
-
-
 </style>

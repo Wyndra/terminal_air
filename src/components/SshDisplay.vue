@@ -26,13 +26,30 @@ const connectionInfo = ref({
     connectPassword: store.state.password,
 });
 
-watch(store.state, (newVal) => {
-    connectionInfo.value.connectHost = newVal.host;
-    connectionInfo.value.connectPort = newVal.port;
-    connectionInfo.value.connectUsername = newVal.username;
-    connectionInfo.value.connectPassword = newVal.password;
-    // sendToggleConnect();
-}, { deep: true });
+// watch(store.state, (newVal) => {
+//     connectionInfo.value.connectHost = newVal.host;
+//     connectionInfo.value.connectPort = newVal.port;
+//     connectionInfo.value.connectUsername = newVal.username;
+//     connectionInfo.value.connectPassword = newVal.password;
+//     // sendToggleConnect();
+// }, { deep: true });
+
+watch(
+    () => ({
+        host: store.state.host,
+        port: store.state.port,
+        username: store.state.username,
+        password: store.state.password
+    }),
+    (newVal) => {
+        connectionInfo.value.connectHost = newVal.host;
+        connectionInfo.value.connectPort = newVal.port;
+        connectionInfo.value.connectUsername = newVal.username;
+        connectionInfo.value.connectPassword = newVal.password;
+        // sendToggleConnect();
+    },
+    { deep: true }
+);
 
 const initTerminal = () => {
     const terminalElement = document.getElementById("terminal");
