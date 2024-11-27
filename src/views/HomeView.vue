@@ -57,8 +57,10 @@
             <ConnectionNewItemButton @new-connection="handleNewConnection" />
 
             <!-- 判断是否有连接 -->
-            <div v-if="connect_list.length === 0">
-              <p>请添加连接。</p>
+            <div
+              style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center;"
+              v-if="connect_list.length === 0">
+              <p>请添加连接</p>
             </div>
 
             <!-- 有连接时显示连接列表 -->
@@ -70,9 +72,6 @@
             </div>
           </div>
         </n-layout-sider>
-
-
-
 
         <!-- 主内容 -->
         <n-layout-content
@@ -93,7 +92,7 @@
             <SshDisplay />
           </div>
 
-          </n-layout-content>
+        </n-layout-content>
       </n-layout>
     </n-layout>
 

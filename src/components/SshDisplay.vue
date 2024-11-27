@@ -4,7 +4,7 @@
 
 <script setup>
 import "xterm/css/xterm.css";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch, nextTick } from "vue";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { useStore } from "vuex";
@@ -12,8 +12,6 @@ import serverConfig from "@/utils/config";
 
 const token = localStorage.getItem("token") || "";
 
-// 开发环境
-// const socketURI = "ws://localhost:8089/webssh" + "?token=" + token;
 // 生产环境
 const socketURI = serverConfig.wsURL + "?token=" + token;
 
@@ -26,30 +24,7 @@ const connectionInfo = ref({
     connectPassword: store.state.password,
 });
 
-// watch(store.state, (newVal) => {
-//     connectionInfo.value.connectHost = newVal.host;
-//     connectionInfo.value.connectPort = newVal.port;
-//     connectionInfo.value.connectUsername = newVal.username;
-//     connectionInfo.value.connectPassword = newVal.password;
-//     // sendToggleConnect();
-// }, { deep: true });
-
-watch(
-    () => ({
-        host: store.state.host,
-        port: store.state.port,
-        username: store.state.username,
-        password: store.state.password
-    }),
-    (newVal) => {
-        connectionInfo.value.connectHost = newVal.host;
-        connectionInfo.value.connectPort = newVal.port;
-        connectionInfo.value.connectUsername = newVal.username;
-        connectionInfo.value.connectPassword = newVal.password;
-        // sendToggleConnect();
-    },
-    { deep: true }
-);
+const isFirstConnection = ref(true);  // 标志是否是第一次连接
 
 const initTerminal = () => {
     const terminalElement = document.getElementById("terminal");
@@ -74,7 +49,6 @@ const terminal = new Terminal({
     disableStdin: false,
     cursorBlink: true,
     encoding: "utf-8",
-    // fontFamily: "Meslo LG M for Powerline",
     fontFamily: "Menlo, Monaco, 'Courier New', monospace",
     theme: {
         foreground: "#ECECEC",
@@ -91,7 +65,12 @@ const initSocket = () => {
 
     socket.onopen = () => {
         console.log("WebSocket connection established");
-        sendToggleConnect();
+
+        if (!isFirstConnection.value) {
+            sendToggleConnect(); // 只有在不是第一次连接时才发送连接命令
+        } else {
+            isFirstConnection.value = false;  // 第一次连接后，将标志设为 false
+        }
     };
 
     socket.onmessage = (event) => {
@@ -145,6 +124,29 @@ onMounted(() => {
     initSocket();
     initTerminal();
 });
+
+// 监听 store.state 的变化来更新连接信息
+watch(
+    () => ({
+        host: store.state.host,
+        port: store.state.port,
+        username: store.state.username,
+        password: store.state.password
+    }),
+    async (newVal) => {
+        // 确保 Vuex 状态已经更新
+        await nextTick();
+
+        connectionInfo.value.connectHost = newVal.host;
+        connectionInfo.value.connectPort = newVal.port;
+        connectionInfo.value.connectUsername = newVal.username;
+        connectionInfo.value.connectPassword = newVal.password;
+
+        // 调用切换连接的函数
+        sendToggleConnect();
+    },
+    { deep: true }
+);
 </script>
 
 <style>

@@ -139,6 +139,7 @@ const asyncEditConnect = async (data) => {
     if (res.status === '200') {
         message.success('连接修改成功');
         emit('refresh_connection_list'); // 通知父组件刷新列表
+        loadConnectionInfo()
     } else {
         message.error(res.message || '连接修改失败');
     }
