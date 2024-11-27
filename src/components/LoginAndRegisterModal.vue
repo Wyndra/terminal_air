@@ -1,5 +1,5 @@
 <template>
-    <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 20%;">
+    <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 25%;">
         <template #header-extra>
             <n-button text @click="closeModal">
                 <n-icon size="20">
@@ -17,7 +17,7 @@
                 <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
                     show-password-on="mousedown" @keydown.enter.prevent />
             </n-form-item>
-            <n-text style="float: right;" @click="handleClickRegister">立即注册</n-text>
+            <n-text style="float: right;cursor:pointer;" @click="handleClickRegister">立即注册</n-text>
         </n-form>
 
         <!-- 注册表单 -->

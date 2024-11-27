@@ -34,7 +34,45 @@
                 <!-- 主内容 -->
                 <n-layout-content
                     content-style="padding: 0px; padding-left: 24px; padding-right: 12px; padding-top: 12px;padding-bottom: 12px;height: 100%; overflow: hidden;">
-                    <!-- <SshDisplay /> -->
+                    <n-card title="基本信息">
+                        <n-tabs type="line" animated>
+                            <n-tab-pane name="个人信息">
+                                <!-- 个人信息表单 -->
+                                 <n-form
+                                    :model="userInfo"
+                                    label-placement="left"
+                                    label-width="100px"
+                                    :rules="rules"
+                                    ref="userInfoForm"
+                                >
+                                    <n-form-item label="用户名" required>
+                                        <n-input v-model="userInfo.username" />
+                                    </n-form-item>
+                                    <n-form-item label="邮箱" required>
+                                        <n-input v-model="userInfo.email" />
+                                    </n-form-item>
+                                    <n-form-item label="手机号" required>
+                                        <n-input v-model="userInfo.phone" />
+                                    </n-form-item>
+                                    <n-form-item>
+                                        <n-button type="primary" @click="submitUserInfoForm">保存</n-button>
+                                    </n-form-item>
+                                </n-form>
+                            </n-tab-pane>
+                            <n-tab-pane name="安全设置">
+                                <n-space direction="vertical">
+                                    <n-text>密码：********</n-text>
+                                    <n-text>密保问题：********</n-text>
+                                </n-space>
+                            </n-tab-pane>
+                            <n-tab-pane name="其他设置">
+                                <n-space direction="vertical">
+                                    <n-text>其他设置</n-text>
+                                </n-space>
+                            </n-tab-pane>
+                        </n-tabs>
+                    </n-card>
+
                 </n-layout-content>
             </n-layout>
         </n-layout>
@@ -170,6 +208,10 @@ onMounted(() => {
 });
 </script>
 <style scoped lang="less">
+.n-card {
+    margin-bottom: 12px;
+    max-width: 800px;
+}
 .header {
     position: fixed;
     top: 0;

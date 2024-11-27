@@ -1,11 +1,11 @@
 <template>
-    <n-drawer v-model:show="store.state.showAddNewConnectionDrawer" :width="502" placement="right"
+    <n-drawer v-model:show="store.state.showEditConnectionDrawer" :width="502" placement="right"
         content-style="background:#edf1f2">
         <n-drawer-content closable>
             <template #header>
                 <span
                     style="font-size: 20px; align-content: center; font-family: ui-sans-serif, -apple-system, system-ui">
-                    新增连接
+                    修改连接
                 </span>
             </template>
             <n-card bordered style="background-color: #fff;">
@@ -32,16 +32,16 @@
                         <div style="display: flex; flex-direction: column; width: 100%;">
                             <!-- 输入框 -->
                             <n-input v-model:value="connectInfoForm.password" placeholder="请输入密码" type="password"
-                                show-password-on="mousedown" />
+                                show-password-on="mousedown" style="width: 100%;" />
                             <!-- 说明文字 -->
                             <span style="font-size: 12px; color: #999; margin-top: 4px;">
-                                密码将会被加密存储，Terminal Air 遵守我们的 
+                                此处显示加密后的密码，Terminal Air 遵守我们的
                                 <a href="/privacy-policy" target="_blank"
                                     style="color: #007bff; text-decoration: none;">隐私政策</a> 。
-
                             </span>
                         </div>
                     </n-form-item>
+
                 </n-form>
                 <n-button type="primary" style="width: 100%;" @click="handleSaveAndConnect">
                     保存
@@ -52,15 +52,16 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted, nextTick, watch } from 'vue';
 import { useMessage } from 'naive-ui';
-import { add } from '@/api/connect';
+import { edit } from '@/api/connect';
 import { useStore } from 'vuex';
 
 const store = useStore();
 const message = useMessage();
 const emit = defineEmits(["refresh_connection_list"]);
 
+// 表单绑定数据
 const connectInfoForm = ref({
     name: '',
     host: '',
@@ -95,6 +96,7 @@ const formRules = {
 
 const connectFormRef = ref(null);
 
+// 清空表单
 const clearConnectInfoForm = () => {
     connectInfoForm.value = {
         name: '',
@@ -106,14 +108,39 @@ const clearConnectInfoForm = () => {
     };
 };
 
-const asyncAddConnect = async (data) => {
-    const res = await add(data);
-    console.log("添加连接响应:", res);
+// 从 Vuex 加载初始数据
+const loadConnectionInfo = () => {
+    nextTick(() => {
+        const connectionInfo = store.state.editConnectionInfo;
+        console.log('加载的连接信息:', connectionInfo); // 检查数据是否正确
+        connectInfoForm.value = {
+            name: connectionInfo.connectName || '',
+            host: connectionInfo.connectHost || '',
+            port: connectionInfo.connectPort || '',
+            username: connectionInfo.connectUsername || '',
+            method: connectionInfo.connectMethod === '0' ? 'password' : 'key',
+            password: connectionInfo.connectPwd || ''
+        };
+    });
+};
+
+// 监听 Vuex 中的 editConnectionInfo 更新
+watch(() => store.state.editConnectionInfo, () => {
+    loadConnectionInfo();
+});
+
+onMounted(() => {
+    loadConnectionInfo();
+});
+
+const asyncEditConnect = async (data) => {
+    const res = await edit(data);
+    console.log("编辑连接响应:", res);
     if (res.status === '200') {
-        message.success('连接添加成功');
+        message.success('连接修改成功');
         emit('refresh_connection_list'); // 通知父组件刷新列表
     } else {
-        message.error(res.message || '连接添加失败');
+        message.error(res.message || '连接修改失败');
     }
     return res;
 };
@@ -132,12 +159,13 @@ const handleSaveAndConnect = () => {
 
         // 转换字段值
         const data = { ...connectInfoForm.value };
+        data.cid = store.state.editConnectionInfo.cid;
         data.method = data.method === 'password' ? '0' : '1';
 
-        const res = await asyncAddConnect(data);
+        const res = await asyncEditConnect(data);
         if (res.status === '200') {
-            store.state.showAddNewConnectionDrawer = false;
-            clearConnectInfoForm();
+            store.state.showEditConnectionDrawer = false;
+            // clearConnectInfoForm();
         }
     });
 };

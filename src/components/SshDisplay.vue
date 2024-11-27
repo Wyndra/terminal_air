@@ -8,12 +8,14 @@ import { onMounted, ref, watch } from "vue";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { useStore } from "vuex";
+import serverConfig from "@/utils/config";
 
 const token = localStorage.getItem("token") || "";
 
-
-// token用于身份验证
-const socketURI = "ws://localhost:8089/webssh" + "?token=" + token;
+// 开发环境
+// const socketURI = "ws://localhost:8089/webssh" + "?token=" + token;
+// 生产环境
+const socketURI = serverConfig.wsURL + "?token=" + token;
 
 const store = useStore();
 
@@ -29,7 +31,7 @@ watch(store.state, (newVal) => {
     connectionInfo.value.connectPort = newVal.port;
     connectionInfo.value.connectUsername = newVal.username;
     connectionInfo.value.connectPassword = newVal.password;
-    sendToggleConnect();
+    // sendToggleConnect();
 }, { deep: true });
 
 const initTerminal = () => {
@@ -55,7 +57,8 @@ const terminal = new Terminal({
     disableStdin: false,
     cursorBlink: true,
     encoding: "utf-8",
-    fontFamily: "Meslo LG M for Powerline",
+    // fontFamily: "Meslo LG M for Powerline",
+    fontFamily: "Menlo, Monaco, 'Courier New', monospace",
     theme: {
         foreground: "#ECECEC",
         background: "#000000",

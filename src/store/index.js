@@ -10,6 +10,7 @@ export default createStore({
     showAddNewConnectionDrawer: false,
     showEditConnectionDrawer: false,
     hasShownError: false,
+    editConnectionInfo: {}
   },
   getters: {
     isModalVisible: (state) => state.showModal,
@@ -50,6 +51,9 @@ export default createStore({
     setShowEditConnectionDrawer(state, value) {
       state.showEditConnectionDrawer = value
     },
+    setEditConnectionInfo(state, value) {
+      state.editConnectionInfo = value
+    } 
   },
   actions: {
     login({ commit }) {

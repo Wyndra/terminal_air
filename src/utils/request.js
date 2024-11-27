@@ -32,7 +32,7 @@ serviceAxios.interceptors.request.use(
         if (!config.headers["content-type"]) { // 如果没有设置请求头
             if (config.method === 'post' || config.method === 'put') {
                 if (config.data && config.data.password && (config.url === '/auth/login' || config.url === '/auth/register')) {
-                    // 对密码进行 md5 加密
+                    // 对有密码字段的请求进行 md5 加密
                     config.data.password = md5(config.data.password);
                 }
                 config.headers["content-type"] = "application/json"; // 默认类型
@@ -43,9 +43,10 @@ serviceAxios.interceptors.request.use(
         return config;
     },
     (error) => {
+        
         console.log("请求错误", error);
         handleGlobalError("请求错误");
-        return Promise.reject(error);
+        // return Promise.reject(error);
     }
 );
 

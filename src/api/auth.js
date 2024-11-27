@@ -16,7 +16,7 @@ export const register = (data) => {
 
 export const getUserInfo = () => {
     return serviceAxios({
-        url: "/auth/getUserInfo",
+        url: "/auth/getProfile",
         method: "get",
     });
 }

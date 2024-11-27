@@ -5687,6 +5687,11 @@
     "media-typer" "0.3.0"
     "mime-types" "~2.1.24"
 
+"typed.js@^2.1.0":
+  "integrity" "sha512-bDuXEf7YcaKN4g08NMTUM6G90XU25CK3bh6U0THC/Mod/QPKlEt9g/EjvbYB8x2Qwr2p6J6I3NrsoYaVnY6wsQ=="
+  "resolved" "https://registry.npmmirror.com/typed.js/-/typed.js-2.1.0.tgz"
+  "version" "2.1.0"
+
 "undici-types@~6.13.0":
   "integrity" "sha512-xtFJHudx8S2DSoujjMd1WeWvn7KKWFRESZTMeL1RptAYERu29D6jphMjjY+vn96jvN3kVPDNxU/E13VTaXj6jg=="
   "resolved" "https://registry.npmmirror.com/undici-types/-/undici-types-6.13.0.tgz"

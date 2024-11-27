@@ -8,10 +8,15 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/userinfo',
-    name: 'userinfo',
-    component: () => import('../views/UserInfoView.vue'),
+    path: '/profile',
+    name: 'profile',
+    component: () => import('../views/ProfileView.vue'),
   },
+  {
+    path: '/privacy-policy',
+    name: 'privacy-policy',
+    component: () => import('../views/PrivacyPolicyView.vue'),
+  }
 ]
 
 const router = createRouter({
