@@ -3,7 +3,7 @@
     :line-height="20" :width="384" :height="384" :x-offset="12" :y-offset="60" :rotate="-15" />
   <n-layout style="height: 100vh; position: relative;">
     <n-layout-header class="header" bordered>
-      <div style="display: flex; height: 100%;">
+      <div style="display: flex; height: 100%;align-items: center">
         <span>Terminal Air</span>
         <div style="flex: 1;"></div>
         <div style="height: 100%; display: flex; align-items: center">

@@ -3,7 +3,7 @@
         :line-height="20" :width="384" :height="384" :x-offset="12" :y-offset="60" :rotate="-15" />
     <n-layout style="height: 100vh; position: relative;">
         <n-layout-header class="header" bordered>
-            <div style="display: flex; height: 100%;">
+            <div style="display: flex; height: 100%;align-items: center">
                 <span>Terminal Air</span>
                 <div style="flex: 1;"></div>
                 <div style="height: 100%; display: flex; align-items: center">
@@ -38,13 +38,8 @@
                         <n-tabs type="line" animated>
                             <n-tab-pane name="个人信息">
                                 <!-- 个人信息表单 -->
-                                 <n-form
-                                    :model="userInfo"
-                                    label-placement="left"
-                                    label-width="100px"
-                                    :rules="rules"
-                                    ref="userInfoForm"
-                                >
+                                <n-form :model="userInfo" label-placement="left" label-width="100px" :rules="rules"
+                                    ref="userInfoForm">
                                     <n-form-item label="用户名" required>
                                         <n-input v-model="userInfo.username" />
                                     </n-form-item>
