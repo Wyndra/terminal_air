@@ -108,7 +108,6 @@ const clearConnectInfoForm = () => {
 
 const asyncAddConnect = async (data) => {
     const res = await add(data);
-    console.log("添加连接响应:", res);
     if (res.status === '200') {
         message.success('连接添加成功');
         emit('refresh_connection_list'); // 通知父组件刷新列表

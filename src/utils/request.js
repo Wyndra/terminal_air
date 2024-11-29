@@ -11,10 +11,7 @@ const serviceAxios = axios.create({
 
 // 全局错误处理函数
 function handleGlobalError(message) {
-    // 这里可以添加全局错误处理逻辑，比如使用 UI 库展示错误提示
-    // console.error("全局错误处理:", message);
     console.log("全局错误处理:", message);
-    // alert(message); // 这是一个简单的示例，你可以用更复杂的 UI 提示代替
 }
 
 // 创建请求拦截

@@ -64,8 +64,7 @@ const initSocket = () => {
     socket = new WebSocket(socketURI);
 
     socket.onopen = () => {
-        console.log("WebSocket connection established");
-
+        // console.log("WebSocket connection established");
         if (!isFirstConnection.value) {
             sendToggleConnect(); // 只有在不是第一次连接时才发送连接命令
         } else {
@@ -76,11 +75,11 @@ const initSocket = () => {
     socket.onmessage = (event) => {
         terminal.write(event.data);
         terminal.scrollToBottom();
-        console.log(event.data);
+        // console.log(event.data);
     };
 
     socket.onclose = () => {
-        console.log("WebSocket connection closed");
+        // console.log("WebSocket connection closed");
         setTimeout(() => {
             reconnect();
         }, 1000);
@@ -118,7 +117,7 @@ const reconnect = () => {
 
 onMounted(() => {
     if (!token) {
-        console.error("Token is empty");
+        // console.error("Token is empty");
         return;
     }
     initSocket();

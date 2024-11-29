@@ -112,7 +112,6 @@ const clearConnectInfoForm = () => {
 const loadConnectionInfo = () => {
     nextTick(() => {
         const connectionInfo = store.state.editConnectionInfo;
-        console.log('加载的连接信息:', connectionInfo); // 检查数据是否正确
         connectInfoForm.value = {
             name: connectionInfo.connectName || '',
             host: connectionInfo.connectHost || '',
@@ -135,7 +134,6 @@ onMounted(() => {
 
 const asyncEditConnect = async (data) => {
     const res = await edit(data);
-    console.log("编辑连接响应:", res);
     if (res.status === '200') {
         message.success('连接修改成功');
         emit('refresh_connection_list'); // 通知父组件刷新列表

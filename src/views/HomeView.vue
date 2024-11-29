@@ -142,8 +142,7 @@ const startTypingEffect = () => {
     typeSpeed: 100, // 每个字符的打字速度
     backSpeed: 50, // 删除字符的速度
     backDelay: 1000, // 删除字符的延迟时间
-    showCursor: true, // 显示光标
-    cursorChar: "|", // 设置光标的字符
+    showCursor: false, // 显示光标
     loop: false, // 不重复打字
   };
 
@@ -305,6 +304,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   cursor: pointer;
+
   span {
     font-size: 16px;
     font-weight: normal;

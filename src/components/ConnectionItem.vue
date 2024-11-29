@@ -27,7 +27,7 @@
     </div>
 </template>
 <script setup>
-import { defineEmits, onMounted, ref, defineProps } from 'vue';
+import { defineEmits, ref, defineProps } from 'vue';
 import { del } from '@/api/connect';
 import { useStore } from 'vuex';
 import { useMessage,useDialog } from 'naive-ui';
@@ -104,11 +104,6 @@ const props = defineProps({
 });
 
 const connectInfoValue = ref(props.connectInfoValue);
-
-
-onMounted(() => {
-    console.log("[ConnectionItem]",props.connectInfoValue);
-});
 
 </script>
 <style scoped>
