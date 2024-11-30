@@ -10,4 +10,5 @@ public class UserProfileVO {
     private String username;
     private String email;
     private String nickname;
+    private String salt;
 }

@@ -18,6 +18,8 @@ public interface AuthService {
 
     String getSaltByUsername(String username);
 
+    boolean verifyUserPassword(String token, String password);
+
     boolean updatePassword(String username, String oldPassword, String newPassword);
 
 

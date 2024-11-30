@@ -11,6 +11,7 @@ import top.srcandy.candyterminal.bean.dto.UserInfoDTO;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.LoginRequest;
 import top.srcandy.candyterminal.request.RegisterRequest;
+import top.srcandy.candyterminal.request.VerifyUserPasswordRequest;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
@@ -36,6 +37,16 @@ public class AuthController {
     @GetMapping("/getProfile")
     public ResponseResult<UserProfileVO> getUserInfo(@RequestHeader("Authorization") String token) {
         return authService.getUserProfile(token.substring(7));
+    }
+
+    @GetMapping("/getSalt")
+    public ResponseResult<String> getSaltByUsername(@RequestHeader("Authorization") String token) {
+        return ResponseResult.success(authService.getSaltByUsername(JWTUtil.getTokenClaimMap(token.substring(7)).get("username").asString()));
+    }
+
+    @PostMapping("/verifyUserPassword")
+    public ResponseResult<Boolean> verifyUserPassword(@RequestHeader("Authorization") String token, VerifyUserPasswordRequest request) {
+        return ResponseResult.success(authService.verifyUserPassword(token.substring(7), request.getPassword()));
     }
 //
 //        @GetMapping("/updatePassword")

@@ -10,6 +10,8 @@ import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
+import java.util.Base64;
+
 @Service
 @Slf4j
 public class AuthServiceImpl implements AuthService {
@@ -43,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
         loginDTO.setUsername(user.getUsername());
         loginDTO.setPassword(user.getPassword());
         // TODO: 自动生成salt（key）
+        loginDTO.setSalt(Base64.getEncoder().encodeToString(user.getPassword().getBytes()));
         int rows = userDao.insert(loginDTO);
         if (rows == 0) {
             return ResponseResult.fail(null, "注册失败");
@@ -59,7 +62,7 @@ public class AuthServiceImpl implements AuthService {
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
-        UserProfileVO userProfileVO = UserProfileVO.builder().username(user.getUsername()).email(user.getEmail()).nickname(user.getNickname()).build();
+        UserProfileVO userProfileVO = UserProfileVO.builder().uid(user.getUid()).username(user.getUsername()).email(user.getEmail()).nickname(user.getNickname()).salt(user.getSalt()).build();
         return ResponseResult.success(userProfileVO);
     }
 
@@ -76,6 +79,16 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String getSaltByUsername(String username) {
         return userDao.selectByUserName(username).getSalt();
+    }
+
+    @Override
+    public boolean verifyUserPassword(String token, String password) {
+        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
+        User user = getUserByUsername(username);
+        if (user == null) {
+            return false;
+        }
+        return user.getPassword().equals(password);
     }
 
     @Override

@@ -10,6 +10,6 @@
         select * from User where username = #{username}
     </select>
     <insert id="insert" parameterType="top.srcandy.candyterminal.bean.dto.LoginDTO">
-        insert into User (username, password) values (#{username}, #{password})
+        insert into User (username, password,salt) values (#{username}, #{password}, #{salt})
     </insert>
 </mapper>

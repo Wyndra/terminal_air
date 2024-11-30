@@ -7,6 +7,7 @@ import top.srcandy.candyterminal.request.UpdateConnectRequest;
 @Mapper(componentModel = "spring")
 public interface ConnectConverter {
 
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "cid", source = "cid")
     @Mapping(target = "connectHost", source = "host")
@@ -16,4 +17,5 @@ public interface ConnectConverter {
     @Mapping(target = "connectName", source = "name")
     @Mapping(target = "connectMethod", source = "method")
     void updateConnectRequestToConnectInfo(UpdateConnectRequest request, @MappingTarget ConnectInfo connectInfo);
+
 }
