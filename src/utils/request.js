@@ -22,13 +22,13 @@ serviceAxios.interceptors.request.use(
             const token = localStorage.getItem("token");
             if (token) {
                 config.headers["Authorization"] = "Bearer " + token; // 请求头携带 token
-                console.log("附加 token 到请求头:", config.headers["Authorization"]); // 调试信息
+                // console.log("附加 token 到请求头:", config.headers["Authorization"]); // 调试信息
             }
         }
         // 设置请求头
         if (!config.headers["content-type"]) { // 如果没有设置请求头
             if (config.method === 'post' || config.method === 'put') {
-                if (config.data && config.data.password && (config.url === '/auth/login' || config.url === '/auth/register')) {
+                if (config.data && config.data.password && (config.url === '/auth/login' || config.url === '/auth/register' || config.url === '/auth/verifyUserPassword')) {
                     // 对有密码字段的请求进行 md5 加密
                     config.data.password = md5(config.data.password);
                 }
@@ -36,12 +36,12 @@ serviceAxios.interceptors.request.use(
                 config.data = JSON.stringify(config.data); // 序列化,比如表单数据
             }
         }
-        console.log("请求配置", config);
+        // console.log("请求配置", config);
         return config;
     },
     (error) => {
         
-        console.log("请求错误", error);
+        // console.log("请求错误", error);
         handleGlobalError("请求错误");
         // return Promise.reject(error);
     }

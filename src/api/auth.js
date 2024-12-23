@@ -14,6 +14,14 @@ export const register = (data) => {
     });
 }
 
+export const verifyUserPassword = (data) => {
+    return serviceAxios({
+        url: "/auth/verifyUserPassword",
+        method: "post",
+        data,
+    });
+}
+
 export const getUserInfo = () => {
     return serviceAxios({
         url: "/auth/getProfile",

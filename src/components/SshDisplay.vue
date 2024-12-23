@@ -9,13 +9,14 @@ import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { useStore } from "vuex";
 import serverConfig from "@/utils/config";
+import { useMessage } from "naive-ui";
 
 const token = localStorage.getItem("token") || "";
 
-// 生产环境
-const socketURI = serverConfig.wsURL + "?token=" + token;
-
 const store = useStore();
+const { createMessage } = useMessage();
+
+const socketURI = store.state.usingLocalhostWs ? serverConfig.wsLocalhostURL + "?token=" + token : serverConfig.wsURL + "?token=" + token;
 
 const connectionInfo = ref({
     connectHost: store.state.host,
@@ -78,6 +79,13 @@ const initSocket = () => {
         // console.log(event.data);
     };
 
+    socket.onerror = (error) => {
+        if (error.type === "error") {
+            createMessage.error("WebSocket connection error");
+        }
+        console.error("WebSocket error: " + error);
+    };
+
     socket.onclose = () => {
         // console.log("WebSocket connection closed");
         setTimeout(() => {
@@ -117,7 +125,7 @@ const reconnect = () => {
 
 onMounted(() => {
     if (!token) {
-        // console.error("Token is empty");
+        console.error("Token is empty");
         return;
     }
     initSocket();

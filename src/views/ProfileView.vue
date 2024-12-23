@@ -1,24 +1,30 @@
 <template>
-    <n-watermark v-if="watermark_show" :content="userInfo.username || ''" cross fullscreen :font-size="20"
-        :line-height="20" :width="384" :height="384" :x-offset="12" :y-offset="60" :rotate="-15" />
     <n-layout style="height: 100vh; position: relative;">
+        <!-- Header -->
         <n-layout-header class="header" bordered>
-            <div style="display: flex; height: 100%;align-items: center">
+            <div style="display: flex; height: 100%; align-items: center">
                 <span>Terminal Air</span>
                 <div style="flex: 1;"></div>
                 <div style="height: 100%; display: flex; align-items: center">
+                    <!-- 登录按钮显示 -->
                     <n-button v-if="!InLogin" style="margin-right: 24px;" @click="openLoginModal">
                         登录
                     </n-button>
-                    <n-popover v-else trigger="hover">
+
+                    <!-- 登录后显示个人信息 -->
+                    <n-popover v-else trigger="hover" v-if="!isLoading">
                         <template #trigger>
-                            <n-avatar style="margin-right: 24px;" round size="large"
-                                src="https://s2.loli.net/2024/08/07/1wVfdgByjev7IP6.jpg" />
+                            <div class="username_avatar" v-if="userInfo && userInfo.username">
+                                <n-avatar id="user-avatar" round size="large"
+                                    src="https://s2.loli.net/2024/08/07/1wVfdgByjev7IP6.jpg" />
+                                <span v-if="userInfo.username"
+                                    style="margin-right: 24px; margin-left: 10px !important;">
+                                    {{ userInfo.username }}
+                                </span>
+                            </div>
                         </template>
                         <template #header>
-                            <n-text @click="gotoUserInfo()" depth="1">
-                                个人中心
-                            </n-text>
+                            <n-text @click="gotoHomeView()" depth="1">返回首页</n-text>
                         </template>
                         <template #footer>
                             <span @click="logout">退出登录</span>
@@ -27,39 +33,72 @@
                 </div>
             </div>
         </n-layout-header>
-        <!-- 主区域 -->
+
+        <!-- Main Content -->
         <n-layout class="main-content">
-            <!-- 侧边 -->
-            <n-layout has-sider style="height: 100%;">
-                <!-- 主内容 -->
+            <!-- Side and Content -->
+            <n-layout style="height: 100%;">
                 <n-layout-content
                     content-style="padding: 0px; padding-left: 24px; padding-right: 12px; padding-top: 12px;padding-bottom: 12px;height: 100%; overflow: hidden;">
-                    <n-card title="基本信息">
+                    <n-card title="基本信息" style="width: 50%;">
                         <n-tabs type="line" animated>
                             <n-tab-pane name="个人信息">
                                 <!-- 个人信息表单 -->
-                                <n-form :model="userInfo" label-placement="left" label-width="100px" :rules="rules"
-                                    ref="userInfoForm">
-                                    <n-form-item label="用户名" required>
-                                        <n-input v-model="userInfo.username" />
+                                <n-form :model="userInfoForm" label-placement="left" label-width="100px"
+                                    :rules="userInfoRules" ref="userInfoForm">
+                                    <n-form-item label="用户名" required path="username">
+                                        <n-input v-model:value="userInfoForm.username" disabled />
                                     </n-form-item>
-                                    <n-form-item label="邮箱" required>
-                                        <n-input v-model="userInfo.email" />
+                                    <n-form-item label="昵称" required path="nickname">
+                                        <n-input v-model:value="userInfoForm.nickname" />
                                     </n-form-item>
-                                    <n-form-item label="手机号" required>
-                                        <n-input v-model="userInfo.phone" />
-                                    </n-form-item>
-                                    <n-form-item>
-                                        <n-button type="primary" @click="submitUserInfoForm">保存</n-button>
+                                    <n-form-item label="邮箱" required path="email">
+                                        <n-input v-model:value="userInfoForm.email" />
                                     </n-form-item>
                                 </n-form>
                             </n-tab-pane>
+
+                            <!-- 安全设置 -->
                             <n-tab-pane name="安全设置">
-                                <n-space direction="vertical">
-                                    <n-text>密码：********</n-text>
-                                    <n-text>密保问题：********</n-text>
-                                </n-space>
+                                <n-form :model="safeSettingForm" label-placement="left" label-width="100px"
+                                    :rules="safeSettingRules" ref="safetySettingForm">
+                                    <n-form-item label="本地服务">
+                                        <div
+                                            style="display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;">
+                                            <n-switch v-model:value="store.state.usingLocalhostWs" />
+                                            <span style="font-size: 12px; color: #999; margin-top: 4px;">
+                                                使用本地 WebSocket 服务，更安全，最放心。详情请查看我们的
+                                                <a href="/user-manual" target="_blank"
+                                                    style="color: #007bff; text-decoration: none;">《使用手册》</a>。
+                                            </span>
+                                        </div>
+                                    </n-form-item>
+                                    <n-form-item label="加密密钥" required path="salt">
+                                        <div
+                                            style="display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;width: 56%;">
+                                            <n-input type="password" show-password-on="mousedown"
+                                                v-model:value="safeSettingForm.salt" :disabled="!saltLockStatus" />
+                                            <span style="font-size: 12px; color: #999; margin-top: 4px;">
+                                                您的连接密码将通过该密钥进行加密，请务必妥善保管。
+                                            </span>
+                                        </div>
+                                    </n-form-item>
+                                    <!-- 锁定按钮 -->
+                                    <div style="display: flex; justify-content: center; width: 100%;">
+                                        <n-button style="font-size: 18px;" size="large" text
+                                            @click="handleLockByPassword">
+                                            <n-icon v-if="!saltLockStatus">
+                                                <LockClosed />
+                                            </n-icon>
+                                            <n-icon v-else>
+                                                <LockOpen />
+                                            </n-icon>
+                                        </n-button>
+                                    </div>
+                                </n-form>
                             </n-tab-pane>
+
+                            <!-- 其他设置 -->
                             <n-tab-pane name="其他设置">
                                 <n-space direction="vertical">
                                     <n-text>其他设置</n-text>
@@ -67,20 +106,20 @@
                             </n-tab-pane>
                         </n-tabs>
                     </n-card>
-
                 </n-layout-content>
             </n-layout>
         </n-layout>
 
-        <!-- 底部 -->
+        <!-- Footer -->
         <n-layout-footer class="footer" bordered>
             <div>
                 <span>© 2024 Terminal Air</span>
             </div>
         </n-layout-footer>
 
-        <!-- 连接面板 -->
-        <AddNewConnectionDrawer />
+        <!-- 加密密钥弹出框 -->
+        <UseLockByPasswordModal v-model:show="showLockByPasswordModal"
+            @unlockByPasswordEvent="handleVerifyUserPasswordResult" />
 
         <!-- 登录/注册模态框 -->
         <n-modal v-model:show="showLoginOrRegisterModal">
@@ -88,68 +127,50 @@
         </n-modal>
     </n-layout>
 </template>
+
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
-import { useRouter } from 'vue-router';
-
 import { getUserInfo } from '@/api/auth';
-import { list } from '@/api/connect';
+import { LockClosed, LockOpen } from '@vicons/ionicons5'
 
-import ConnectionNewItemButton from '@/components/ConnectionNewItemButton.vue';
-import ConnectionItem from '@/components/ConnectionItem.vue';
-import AddNewConnectionDrawer from '@/components/AddNewConnectionDrawer.vue';
-import SshDisplay from '@/components/SshDisplay.vue';
 import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
+import UseLockByPasswordModal from '@/components/UseLockByPasswordModal.vue';
 
 const store = useStore();
 const message = useMessage();
 
-const router = useRouter();
-
 const showLoginOrRegisterModal = ref(false);
-const connect_list = ref([]);
-const userInfo = ref({});
-const watermark_show = ref(false);
+const userInfo = ref({
+    username: '',
+    nickname: '',
+    email: ''
+});
+const userInfoForm = ref({
+    username: '',
+    nickname: '',
+    email: ''
+});
+const safeSettingForm = ref({
+    salt: ''
+});
+const saltLockStatus = ref(false);
+const showLockByPasswordModal = ref(false);
+
 const InLogin = ref(!!localStorage.getItem('token'));
-
-// 定义 current_connect
-const current_connect = ref({});
-
-// 获取 Vuex 中是否已经显示过错误
 const hasShownError = ref(store.getters.hasShownError);
+const isLoading = ref(true);  // 添加一个加载状态
 
-// 获取连接列表
-async function fetchConnectionList() {
-    try {
-        const res = await list();
-        if (res.status === '200') {
-            connect_list.value = res.data;
-        } else {
-            // 只在还未显示错误的情况下弹出错误
-            if (!hasShownError.value) {
-                message.error(res.message || '获取连接列表失败');
-                store.commit('setHasShownError', true); // 更新 Vuex 状态，标记已显示错误
-                hasShownError.value = true; // 本地更新，避免重复弹出
-            }
-        }
-    } catch (error) {
-        // 只在还未显示错误的情况下弹出错误
-        if (!hasShownError.value) {
-            message.error('请求连接列表时出错');
-            store.commit('setHasShownError', true);
-            hasShownError.value = true;
-        }
-    }
-}
-
-// 获取用户信息
 async function fetchUserInfo() {
     try {
         const res = await getUserInfo();
         if (res.status === '200') {
             userInfo.value = res.data;
+            userInfoForm.value = res.data;
+            safeSettingForm.value = {
+                salt: res.data.salt || ''
+            };
         } else {
             if (!hasShownError.value) {
                 message.error(res.message || '获取用户信息失败');
@@ -163,50 +184,51 @@ async function fetchUserInfo() {
             store.commit('setHasShownError', true);
             hasShownError.value = true;
         }
+    } finally {
+        isLoading.value = false;  // 完成加载
     }
 }
 
-// 打开登录模态框
-const openLoginModal = () => {
-    showLoginOrRegisterModal.value = true;
+const handleVerifyUserPasswordResult = (isUnlocked) => {
+    if (isUnlocked) {
+        // 解锁成功，并关闭弹窗
+        saltLockStatus.value = true;
+        showLockByPasswordModal.value = false;
+    } else {
+        saltLockStatus.value = false;  // 解锁失败，继续显示弹窗
+    }
 };
 
-// 退出登录
+const handleLockByPassword = () => {
+    if (saltLockStatus.value) {
+        saltLockStatus.value = false;
+    } else {
+        showLockByPasswordModal.value = true;
+    }
+};
+
+const changeSaltPassword = () => {
+    saltLockStatus.value = true;
+};
+
 const logout = () => {
     localStorage.removeItem('token');
     InLogin.value = false;
-    location.reload();  // 刷新页面
+    location.reload();
 };
 
-const gotoUserInfo = () => {
-    console.log('gotoUserInfo');
-    router.push('/userinfo');
-};
-
-// 新建连接
-const handleNewConnection = () => {
-    store.state.showAddNewConnectionDrawer = true;
-};
-
-// 切换连接
-const handleTaggleConnection = (connectInfo) => {
-    current_connect.value = connectInfo; // 使用响应式的 current_connect
-    store.state.host = connectInfo.value.connectHost;
-    store.state.port = connectInfo.value.connectPort;
-    store.state.username = connectInfo.value.connectUsername;
-    store.state.password = connectInfo.value.connectPwd;
+const gotoHomeView = () => {
+    location.href = '/';
 };
 
 onMounted(() => {
-    fetchConnectionList();
-    fetchUserInfo();
+    if (InLogin.value) {
+        fetchUserInfo();
+    }
 });
 </script>
+
 <style scoped lang="less">
-.n-card {
-    margin-bottom: 12px;
-    max-width: 800px;
-}
 .header {
     position: fixed;
     top: 0;
@@ -229,26 +251,23 @@ onMounted(() => {
     bottom: 0;
     left: 0;
     right: 0;
+    z-index: 10;
     text-align: center;
-    height: 40px;
+    background-color: #f8f8f8;
+    padding: 10px 0;
+}
 
-    div {
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+.username_avatar {
+    display: flex;
+    align-items: center;
+}
 
-        span {
-            font-size: 14px;
-            font-family: ui-sans-serif, -apple-system, system-ui;
-        }
-    }
+.username_avatar span {
+    font-size: 16px;
+    color: #333;
 }
 
 .main-content {
-    margin-top: 60px;
-    margin-bottom: 40px;
-    height: calc(100vh - 100px);
-    overflow: hidden;
+    padding-top: 64px;
 }
 </style>

@@ -10,6 +10,7 @@ export default createStore({
     showAddNewConnectionDrawer: false,
     showEditConnectionDrawer: false,
     hasShownError: false,
+    usingLocalhostWs: false,
     editConnectionInfo: {}
   },
   getters: {
