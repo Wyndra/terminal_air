@@ -5,7 +5,7 @@
             <n-form-item label="密码" required path="password">
                 <!-- 使用标准的 v-model 来绑定 PasswordForm.password -->
                 <n-input v-model:value="passwordForm.password" placeholder="请输入密码" type="password"
-                    show-password-on="mousedown" style="width: 100%;" />
+                    show-password-on="mousedown" style="width: 100%;" :class="{ shake: isShaking }" />
             </n-form-item>
             <n-button type="primary" style="width: 100%;" @click="handleUnlockByPassword">
                 解锁
@@ -27,6 +27,7 @@ const emit = defineEmits(["unlockByPasswordEvent"]);
 const passwordForm = ref({
     password: ''  // 绑定的密码字段
 });
+const isShaking = ref(false);
 
 // 发送请求验证密码
 async function verifyPassword(data) {
@@ -53,6 +54,11 @@ const handleUnlockByPassword = async () => {  // 注意加上 async
     } else {
         emit('unlockByPasswordEvent', false);  // 密码验证失败，发出解锁失败事件
         passwordForm.value = { password: '' };  // 清空密码
+        // 触发抖动效果
+        isShaking.value = true;
+        setTimeout(() => {
+            isShaking.value = false;
+        }, 500);
     }
 };
 
@@ -63,3 +69,17 @@ const formRules = {
     ]
 };
 </script>
+
+<style scoped>
+.shake {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+</style>

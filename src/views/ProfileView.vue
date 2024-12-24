@@ -44,16 +44,16 @@
                         <n-tabs type="line" animated>
                             <n-tab-pane name="个人信息">
                                 <!-- 个人信息表单 -->
-                                <n-form :model="userInfoForm" label-placement="left" label-width="100px"
+                                <n-form :model="userInfo" label-placement="left" label-width="100px"
                                     :rules="userInfoRules" ref="userInfoForm">
                                     <n-form-item label="用户名" required path="username">
-                                        <n-input v-model:value="userInfoForm.username" disabled />
+                                        <n-input v-model:value="userInfo.username" disabled />
                                     </n-form-item>
                                     <n-form-item label="昵称" required path="nickname">
-                                        <n-input v-model:value="userInfoForm.nickname" />
+                                        <n-input v-model:value="userInfo.nickname" />
                                     </n-form-item>
                                     <n-form-item label="邮箱" required path="email">
-                                        <n-input v-model:value="userInfoForm.email" />
+                                        <n-input v-model:value="userInfo.email" />
                                     </n-form-item>
                                 </n-form>
                             </n-tab-pane>
@@ -65,7 +65,8 @@
                                     <n-form-item label="本地服务">
                                         <div
                                             style="display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;">
-                                            <n-switch v-model:value="store.state.usingLocalhostWs" />
+                                            <n-switch v-model:value="store.state.usingLocalhostWs"
+                                                :disabled="!saltLockStatus" />
                                             <span style="font-size: 12px; color: #999; margin-top: 4px;">
                                                 使用本地 WebSocket 服务，更安全，最放心。详情请查看我们的
                                                 <a href="/user-manual" target="_blank"
@@ -77,7 +78,8 @@
                                         <div
                                             style="display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;width: 56%;">
                                             <n-input type="password" show-password-on="mousedown"
-                                                v-model:value="safeSettingForm.salt" :disabled="!saltLockStatus" />
+                                                v-model:value="displayedSalt" :disabled="!saltLockStatus"
+                                                @focus="handleSaltInputFocus" />
                                             <span style="font-size: 12px; color: #999; margin-top: 4px;">
                                                 您的连接密码将通过该密钥进行加密，请务必妥善保管。
                                             </span>
@@ -129,7 +131,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
 import { getUserInfo } from '@/api/auth';
@@ -147,27 +149,36 @@ const userInfo = ref({
     nickname: '',
     email: ''
 });
-const userInfoForm = ref({
-    username: '',
-    nickname: '',
-    email: ''
-});
 const safeSettingForm = ref({
     salt: ''
 });
 const saltLockStatus = ref(false);
 const showLockByPasswordModal = ref(false);
+const isShaking = ref(false);
 
 const InLogin = ref(!!localStorage.getItem('token'));
 const hasShownError = ref(store.getters.hasShownError);
 const isLoading = ref(true);  // 添加一个加载状态
+
+const displayedSalt = computed({
+    get: () => {
+        if (!saltLockStatus.value) {
+            return '*'.repeat(safeSettingForm.value.salt?.length || 0);
+        }
+        return safeSettingForm.value.salt;
+    },
+    set: (val) => {
+        if (saltLockStatus.value) {
+            safeSettingForm.value.salt = val;
+        }
+    }
+});
 
 async function fetchUserInfo() {
     try {
         const res = await getUserInfo();
         if (res.status === '200') {
             userInfo.value = res.data;
-            userInfoForm.value = res.data;
             safeSettingForm.value = {
                 salt: res.data.salt || ''
             };
@@ -189,6 +200,8 @@ async function fetchUserInfo() {
     }
 }
 
+
+
 const handleVerifyUserPasswordResult = (isUnlocked) => {
     if (isUnlocked) {
         // 解锁成功，并关闭弹窗
@@ -204,6 +217,23 @@ const handleLockByPassword = () => {
         saltLockStatus.value = false;
     } else {
         showLockByPasswordModal.value = true;
+    }
+    // 添加抖动效果
+    isShaking.value = true;
+    setTimeout(() => {
+        isShaking.value = false;
+    }, 500);
+};
+
+// 当加密密钥输入框获得焦点时提示用户解锁
+const handleSaltInputFocus = () => {
+    if (!saltLockStatus.value) {
+        message.info('请先点击左侧的锁图标解锁');
+        // 触发抖动效果
+        isShaking.value = true;
+        setTimeout(() => {
+            isShaking.value = false;
+        }, 500);
     }
 };
 
@@ -269,5 +299,17 @@ onMounted(() => {
 
 .main-content {
     padding-top: 64px;
+}
+
+.shake {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
 }
 </style>
