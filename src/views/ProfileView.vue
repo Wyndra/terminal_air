@@ -52,8 +52,16 @@
                                     <n-form-item label="昵称" required path="nickname">
                                         <n-input v-model:value="userInfo.nickname" />
                                     </n-form-item>
+                                    <n-form-item label="手机号码" required path="phone">
+                                        <n-input v-model:value="userInfo.phone" />
+                                    </n-form-item>
                                     <n-form-item label="邮箱" required path="email">
                                         <n-input v-model:value="userInfo.email" />
+                                    </n-form-item>
+                                    <n-form-item style="display: flex; justify-content: center;">
+                                        <div>
+                                            <n-button type="primary" @click="handleSubmit">提交</n-button>
+                                        </div>
                                     </n-form-item>
                                 </n-form>
                             </n-tab-pane>
@@ -134,7 +142,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
-import { getUserInfo } from '@/api/auth';
+import { getUserInfo, updateUserInfo } from '@/api/auth';
 import { LockClosed, LockOpen } from '@vicons/ionicons5'
 
 import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
@@ -147,6 +155,7 @@ const showLoginOrRegisterModal = ref(false);
 const userInfo = ref({
     username: '',
     nickname: '',
+    phone: '',
     email: ''
 });
 const safeSettingForm = ref({
@@ -174,6 +183,32 @@ const displayedSalt = computed({
     }
 });
 
+const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+const userInfoRules = {
+    username: [
+        { required: true, message: '用户名不能为空', trigger: ['input', 'blur'] }
+    ],
+    nickname: [
+        { required: true, message: '昵称不能为空', trigger: ['input', 'blur'] },
+        { min: 2, max: 20, message: '昵称长度在 2 到 20 个字符', trigger: ['input', 'blur'] }
+    ],
+    phone: [
+        { required: true, message: '手机号码不能为空', trigger: ['input', 'blur'] },
+        { pattern: /^[1][3-9][0-9]{9}$/, message: '请输入有效的手机号码', trigger: ['input', 'blur'] }
+    ],
+    email: [
+        { required: true, message: '邮箱不能为空', trigger: ['input', 'blur'] },
+        { pattern: emailPattern, message: '请输入有效的邮箱地址', trigger: ['input', 'blur'] }
+    ]
+};
+
+const safeSettingRules = {
+    salt: [
+        { required: true, message: '加密密钥不能为空', trigger: ['input', 'blur'] }
+    ]
+};
+
 async function fetchUserInfo() {
     try {
         const res = await getUserInfo();
@@ -200,7 +235,18 @@ async function fetchUserInfo() {
     }
 }
 
-
+const handleSubmit = async () => {
+    try {
+        const res = await updateUserInfo(userInfo.value);
+        if (res.status === '200') {
+            message.success('更新成功');
+        } else {
+            message.error(res.message || '更新失败');
+        }
+    } catch (error) {
+        message.error('更新时出错');
+    }
+};
 
 const handleVerifyUserPasswordResult = (isUnlocked) => {
     if (isUnlocked) {

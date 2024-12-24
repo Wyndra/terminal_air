@@ -28,3 +28,11 @@ export const getUserInfo = () => {
         method: "get",
     });
 }
+
+export const updateUserInfo = (data) => {
+    return serviceAxios({
+        url: "/auth/updateProfile",
+        method: "post",
+        data,
+    });
+}
