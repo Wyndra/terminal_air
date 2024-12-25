@@ -16,7 +16,7 @@
                         <template #trigger>
                             <div class="username_avatar" v-if="userInfo && userInfo.username">
                                 <n-avatar id="user-avatar" round size="large"
-                                    src="https://s2.loli.net/2024/08/07/1wVfdgByjev7IP6.jpg" />
+                                    :src="userInfo.avatar || 'https://s2.loli.net/2024/08/07/1wVfdgByjev7IP6.jpg'" />
                                 <span v-if="userInfo.username"
                                     style="margin-right: 24px; margin-left: 10px !important;">
                                     {{ userInfo.username }}
@@ -46,6 +46,17 @@
                                 <!-- 个人信息表单 -->
                                 <n-form :model="userInfo" label-placement="left" label-width="100px"
                                     :rules="userInfoRules" ref="userInfoForm">
+                                    <n-form-item label="头像">
+                                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                                            <n-avatar round size="large"
+                                                :src="userInfo.avatar || 'https://s2.loli.net/2024/08/07/1wVfdgByjev7IP6.jpg'" />
+                                            <n-upload :action="uploadUrl" :max-size="2097152" accept="image/*"
+                                                @before-upload="handleBeforeUpload" @finish="handleUploadFinish"
+                                                @error="handleUploadError" :custom-request="customUpload">
+                                                <n-button>更换头像</n-button>
+                                            </n-upload>
+                                        </div>
+                                    </n-form-item>
                                     <n-form-item label="用户名" required path="username">
                                         <n-input v-model:value="userInfo.username" disabled />
                                     </n-form-item>
@@ -58,6 +69,7 @@
                                     <n-form-item label="邮箱" required path="email">
                                         <n-input v-model:value="userInfo.email" />
                                     </n-form-item>
+
                                     <n-form-item style="display: flex; justify-content: center;">
                                         <div>
                                             <n-button type="primary" @click="handleSubmit">提交</n-button>
@@ -143,7 +155,8 @@ import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
 import { getUserInfo, updateUserInfo } from '@/api/auth';
-import { LockClosed, LockOpen } from '@vicons/ionicons5'
+import { LockClosed, LockOpen } from '@vicons/ionicons5';
+import axios from 'axios';
 
 import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
 import UseLockByPasswordModal from '@/components/UseLockByPasswordModal.vue';
@@ -156,7 +169,8 @@ const userInfo = ref({
     username: '',
     nickname: '',
     phone: '',
-    email: ''
+    email: '',
+    avatar: ''
 });
 const safeSettingForm = ref({
     salt: ''
@@ -182,6 +196,11 @@ const displayedSalt = computed({
         }
     }
 });
+
+// 打开登录模态框
+const openLoginModal = () => {
+    showLoginOrRegisterModal.value = true;
+};
 
 const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
@@ -297,6 +316,106 @@ const gotoHomeView = () => {
     location.href = '/';
 };
 
+// 上传相关配置
+const uploadUrl = 'http://static.srcandy.top/upload';
+
+// 自定义上传函数
+const customUpload = async ({ file, onProgress, onSuccess, onError }) => {
+    if (!file || !file.file) { // 添加文件存在性检查
+        message.error('未选择文件');
+        onError(new Error('未选择文件'));
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file.file, file.file.name); // 修改为 'file.file' 和 'file.file.name'
+
+    try {
+        const response = await axios.post(uploadUrl, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            },
+            onUploadProgress: (event) => {
+                if (event.lengthComputable) {
+                    const percent = Math.round((event.loaded * 100) / event.total);
+                    onProgress({ percent });
+                }
+            }
+        });
+
+        if (response.status === 200) {
+           console.log('上传成功:', response.data);
+           userInfo.value.avatar = response.data.data.url;
+        } else {
+            message.error('头像上传失败');
+            onError(new Error('头像上传失败'));
+        }
+    } catch (error) {
+        console.error('上传错误:', error);
+        message.error('头像上传失败');
+        onError(error);
+    }
+};
+
+// 上传前校验
+const handleBeforeUpload = (data) => {
+    if (data.file.file?.size > 2097152) {
+        message.error('文件大小不能超过2MB');
+        return false;
+    }
+    return true;
+};
+
+// 上传完成处理
+const handleUploadFinish = async ({ file }) => {
+    try {
+        console.log('完整的 file 对象:', file); // 新增调试信息
+
+        const response = file.response;
+        console.log('上传响应:', response); // 调试信息
+
+        if (!response) {
+            console.error('响应为空');
+            message.error('响应为空');
+            return;
+        }
+
+        if (response.status === 200) {  // 确认 status 是数字
+            // 使用 file.uid 代替 file.id
+            if (!file.uid) {
+                console.error('文件 UID 不存在');
+                message.error('文件 UID 不存在');
+                return;
+            }
+
+            // 更新头像URL
+            userInfo.value.avatar = response.data.url;
+            
+            // 更新到服务器
+            const updateRes = await updateUserInfo({
+                ...userInfo.value,
+                avatar: response.data.url
+            });
+            
+            if (updateRes.status === 200) {  // 修改为数字
+                message.success('头像更新成功');
+            } else {
+                message.error('头像更新失败');
+            }
+        } else {
+            message.error('头像上传失败');
+        }
+    } catch (error) {
+        message.error('头像处理失败: ' + error.message);
+        console.error('Upload error:', error);
+    }
+};
+
+// 上传错误处理
+const handleUploadError = () => {
+    message.error('头像上传失败');
+};
+
 onMounted(() => {
     if (InLogin.value) {
         fetchUserInfo();
@@ -335,13 +454,17 @@ onMounted(() => {
 
 .username_avatar {
     display: flex;
-    align-items: center;
+align-items: center;
+cursor: pointer;
+
+span {
+    font-size: 16px;
+    font-weight: normal;
+    font-family: ui-sans-serif, -apple-system, system-ui;
+}
 }
 
-.username_avatar span {
-    font-size: 16px;
-    color: #333;
-}
+
 
 .main-content {
     padding-top: 64px;

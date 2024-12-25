@@ -91,8 +91,8 @@ const registerRules = {
     password: [
         { required: true, message: '请输入密码', trigger: 'blur' },
         {
-            pattern: /^(?![0-9]+$)(?![a-zA-Z]+$)(?![^0-9a-zA-Z]+$)\S{8,20}$/,
-            message: '密码长度应为 8~20 位，且至少包含数字、字母、特殊字符中的两种',
+            pattern: /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^0-9a-zA-Z]).{8,20}$/,
+            message: '密码长度应为 8~20 位，且至少包含数字、字母、特殊字符各一个',
             trigger: 'blur'
         }
     ],
