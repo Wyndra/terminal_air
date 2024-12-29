@@ -1,5 +1,5 @@
 <template>
-    <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 25%;">
+    <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 30%;">
         <template #header-extra>
             <n-button text @click="closeModal">
                 <n-icon size="20">
@@ -9,7 +9,8 @@
         </template>
 
         <!-- 登录表单 -->
-        <n-form label-position="top" :model="loginForm" :rules="loginRules" v-if="currentServiceType === '登录'">
+        <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules"
+            v-if="currentServiceType === '登录' && !useCodeLogin">
             <n-form-item label="用户名" path="username">
                 <n-input v-model:value="loginForm.username" placeholder="请输入用户名" @keydown.enter.prevent />
             </n-form-item>
@@ -17,23 +18,68 @@
                 <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
                     show-password-on="mousedown" @keydown.enter.prevent />
             </n-form-item>
-            <n-text style="float: right;cursor:pointer;" @click="handleClickRegister">立即注册</n-text>
+        </n-form>
+
+        <!-- 验证码登录表单 -->
+        <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules"
+            v-if="currentServiceType === '登录' && useCodeLogin">
+            <n-form-item label="手机号" path="phone">
+                <n-input v-model:value="codeLoginForm.phone" placeholder="请输入中国大陆手机号" />
+            </n-form-item>
+            <n-form-item label="验证码" path="verificationCode">
+                <div style="display: flex; gap: 8px;">
+                    <n-input v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
+                    <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
+                        style="background-color: #319154; color: white;">
+                        {{ codeButtonText }}
+                    </n-button>
+                </div>
+            </n-form-item>
         </n-form>
 
         <!-- 注册表单 -->
-        <n-form label-position="top" :model="registerForm" :rules="registerRules" v-if="currentServiceType === '注册'">
-            <n-form-item label="用户名" path="username">
-                <n-input v-model:value="registerForm.username" placeholder="请输入用户名" />
-            </n-form-item>
-            <n-form-item label="密码" path="password">
-                <n-input v-model:value="registerForm.password" placeholder="请输入密码" type="password"
-                    show-password-on="mousedown" />
-            </n-form-item>
-            <n-form-item label="确认密码" path="repeatPassword">
-                <n-input v-model:value="registerForm.repeatPassword" placeholder="请输入确认密码" type="password"
-                    show-password-on="mousedown" />
-            </n-form-item>
+        <n-form ref="registerFormRef" label-position="top" :model="registerForm" :rules="registerRules"
+            v-if="currentServiceType === '注册'">
+            <div style="display: flex; gap: 16px;">
+                <n-form-item label="用户名" path="username" style="flex: 1;">
+                    <n-input v-model:value="registerForm.username" placeholder="请输入用户名" />
+                </n-form-item>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <n-form-item label="密码" path="password" style="flex: 1;">
+                    <n-input v-model:value="registerForm.password" placeholder="请输入密码" type="password"
+                        show-password-on="mousedown" />
+                </n-form-item>
+                <n-form-item label="确认密码" path="repeatPassword" style="flex: 1;">
+                    <n-input v-model:value="registerForm.repeatPassword" placeholder="请输入确认密码" type="password"
+                        show-password-on="mousedown" />
+                </n-form-item>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <n-form-item label="手机号" path="phone" style="flex: 1;">
+                    <n-input v-model:value="registerForm.phone" placeholder="请输入中国大陆手机号" />
+                </n-form-item>
+                <n-form-item label="验证码" path="verificationCode" style="flex: 1;">
+                    <div style="display: flex; gap: 8px;">
+                        <n-input v-model:value="registerForm.verificationCode" placeholder="请输入验证码" />
+                        <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
+                            style="background-color: #319154; color: white;">
+                            {{ codeButtonText }}
+                        </n-button>
+                    </div>
+                </n-form-item>
+            </div>
         </n-form>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 16px;"
+            v-if="currentServiceType === '登录'">
+
+            <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
+                @click="handleClickRegister">立即注册</n-text>
+            <n-text style="cursor: pointer; color:#319154; font-weight: bold;" @click="toggleLoginMethod">
+                {{ useCodeLogin ? '密码登录' : '验证码登录' }}
+            </n-text>
+        </div>
 
         <template #footer>
             <n-button type="primary" style="width: 100%;" @click="handleSubmit">{{ currentServiceType === '登录' ? '登录' :
@@ -43,9 +89,10 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, computed, defineEmits, nextTick } from 'vue';
 import { useMessage } from 'naive-ui';
-import { login, register } from '../api/auth';  // 确保你的 API 路径正确
+import { login, register, getVerificationCode, loginWithCode } from '../api/auth';  // 确保你的 API 路径正确
+import { sendVerificationCode } from '../api/sms';
 import { useStore } from 'vuex';
 import { Close } from '@vicons/ionicons5';
 
@@ -58,19 +105,39 @@ const emit = defineEmits(['close']);
 
 // 登录表单数据
 const loginForm = ref({
-    username: null,
-    password: null
+    username: '',
+    password: ''
+});
+
+// 验证码登录表单数据
+const codeLoginForm = ref({
+    phone: '',
+    verificationCode: ''
 });
 
 // 注册表单数据
 const registerForm = ref({
     username: '',
     password: '',
-    repeatPassword: ''
+    repeatPassword: '',
+    phone: '',
+    verificationCode: ''
 });
 
 // 当前服务类型（登录/注册）
 const currentServiceType = ref('登录');
+
+// 是否使用验证码登录
+const useCodeLogin = ref(false);
+
+// 表单引用
+const loginFormRef = ref(null);
+const codeLoginFormRef = ref(null);
+const registerFormRef = ref(null);
+
+// 获取验证码按钮状态
+const isCodeButtonDisabled = ref(false);
+const codeButtonText = ref('获取验证码');
 
 // 登录表单验证规则
 const loginRules = {
@@ -79,6 +146,17 @@ const loginRules = {
     ],
     password: [
         { required: true, message: '请输入密码', trigger: 'blur' }
+    ]
+};
+
+// 验证码登录表单验证规则
+const codeLoginRules = {
+    phone: [
+        { required: true, message: '请输入中国大陆手机号', trigger: 'blur' },
+        { pattern: /^[1][3-9][0-9]{9}$/, message: '请输入有效的手机号码', trigger: 'blur' }
+    ],
+    verificationCode: [
+        { required: true, message: '请输入验证码', trigger: 'blur' }
     ]
 };
 
@@ -107,6 +185,13 @@ const registerRules = {
             },
             trigger: 'blur'
         }
+    ],
+    phone: [
+        { required: true, message: '请输入中国大陆手机号', trigger: 'blur' },
+        { pattern: /^[1][3-9][0-9]{9}$/, message: '请输入有效的手机号码', trigger: 'blur' }
+    ],
+    verificationCode: [
+        { required: true, message: '请输入验证码', trigger: 'blur' }
     ]
 };
 
@@ -115,6 +200,25 @@ async function async_login() {
     const res = await login({
         username: loginForm.value.username,
         password: loginForm.value.password
+    });
+    console.log(res);
+    if (res.status === '200') {
+        localStorage.setItem('token', res.data);
+        message.success('登录成功');
+        // 重置错误显示状态
+        store.dispatch("resetHasShownError");
+        emit('close'); // 关闭模态框
+        location.reload();
+    } else {
+        message.error(res.message || '登录失败');
+    }
+}
+
+// 验证码登录提交
+async function async_loginWithCode() {
+    const res = await loginWithCode({
+        phone: codeLoginForm.value.phone,
+        verificationCode: codeLoginForm.value.verificationCode
     });
 
     if (res.status === '200') {
@@ -133,7 +237,9 @@ async function async_login() {
 async function async_register() {
     const res = await register({
         username: registerForm.value.username,
-        password: registerForm.value.password
+        password: registerForm.value.password,
+        phone: registerForm.value.phone,
+        verificationCode: registerForm.value.verificationCode
     });
 
     if (res.status === '200') {
@@ -143,6 +249,51 @@ async function async_register() {
         message.error(res.message || '注册失败');
     }
 }
+
+// 获取验证码
+const handleGetVerificationCode = async () => {
+    try {
+        const res = await sendVerificationCode({ phone: codeLoginForm.value.phone });
+        if (res.status === '200') {
+            message.success('验证码已发送');
+            startCodeButtonCountdown();
+        } else {
+            message.error(res.message || '获取验证码失败');
+        }
+    } catch (error) {
+        message.error('获取验证码时出错');
+    }
+};
+
+// 验证码按钮倒计时
+const startCodeButtonCountdown = () => {
+    let countdown = 60;
+    isCodeButtonDisabled.value = true;
+    codeButtonText.value = `${countdown}s后重新获取`;
+
+    const interval = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+            codeButtonText.value = `${countdown}s后重新获取`;
+        } else {
+            clearInterval(interval);
+            codeButtonText.value = '获取验证码';
+            isCodeButtonDisabled.value = false;
+        }
+    }, 1000);
+};
+
+// 切换登录方式
+const toggleLoginMethod = async () => {
+    useCodeLogin.value = !useCodeLogin.value;
+    // 重置表单数据和验证状态
+    await nextTick();
+    if (useCodeLogin.value) {
+        codeLoginFormRef.value?.resetFields?.();
+    } else {
+        loginFormRef.value?.resetFields?.();
+    }
+};
 
 // 切换到注册界面
 const handleClickRegister = () => {
@@ -157,13 +308,39 @@ const closeModal = () => {
 // 统一提交处理
 const handleSubmit = () => {
     if (currentServiceType.value === '登录') {
-        async_login();
+        if (useCodeLogin.value) {
+            codeLoginFormRef.value.validate((valid) => {
+                if (!valid) {
+                    async_loginWithCode();
+                } else {
+                    message.error('请填写完整的登录信息');
+                }
+            });
+        } else {
+            loginFormRef.value.validate((valid) => {
+                console.log(valid);
+                if (!valid) {
+                    async_login();
+                } else {
+                    message.error('请填写完整的登录信息');
+                }
+            });
+        }
     } else {
-        async_register();
+        registerFormRef.value.validate((valid) => {
+            if (!valid) {
+                async_register();
+            } else {
+                message.error('请填写完整的注册信息');
+            }
+        });
     }
 };
 </script>
 
 <style scoped lang="less">
 /* 样式部分 */
+n-form-item {
+    margin-bottom: 12px;
+}
 </style>

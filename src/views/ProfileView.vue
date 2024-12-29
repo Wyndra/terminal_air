@@ -135,7 +135,7 @@
         <!-- Footer -->
         <n-layout-footer class="footer" bordered>
             <div>
-                <span>© 2024 Terminal Air</span>
+                <span>© 2024 Terminal Air 慕垂科技 - 浙ICP备2023031974号</span>
             </div>
         </n-layout-footer>
 
@@ -446,12 +446,21 @@ onMounted(() => {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 10;
     text-align: center;
-    background-color: #f8f8f8;
-    padding: 10px 0;
-}
+    height: 40px;
 
+    div {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        span {
+            font-size: 14px;
+            font-family: ui-sans-serif, -apple-system, system-ui;
+        }
+    }
+}
 .username_avatar {
     display: flex;
 align-items: center;

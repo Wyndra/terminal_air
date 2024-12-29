@@ -99,7 +99,7 @@
     <!-- 底部 -->
     <n-layout-footer class="footer" bordered>
       <div>
-        <span>© 2024 Terminal Air - 浙ICP备2023031974号</span>
+        <span>© 2024 Terminal Air 慕垂科技 - 浙ICP备2023031974号</span>
       </div>
     </n-layout-footer>
 

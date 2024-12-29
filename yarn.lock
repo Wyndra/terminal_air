@@ -5785,6 +5785,11 @@
   dependencies:
     "evtd" "^0.2.2"
 
+"vfonts@^0.0.3":
+  "integrity" "sha512-nguyw8L6Un8eelg1vQ31vIU2ESxqid7EYmy8V+MDeMaHBqaRSkg3dTBToC1PR00D89UzS/SLkfYPnx0Wf23IQQ=="
+  "resolved" "https://registry.npmmirror.com/vfonts/-/vfonts-0.0.3.tgz"
+  "version" "0.0.3"
+
 "vooks@^0.2.12", "vooks@^0.2.4":
   "integrity" "sha512-iox0I3RZzxtKlcgYaStQYKEzWWGAduMmq+jS7OrNdQo1FgGfPMubGL3uGHOU9n97NIvfFDBGnpSvkWyb/NSn/Q=="
   "resolved" "https://registry.npmmirror.com/vooks/-/vooks-0.2.12.tgz"
