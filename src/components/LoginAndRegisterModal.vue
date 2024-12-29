@@ -181,6 +181,7 @@ const registerRules = {
         {
             validator: (rule, value) => {
                 if (value !== registerForm.value.password) {
+                    message.error('两次输入密码不一致');
                     return new Error('两次输入密码不一致');
                 }
                 return true;
@@ -257,7 +258,7 @@ async function async_register() {
 const handleGetVerificationCode = async () => {
     try {
         const channel = currentServiceType.value === '登录' ? '1008' : '1021';
-        const phone = useCodeLogin.value ? codeLoginForm.value.phone : registerForm.value.phone;
+        const phone = codeLoginForm.value.phone || registerForm.value.phone;
         const res = await sendVerificationCode({ phone, channel });
         if (res.status === '200') {
             message.success('验证码已发送');
