@@ -100,6 +100,8 @@ import { Close } from '@vicons/ionicons5';
 const store = useStore();
 const message = useMessage();
 
+const serial = ref("");
+
 // 定义emit方法
 const emit = defineEmits(['close']);
 
@@ -218,6 +220,7 @@ async function async_login() {
 async function async_loginWithCode() {
     const res = await loginBySmsCode({
         phone: codeLoginForm.value.phone,
+        serial: serial.value,
         verificationCode: codeLoginForm.value.verificationCode
     });
 
@@ -253,9 +256,12 @@ async function async_register() {
 // 获取验证码
 const handleGetVerificationCode = async () => {
     try {
-        const res = await sendVerificationCode({ phone: codeLoginForm.value.phone || registerForm.value.phone });
+        const channel = currentServiceType.value === '登录' ? '1008' : '1021';
+        const phone = useCodeLogin.value ? codeLoginForm.value.phone : registerForm.value.phone;
+        const res = await sendVerificationCode({ phone, channel });
         if (res.status === '200') {
             message.success('验证码已发送');
+            serial.value = res.data.serial;
             startCodeButtonCountdown();
         } else {
             message.error(res.message || '获取验证码失败');
