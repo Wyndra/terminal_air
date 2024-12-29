@@ -6,6 +6,15 @@ export const login = (data) => {
         data,
     });
 }
+
+export const loginBySmsCode = (data) => {
+    return serviceAxios({
+        url: "/auth/loginBySmsCode",
+        method: "post",
+        data,
+    });
+}
+
 export const register = (data) => {
     return serviceAxios({
         url: "/auth/register",

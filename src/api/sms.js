@@ -6,3 +6,11 @@ export const sendVerificationCode = (data) => {
         data,
     });
 }
+
+export const verifyCode = (data) => {
+    return serviceAxios({
+        url: "/sms/verifyCode",
+        method: "post",
+        data,
+    });
+}

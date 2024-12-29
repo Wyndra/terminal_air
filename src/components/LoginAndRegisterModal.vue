@@ -91,7 +91,7 @@
 <script setup>
 import { ref, computed, defineEmits, nextTick } from 'vue';
 import { useMessage } from 'naive-ui';
-import { login, register, getVerificationCode, loginWithCode } from '../api/auth';  // 确保你的 API 路径正确
+import { login, register, getVerificationCode, loginWithCode, loginBySmsCode } from '../api/auth';  // 确保你的 API 路径正确
 import { sendVerificationCode } from '../api/sms';
 import { useStore } from 'vuex';
 import { Close } from '@vicons/ionicons5';
@@ -216,7 +216,7 @@ async function async_login() {
 
 // 验证码登录提交
 async function async_loginWithCode() {
-    const res = await loginWithCode({
+    const res = await loginBySmsCode({
         phone: codeLoginForm.value.phone,
         verificationCode: codeLoginForm.value.verificationCode
     });
@@ -253,7 +253,7 @@ async function async_register() {
 // 获取验证码
 const handleGetVerificationCode = async () => {
     try {
-        const res = await sendVerificationCode({ phone: codeLoginForm.value.phone });
+        const res = await sendVerificationCode({ phone: codeLoginForm.value.phone || registerForm.value.phone });
         if (res.status === '200') {
             message.success('验证码已发送');
             startCodeButtonCountdown();

@@ -15,7 +15,9 @@
               <div class="username_avatar">
                 <n-avatar id="user-avatar" round size="large"
                   :src="userInfo.avatar || 'https://s2.loli.net/2024/08/07/1wVfdgByjev7IP6.jpg'" />
-                <span style="margin-right: 24px;margin-left: 10px !important;">{{ userInfo.username }}</span>
+                <span style="margin-right: 24px;margin-left: 10px !important;">
+                   {{ userInfo.nickname || userInfo.username }}
+                </span>
               </div>
             </template>
             <template #header>

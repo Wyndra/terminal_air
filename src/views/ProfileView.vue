@@ -19,7 +19,7 @@
                                     :src="userInfo.avatar || 'https://s2.loli.net/2024/08/07/1wVfdgByjev7IP6.jpg'" />
                                 <span v-if="userInfo.username"
                                     style="margin-right: 24px; margin-left: 10px !important;">
-                                    {{ userInfo.username }}
+                                    {{ userInfo.nickname || userInfo.username }}
                                 </span>
                             </div>
                         </template>
@@ -309,6 +309,7 @@ const changeSaltPassword = () => {
 const logout = () => {
     localStorage.removeItem('token');
     InLogin.value = false;
+    location.href = '/';
     location.reload();
 };
 
