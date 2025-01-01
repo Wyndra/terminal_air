@@ -3,17 +3,16 @@
     :line-height="20" :width="384" :height="384" :x-offset="12" :y-offset="60" :rotate="-15" />
   <n-layout style="height: 100vh; position: relative;">
     <n-layout-header class="header" bordered>
-      <div style="display: flex; height: 100%;align-items: center">
+      <div style="display: flex; height: 100%; align-items: center">
         <span>Terminal Air</span>
         <div style="flex: 1;"></div>
         <div style="height: 100%; display: flex; align-items: center; margin-right: 16px;">
-          <n-button quaternary circle @click="openTerminalSettings">
-            <template #icon>
-              <n-icon size="18">
-                <Terminal />
-              </n-icon>
-            </template>
-          </n-button>
+          <n-icon size="24" style="cursor: pointer; margin-right: 8px;" @click="openTerminalSettings">
+            <Terminal />
+          </n-icon>
+          <n-icon size="24" style="cursor: pointer;" @click="toggleFullscreen">
+            <component :is="isFullscreen ? FullscreenExitOutlined : FullscreenOutlined" />
+          </n-icon>
         </div>
         <div style="height: 100%; display: flex; align-items: center">
           <n-button v-if="!InLogin" style="margin-right: 24px;" @click="openLoginModal">
@@ -24,8 +23,8 @@
               <div class="username_avatar">
                 <n-avatar id="user-avatar" round size="large"
                   :src="userInfo.avatar || 'https://s2.loli.net/2024/08/07/1wVfdgByjev7IP6.jpg'" />
-                <span style="margin-right: 24px;margin-left: 10px !important;">
-                   {{ userInfo.nickname || userInfo.username }}
+                <span style="margin-right: 24px; margin-left: 10px !important;">
+                  {{ userInfo.nickname || userInfo.username }}
                 </span>
               </div>
             </template>
@@ -46,14 +45,6 @@
     <n-layout class="main-content">
       <!-- 侧边 -->
       <n-layout has-sider style="height: 100%;">
-        <!-- <n-layout-sider bordered content-style="padding: 14px;" collapse-mode="width" :collapsed-width="0" :width="240"
-          show-trigger="bar">
-          <ConnectionNewItemButton @new-connection="handleNewConnection" />
-          <div v-for="(item, index) in connect_list" :key="index">
-            <ConnectionItem @taggle_connect="handleTaggleConnectionEvent"
-              @refresh_connection_list="fetchConnectionList()" :connectInfoValue="item" />
-          </div>
-        </n-layout-sider> -->
         <n-layout-sider bordered content-style="padding: 14px;" collapse-mode="width" :collapsed-width="0" :width="240"
           show-trigger="bar">
           <!-- 判断是否未登录 -->
@@ -147,18 +138,18 @@ const message = useMessage();
 const router = useRouter();
 import Typed from 'typed.js';
 import { Terminal } from '@vicons/ionicons5';
+import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons-vue';
 
 const startTypingEffect = () => {
   const options = {
-    strings: ["请登录以查看内容"], // 需要打字的内容
-    typeSpeed: 100, // 每个字符的打字速度
-    backSpeed: 50, // 删除字符的速度
-    backDelay: 1000, // 删除字符的延迟时间
-    showCursor: false, // 显示光标
-    loop: false, // 不重复打字
+    strings: ["请登录以查看内容"],
+    typeSpeed: 100,
+    backSpeed: 50,
+    backDelay: 1000,
+    showCursor: false,
+    loop: false,
   };
 
-  // 启动 typed.js 打字效果
   new Typed("#typed-output", options);
 }
 
@@ -167,14 +158,12 @@ const connect_list = ref([]);
 const userInfo = ref({});
 const watermark_show = ref(false);
 const InLogin = ref(!!localStorage.getItem('token'));
+const isFullscreen = ref(false);
 
-// 定义 current_connect
 const current_connect = ref({});
 
-// 获取 Vuex 中是否已经显示过错误
 const hasShownError = ref(store.getters.hasShownError);
 
-// 获取连接列表
 async function fetchConnectionList() {
   try {
     const res = await list();
@@ -187,15 +176,13 @@ async function fetchConnectionList() {
         store.state.password = res.data[0].connectPwd;
       }
     } else {
-      // 只在还未显示错误的情况下弹出错误
       if (!hasShownError.value) {
         message.error(res.message || '获取连接列表失败');
-        store.commit('setHasShownError', true); // 更新 Vuex 状态，标记已显示错误
-        hasShownError.value = true; // 本地更新，避免重复弹出
+        store.commit('setHasShownError', true);
+        hasShownError.value = true;
       }
     }
   } catch (error) {
-    // 只在还未显示错误的情况下弹出错误
     if (!hasShownError.value) {
       message.error('请求连接列表时出错');
       store.commit('setHasShownError', true);
@@ -204,7 +191,6 @@ async function fetchConnectionList() {
   }
 }
 
-// 获取用户信息
 async function fetchUserInfo() {
   getUserInfo().then(res => {
     if (res.status === '200') {
@@ -225,30 +211,26 @@ async function fetchUserInfo() {
   });
 }
 
-// 打开登录模态框
 const openLoginModal = () => {
   showLoginOrRegisterModal.value = true;
 };
 
-// 退出登录
 const logout = () => {
   localStorage.removeItem('token');
   InLogin.value = false;
-  location.reload();  // 刷新页面
+  location.reload();
 };
 
 const gotoProfileView = () => {
   router.push('/profile');
 };
 
-// 新建连接
 const handleNewConnection = () => {
   store.state.showAddNewConnectionDrawer = true;
 };
 
-// 切换连接
 const handleTaggleConnectionEvent = (connectInfo) => {
-  current_connect.value = connectInfo; // 使用响应式的 current_connect
+  current_connect.value = connectInfo;
   store.state.host = connectInfo.value.connectHost;
   store.state.port = connectInfo.value.connectPort;
   store.state.username = connectInfo.value.connectUsername;
@@ -259,6 +241,19 @@ const openTerminalSettings = () => {
   store.commit('setShowTerminalSettings', true);
 };
 
+const toggleFullscreen = () => {
+  const elem = document.documentElement;
+  if (!document.fullscreenElement) {
+    elem.requestFullscreen().catch(err => {
+      console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+    });
+    isFullscreen.value = true;
+  } else {
+    document.exitFullscreen();
+    isFullscreen.value = false;
+  }
+};
+
 onMounted(() => {
   fetchConnectionList();
   fetchUserInfo();
@@ -267,8 +262,6 @@ onMounted(() => {
   }
 });
 </script>
-
-
 
 <style scoped lang="less">
 .header {
@@ -286,6 +279,14 @@ onMounted(() => {
     align-content: center;
     font-family: ui-sans-serif, -apple-system, system-ui;
   }
+}
+
+.n-button {
+  box-shadow: none !important;
+}
+
+.n-button:hover {
+  box-shadow: none !important;
 }
 
 .footer {

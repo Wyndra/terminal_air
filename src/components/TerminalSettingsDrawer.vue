@@ -83,7 +83,7 @@
                     </n-tab-pane>
 
                     <!-- 导入导出 -->
-                    <n-tab-pane name="import" tab="导入导出">
+                    <n-tab-pane name="import" tab="导入导出配置">
                         <n-space vertical style="margin-top: 16px">
                             <n-upload accept=".json,.itermcolors" :show-file-list="false" @change="handleFileUpload">
                                 <n-button>导入配置文件</n-button>

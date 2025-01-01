@@ -1,5 +1,7 @@
 <template>
-    <div id="terminal" class="xterm"></div>
+    <div id="terminal-container">
+        <div id="terminal" class="xterm"></div>
+    </div>
 </template>
 
 <script setup>
@@ -17,7 +19,7 @@ const token = localStorage.getItem("token") || "";
 const store = useStore();
 const { createMessage } = useMessage();
 
-const socketURI = store.state.usingLocalhostWs ? serverConfig.wsLocalhostURL + "?token=" + token : serverConfig.wsURL + "?token=" + token;
+const socketURI = serverConfig.wsURL + "?token=" + token;
 
 const connectionInfo = ref({
     connectHost: store.state.host,
@@ -169,8 +171,20 @@ watch(() => store.state.terminalSettings, (newSettings) => {
 </script>
 
 <style>
-#terminal {
+#terminal-container {
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0; /* 确保没有外边距 */
+    padding: 0; /* 确保没有内边距 */
+}
+
+#terminal {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    margin: 0; /* 确保没有外边距 */
+    padding: 0; /* 确保没有内边距 */
 }
 </style>

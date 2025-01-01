@@ -24,7 +24,7 @@
                             </div>
                         </template>
                         <template #header>
-                            <n-text @click="gotoHomeView()" depth="1">返回首页</n-text>
+                            <n-text @click="gotoHomeView()" depth="1">返回工作区</n-text>
                         </template>
                         <template #footer>
                             <span @click="logout">退出登录</span>
