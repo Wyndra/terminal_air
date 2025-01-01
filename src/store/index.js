@@ -14,7 +14,7 @@ export default createStore({
     editConnectionInfo: {},
     showTerminalSettings: false, // 控制终端设置抽屉的显示
     terminalSettings: {
-      fontSize: 14,
+      fontSize: 18,
       fontFamily: "Menlo, Monaco, 'Courier New', monospace",
       lineHeight: 1.2,
       letterSpacing: 0,

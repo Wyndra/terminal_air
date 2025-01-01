@@ -7,6 +7,7 @@ import "xterm/css/xterm.css";
 import { onMounted, ref, watch, nextTick } from "vue";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
+import { WebglAddon } from "xterm-addon-webgl";
 import { useStore } from "vuex";
 import serverConfig from "@/utils/config";
 import { useMessage } from "naive-ui";
@@ -28,19 +29,25 @@ const connectionInfo = ref({
 const isFirstConnection = ref(true);  // 标志是否是第一次连接
 
 const initTerminal = () => {
-    const terminalElement = document.getElementById("terminal");
-    const fitAddon = new FitAddon();
-    terminal.loadAddon(fitAddon);
+    requestAnimationFrame(() => {
+        const terminalElement = document.getElementById("terminal");
+        if (!terminalElement) return;
 
-    terminal.open(terminalElement);
-    fitAddon.fit();
+        const fitAddon = new FitAddon();
+        const webglAddon = new WebglAddon();
+        terminal.loadAddon(fitAddon);
+        terminal.loadAddon(webglAddon);
 
-    terminal.onData((data) => {
-        sendCommand(data);
-    });
-
-    window.addEventListener('resize', () => {
+        terminal.open(terminalElement);
         fitAddon.fit();
+
+        terminal.onData((data) => {
+            sendCommand(data);
+        });
+
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+        });
     });
 };
 

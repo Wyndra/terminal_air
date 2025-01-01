@@ -8,7 +8,7 @@
                 </span>
             </template>
 
-            <n-card bordered style="background-color: #fff;">
+            <n-card bordered style="background-color: #fff; height: calc(100vh - 120px);">
                 <n-tabs type="line">
                     <!-- 基础设置 -->
                     <n-tab-pane name="basic" tab="基础设置">
@@ -195,6 +195,14 @@ const handleFileUpload = (options) => {
     try {
       if (file.name.endsWith('.json')) {
         const config = JSON.parse(e.target.result);
+        if (config['Ansi 0 Color']) {
+          const theme = parseITerm2JsonTheme(config);
+          if (theme) {
+            settings.value.theme = theme;
+            message.success('iTerm2 配置导入成功');
+          }
+          return;
+        }
         settings.value = { ...settings.value, ...config };
         message.success('配置导入成功');
       } else if (file.name.endsWith('.itermcolors')) {
@@ -272,6 +280,45 @@ const parseITerm2Theme = (content) => {
     return null;
   }
 };
+
+const parseITerm2JsonTheme = (data) => {
+  try {
+    const convertColor = (color) => {
+      if (!color) return null;
+      const r = Math.round(color['Red Component'] * 255);
+      const g = Math.round(color['Green Component'] * 255);
+      const b = Math.round(color['Blue Component'] * 255);
+      return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    };
+
+    return {
+      foreground: convertColor(data['Foreground Color']),
+      background: convertColor(data['Background Color']),
+      cursor: convertColor(data['Cursor Color']),
+      selection: convertColor(data['Selection Color']),
+      black: convertColor(data['Ansi 0 Color']),
+      red: convertColor(data['Ansi 1 Color']),
+      green: convertColor(data['Ansi 2 Color']),
+      yellow: convertColor(data['Ansi 3 Color']),
+      blue: convertColor(data['Ansi 4 Color']),
+      magenta: convertColor(data['Ansi 5 Color']),
+      cyan: convertColor(data['Ansi 6 Color']),
+      white: convertColor(data['Ansi 7 Color']),
+      brightBlack: convertColor(data['Ansi 8 Color']),
+      brightRed: convertColor(data['Ansi 9 Color']),
+      brightGreen: convertColor(data['Ansi 10 Color']),
+      brightYellow: convertColor(data['Ansi 11 Color']),
+      brightBlue: convertColor(data['Ansi 12 Color']),
+      brightMagenta: convertColor(data['Ansi 13 Color']),
+      brightCyan: convertColor(data['Ansi 14 Color']),
+      brightWhite: convertColor(data['Ansi 15 Color'])
+    };
+  } catch (error) {
+    console.error('解析 iTerm2 JSON 配置文件失败:', error);
+    message.error('解析 iTerm2 JSON 配置文件失败');
+    return null;
+  }
+};
 </script>
 
 <style scoped>
@@ -280,7 +327,7 @@ const parseITerm2Theme = (content) => {
 }
 
 :deep(.n-card) {
-  height: 100vh;
+  height: calc(100vh - 120px);
 }
 
 :deep(.n-card-header) {
@@ -306,5 +353,11 @@ const parseITerm2Theme = (content) => {
 
 :deep(.n-form-item) {
   margin-bottom: 18px;
+}
+
+/* 添加抗锯齿和子像素渲染 */
+:deep(.xterm) {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 </style> 
