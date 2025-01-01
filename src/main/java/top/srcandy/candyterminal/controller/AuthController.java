@@ -4,19 +4,18 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.srcandy.candyterminal.bean.vo.UserProfileVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
-import top.srcandy.candyterminal.bean.dto.UserInfoDTO;
 import top.srcandy.candyterminal.model.User;
-import top.srcandy.candyterminal.request.LoginRequest;
-import top.srcandy.candyterminal.request.RegisterRequest;
-import top.srcandy.candyterminal.request.VerifyUserPasswordRequest;
+import top.srcandy.candyterminal.request.*;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
 @RestController
 @Slf4j
+@Validated
 @RequestMapping("/auth")
 public class AuthController {
 
@@ -25,13 +24,18 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseResult<String> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
-        return authService.login(User.builder().username(request.getUsername()).password(request.getPassword()).build());
+        return authService.login(request);
+    }
+
+    @PostMapping("/loginBySmsCode")
+    public ResponseResult<String> loginByPhoneAndSmsCode(@Valid @RequestBody(required = false) @NonNull LoginBySmsCodeRequest request) {
+        return authService.loginBySmsCode(request);
     }
 
     @PostMapping("/register")
     public ResponseResult<String> register(@Valid @RequestBody(required = false) @NonNull RegisterRequest request) {
         log.info("register user:{}", request);
-        return authService.register(User.builder().username(request.getUsername()).password(request.getPassword()).salt(request.getPassword()).build());
+        return authService.register(request);
     }
 
     @GetMapping("/getProfile")
@@ -45,8 +49,14 @@ public class AuthController {
     }
 
     @PostMapping("/verifyUserPassword")
-    public ResponseResult<Boolean> verifyUserPassword(@RequestHeader("Authorization") String token, VerifyUserPasswordRequest request) {
+    public ResponseResult<Boolean> verifyUserPassword(@RequestHeader("Authorization") String token, @RequestBody(required = false) @NonNull VerifyUserPasswordRequest request) {
+        log.info("verifyUserPassword:{}", request.getPassword());
         return ResponseResult.success(authService.verifyUserPassword(token.substring(7), request.getPassword()));
+    }
+
+    @PostMapping("/updateProfile")
+    public ResponseResult<UserProfileVO> updateProfile(@RequestHeader("Authorization") String token, @Valid @RequestBody(required = false) @NonNull UpdateProfileRequest request) {
+        return authService.updateProfile(token.substring(7), request);
     }
 //
 //        @GetMapping("/updatePassword")

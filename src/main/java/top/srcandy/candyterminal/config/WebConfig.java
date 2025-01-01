@@ -19,9 +19,28 @@ public class WebConfig implements WebMvcConfigurer {
     }
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 除了login和register之外的所有请求都需要通过拦截器
-        registry.addInterceptor(jwtIntercept()).addPathPatterns("/**").excludePathPatterns("/auth/login").excludePathPatterns("/auth/register").excludePathPatterns("/doc.html","/webjars/**", "/swagger-ui", "/swagger-ui/**", "/v3/**", "/favicon.ico", "Mozilla/**");
+        // 需要排除的路径列表
+        String[] excludePaths = {
+                "/auth/login",
+                "/auth/register",
+                "/doc.html",
+                "/webjars/**",
+                "/swagger-ui",
+                "/swagger-ui/**",
+                "/v3/**",
+                "/favicon.ico",
+                "Mozilla/**",
+                "/sms/sendVerificationCode",
+                "/auth/loginBySmsCode",
+                "/sms/verifyCode"
+        };
+
+        // 配置拦截器，除了上面指定的路径，其他所有请求都会经过拦截器
+        registry.addInterceptor(jwtIntercept())
+                .addPathPatterns("/**")  // 所有路径都需要拦截
+                .excludePathPatterns(excludePaths);  // 排除特定的路径
     }
+
 
 
     @Bean
