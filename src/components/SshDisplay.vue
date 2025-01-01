@@ -50,13 +50,7 @@ const terminal = new Terminal({
     disableStdin: false,
     cursorBlink: true,
     encoding: "utf-8",
-    fontFamily: "Menlo, Monaco, 'Courier New', monospace",
-    theme: {
-        foreground: "#ECECEC",
-        background: "#000000",
-        cursor: "help",
-        blue: "#c4a9f4",
-    },
+    ...store.state.terminalSettings
 });
 
 let socket;
@@ -154,6 +148,17 @@ watch(
     },
     { deep: true }
 );
+
+// 监听终端设置变化
+watch(() => store.state.terminalSettings, (newSettings) => {
+    Object.keys(newSettings).forEach(key => {
+        terminal.options[key] = newSettings[key];
+    });
+    // 重新适应大小
+    const fitAddon = new FitAddon();
+    terminal.loadAddon(fitAddon);
+    fitAddon.fit();
+}, { deep: true });
 </script>
 
 <style>

@@ -11,7 +11,22 @@ export default createStore({
     showEditConnectionDrawer: false,
     hasShownError: false,
     usingLocalhostWs: false,
-    editConnectionInfo: {}
+    editConnectionInfo: {},
+    showTerminalSettings: false, // 控制终端设置抽屉的显示
+    terminalSettings: {
+      fontSize: 14,
+      fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+      lineHeight: 1.2,
+      letterSpacing: 0,
+      cursorStyle: 'block',
+      cursorBlink: true,
+      theme: {
+        foreground: "#ECECEC",
+        background: "#000000",
+        cursor: "help",
+        blue: "#c4a9f4",
+      }
+    }
   },
   getters: {
     isModalVisible: (state) => state.showModal,
@@ -54,7 +69,13 @@ export default createStore({
     },
     setEditConnectionInfo(state, value) {
       state.editConnectionInfo = value
-    } 
+    },
+    setShowTerminalSettings(state, value) {
+      state.showTerminalSettings = value;
+    },
+    updateTerminalSettings(state, settings) {
+      state.terminalSettings = { ...state.terminalSettings, ...settings };
+    }
   },
   actions: {
     login({ commit }) {

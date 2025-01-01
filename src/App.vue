@@ -1,10 +1,18 @@
 <template>
-  <n-dialog-provider>
-    <n-message-provider>
-      <router-view />
-    </n-message-provider>
-  </n-dialog-provider>
+  <n-config-provider :theme="theme">
+    <n-dialog-provider>
+      <n-message-provider>
+        <router-view />
+        <terminal-settings-drawer />
+      </n-message-provider>
+    </n-dialog-provider>
+  </n-config-provider>
 </template>
+
+<script setup>
+import TerminalSettingsDrawer from '@/components/TerminalSettingsDrawer.vue';
+// ... 其他代码保持不变
+</script>
 
 <style lang="scss">
 #app {

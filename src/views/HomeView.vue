@@ -6,6 +6,15 @@
       <div style="display: flex; height: 100%;align-items: center">
         <span>Terminal Air</span>
         <div style="flex: 1;"></div>
+        <div style="height: 100%; display: flex; align-items: center; margin-right: 16px;">
+          <n-button quaternary circle @click="openTerminalSettings">
+            <template #icon>
+              <n-icon size="18">
+                <Terminal />
+              </n-icon>
+            </template>
+          </n-button>
+        </div>
         <div style="height: 100%; display: flex; align-items: center">
           <n-button v-if="!InLogin" style="margin-right: 24px;" @click="openLoginModal">
             登录
@@ -137,6 +146,7 @@ const message = useMessage();
 
 const router = useRouter();
 import Typed from 'typed.js';
+import { Terminal } from '@vicons/ionicons5';
 
 const startTypingEffect = () => {
   const options = {
@@ -243,6 +253,10 @@ const handleTaggleConnectionEvent = (connectInfo) => {
   store.state.port = connectInfo.value.connectPort;
   store.state.username = connectInfo.value.connectUsername;
   store.state.password = connectInfo.value.connectPwd;
+};
+
+const openTerminalSettings = () => {
+  store.commit('setShowTerminalSettings', true);
 };
 
 onMounted(() => {
