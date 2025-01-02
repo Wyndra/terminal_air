@@ -38,8 +38,7 @@ public class WebConfig implements WebMvcConfigurer {
         // 配置拦截器，除了上面指定的路径，其他所有请求都会经过拦截器
         registry.addInterceptor(jwtIntercept())
                 .addPathPatterns("/**")  // 所有路径都需要拦截
-                .excludePathPatterns(excludePaths)
-                .order(1);
+                .excludePathPatterns(excludePaths);
     // 排除特定的路径
     }
 
