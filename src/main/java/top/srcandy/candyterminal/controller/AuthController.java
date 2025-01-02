@@ -23,8 +23,8 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @AuthAccess
     @PostMapping("/login")
+    @AuthAccess
     public ResponseResult<String> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
         return authService.login(request);
     }

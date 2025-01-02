@@ -27,7 +27,6 @@ public class JWTIntercept implements HandlerInterceptor {
                 return true;
             }
         }
-
         String token = authorization.replaceFirst(PREFIX,"");
         // 校验token
 
