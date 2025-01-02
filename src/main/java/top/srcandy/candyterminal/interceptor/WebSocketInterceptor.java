@@ -16,6 +16,7 @@ import java.util.UUID;
 public class WebSocketInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+        // 握手之前 判断是否有token token中包含了用户信息
         if (request instanceof ServletServerHttpRequest){
             ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
             String token = servletRequest.getServletRequest().getParameter("token");

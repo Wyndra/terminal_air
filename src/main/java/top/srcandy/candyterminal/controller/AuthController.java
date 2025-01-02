@@ -11,6 +11,7 @@ import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.*;
 import top.srcandy.candyterminal.service.AuthService;
+import top.srcandy.candyterminal.utils.AuthAccess;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
 @RestController
@@ -22,6 +23,7 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @AuthAccess
     @PostMapping("/login")
     public ResponseResult<String> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
         return authService.login(request);

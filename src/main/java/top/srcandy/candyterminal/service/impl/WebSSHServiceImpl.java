@@ -22,7 +22,6 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-// feature
 @Service
 @Slf4j
 public class WebSSHServiceImpl implements WebSSHService {
@@ -55,6 +54,7 @@ public class WebSSHServiceImpl implements WebSSHService {
         ObjectMapper objectMapper = new ObjectMapper();
         WebSSHData webSSHData = null;
         try {
+            // 读取WebSocket的数据，并转换成WebSSHData对象
             webSSHData = objectMapper.readValue(buffer, WebSSHData.class);
         } catch (IOException e) {
             log.error("数据转换成对象失败");
@@ -62,7 +62,8 @@ public class WebSSHServiceImpl implements WebSSHService {
             return;
         }
 
-        String userId = (String) session.getAttributes().get("uuid");
+
+        String userId = (String) session.getAttributes().get("username");
         log.info("接收到用户 {} 的请求", userId);
 
         SSHConnectInfo sshConnectInfo = (SSHConnectInfo) sshMap.get(userId);
@@ -106,7 +107,7 @@ public class WebSSHServiceImpl implements WebSSHService {
 
     @Override
     public void close(WebSocketSession session) {
-        String userId = String.valueOf(session.getAttributes().get("uuid"));
+        String userId = String.valueOf(session.getAttributes().get("username"));
         SSHConnectInfo sshConnectInfo = (SSHConnectInfo) sshMap.get(userId);
         if (sshConnectInfo != null) {
             //断开连接
@@ -131,7 +132,7 @@ public class WebSSHServiceImpl implements WebSSHService {
         JSch jSch = sshConnectInfo.getJSch();
 
         // 从 WebSocketSession 中获取 UUID,UUID就是用户名
-        String uuid = (String) webSocketSession.getAttributes().get("uuid");
+        String uuid = (String) webSocketSession.getAttributes().get("username");
         log.info("尝试连接 SSH 主机: {}:{}", webSSHData.getHost(), webSSHData.getPort());
 
         try{
