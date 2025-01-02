@@ -35,9 +35,9 @@ public class WebSSHServiceImpl implements WebSSHService {
 
     @Override
     public void initConnection(WebSocketSession session) {
-        String uuid = (String) session.getAttributes().get("uuid");
-        if (sshMap.containsKey(uuid)) {
-            log.error("用户 {} 已经有一个活跃的连接", uuid);
+        String username = (String) session.getAttributes().get("username");
+        if (sshMap.containsKey(username)) {
+            log.error("用户 {} 已经有一个活跃的连接", username);
             return;
         }
 
@@ -46,8 +46,8 @@ public class WebSSHServiceImpl implements WebSSHService {
         SSHConnectInfo sshConnectInfo = new SSHConnectInfo();
         sshConnectInfo.setJSch(jSch);
         sshConnectInfo.setWebSocketSession(session);
-        sshMap.put(uuid, sshConnectInfo);
-        log.info("初始化用户 {} 的连接信息", uuid);
+        sshMap.put(username, sshConnectInfo);
+        log.info("初始化用户 {} 的连接信息", username);
     }
 
     @Override
