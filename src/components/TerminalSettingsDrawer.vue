@@ -1,101 +1,100 @@
 <template>
-    <n-drawer v-model:show="show" :width="500" placement="right" content-style="background:#edf1f2">
-        <n-drawer-content closable>
-            <template #header>
-                <span
-                    style="font-size: 20px; align-content: center; font-family: ui-sans-serif, -apple-system, system-ui">
-                    终端设置
-                </span>
-            </template>
+  <n-drawer v-model:show="show" :width="500" placement="right" content-style="background:#edf1f2">
+    <n-drawer-content closable>
+      <template #header>
+        <span style="font-size: 20px; align-content: center; font-family: ui-sans-serif, -apple-system, system-ui">
+          终端设置
+        </span>
+      </template>
 
-            <n-card bordered style="background-color: #fff; height: calc(100vh - 120px);">
-                <n-tabs type="line">
-                    <!-- 基础设置 -->
-                    <n-tab-pane name="basic" tab="基础设置">
-                        <n-form :model="settings" label-placement="left" label-width="auto"
-                            require-mark-placement="right-hanging" style="margin-top: 16px">
-                            <n-form-item label="字体大小">
-                                <n-input-number v-model:value="settings.fontSize" :min="8" :max="32" />
-                            </n-form-item>
-                            <n-form-item label="字体">
-                                <n-select v-model:value="settings.fontFamily" :options="fontOptions" filterable tag />
-                            </n-form-item>
-                            <n-form-item label="行高">
-                                <n-input-number v-model:value="settings.lineHeight" :min="1" :max="2" :step="0.1" />
-                            </n-form-item>
-                            <n-form-item label="字间距">
-                                <n-input-number v-model:value="settings.letterSpacing" :min="0" :max="5" :step="0.5" />
-                            </n-form-item>
-                            <n-form-item label="光标样式">
-                                <n-select v-model:value="settings.cursorStyle" :options="cursorStyleOptions" />
-                            </n-form-item>
-                            <n-form-item label="光标闪烁">
-                                <n-switch v-model:value="settings.cursorBlink" />
-                            </n-form-item>
-                        </n-form>
-                    </n-tab-pane>
+      <n-card bordered style="background-color: #fff;height: 100%; overflow-y: auto;">
+        <n-tabs type="line">
+          <!-- 基础设置 -->
+          <n-tab-pane name="basic" tab="基础设置">
+            <n-form :model="settings" label-placement="left" label-width="auto" require-mark-placement="right-hanging"
+              style="margin-top: 16px">
+              <n-form-item label="字体大小">
+                <n-input-number v-model:value="settings.fontSize" :min="8" :max="32" />
+              </n-form-item>
+              <n-form-item label="字体">
+                <n-select v-model:value="settings.fontFamily" :options="fontOptions" filterable tag />
+              </n-form-item>
+              <n-form-item label="行高">
+                <n-input-number v-model:value="settings.lineHeight" :min="1" :max="2" :step="0.1" />
+              </n-form-item>
+              <n-form-item label="字间距">
+                <n-input-number v-model:value="settings.letterSpacing" :min="0" :max="5" :step="0.5" />
+              </n-form-item>
+              <n-form-item label="光标样式">
+                <n-select v-model:value="settings.cursorStyle" :options="cursorStyleOptions" />
+              </n-form-item>
+              <n-form-item label="光标闪烁">
+                <n-switch v-model:value="settings.cursorBlink" />
+              </n-form-item>
+            </n-form>
+          </n-tab-pane>
 
-                    <!-- 主题设置 -->
-                    <n-tab-pane name="theme" tab="主题设置">
-                        <n-form :model="settings.theme" label-placement="left" label-width="auto"
-                            require-mark-placement="right-hanging" style="margin-top: 16px">
-                            <n-form-item label="预设主题">
-                                <n-select v-model:value="currentTheme" :options="themeOptions" />
-                            </n-form-item>
-                            <n-divider>自定义主题</n-divider>
-                            <n-form-item label="前景色">
-                                <n-color-picker v-model:value="settings.theme.foreground" />
-                            </n-form-item>
-                            <n-form-item label="背景色">
-                                <n-color-picker v-model:value="settings.theme.background" />
-                            </n-form-item>
-                            <n-form-item label="光标颜色">
-                                <n-color-picker v-model:value="settings.theme.cursor" />
-                            </n-form-item>
-                            <n-form-item label="选中背景">
-                                <n-color-picker v-model:value="settings.theme.selection" />
-                            </n-form-item>
-                            <n-form-item label="黑色">
-                                <n-color-picker v-model:value="settings.theme.black" />
-                            </n-form-item>
-                            <n-form-item label="红色">
-                                <n-color-picker v-model:value="settings.theme.red" />
-                            </n-form-item>
-                            <n-form-item label="绿色">
-                                <n-color-picker v-model:value="settings.theme.green" />
-                            </n-form-item>
-                            <n-form-item label="黄色">
-                                <n-color-picker v-model:value="settings.theme.yellow" />
-                            </n-form-item>
-                            <n-form-item label="蓝色">
-                                <n-color-picker v-model:value="settings.theme.blue" />
-                            </n-form-item>
-                            <n-form-item label="紫色">
-                                <n-color-picker v-model:value="settings.theme.magenta" />
-                            </n-form-item>
-                            <n-form-item label="青色">
-                                <n-color-picker v-model:value="settings.theme.cyan" />
-                            </n-form-item>
-                            <n-form-item label="白色">
-                                <n-color-picker v-model:value="settings.theme.white" />
-                            </n-form-item>
-                        </n-form>
-                    </n-tab-pane>
+          <!-- 主题设置 -->
+          <n-tab-pane name="theme" tab="主题设置" style="height: 100%; overflow-y: auto;">
+            <n-form :model="settings.theme" label-placement="left" label-width="auto"
+              require-mark-placement="right-hanging" style="margin-top: 16px">
+              <n-form-item label="预设主题">
+                <n-select v-model:value="currentTheme" :options="themeOptions" />
+              </n-form-item>
+              <n-divider>自定义主题</n-divider>
+              <n-form-item label="前景色">
+                <n-color-picker v-model:value="settings.theme.foreground" />
+              </n-form-item>
+              <n-form-item label="背景色">
+                <n-color-picker v-model:value="settings.theme.background" />
+              </n-form-item>
+              <n-form-item label="光标颜色">
+                <n-color-picker v-model:value="settings.theme.cursor" />
+              </n-form-item>
+              <n-form-item label="选中背景">
+                <n-color-picker v-model:value="settings.theme.selection" />
+              </n-form-item>
+              <n-form-item label="黑色">
+                <n-color-picker v-model:value="settings.theme.black" />
+              </n-form-item>
+              <n-form-item label="红色">
+                <n-color-picker v-model:value="settings.theme.red" />
+              </n-form-item>
+              <n-form-item label="绿色">
+                <n-color-picker v-model:value="settings.theme.green" />
+              </n-form-item>
+              <n-form-item label="黄色">
+                <n-color-picker v-model:value="settings.theme.yellow" />
+              </n-form-item>
+              <n-form-item label="蓝色">
+                <n-color-picker v-model:value="settings.theme.blue" />
+              </n-form-item>
+              <n-form-item label="紫色">
+                <n-color-picker v-model:value="settings.theme.magenta" />
+              </n-form-item>
+              <n-form-item label="青色">
+                <n-color-picker v-model:value="settings.theme.cyan" />
+              </n-form-item>
+              <n-form-item label="白色">
+                <n-color-picker v-model:value="settings.theme.white" />
+              </n-form-item>
+            </n-form>
+          </n-tab-pane>
 
-                    <!-- 导入导出 -->
-                    <n-tab-pane name="import" tab="导入导出配置">
-                        <n-space vertical style="margin-top: 16px">
-                            <n-upload accept=".json,.itermcolors" :show-file-list="false" @change="handleFileUpload">
-                                <n-button>导入配置文件</n-button>
-                            </n-upload>
-                            <n-button @click="exportSettings">导出当前配置</n-button>
-                            <n-button @click="resetSettings" type="warning">恢复默认设置</n-button>
-                        </n-space>
-                    </n-tab-pane>
-                </n-tabs>
-            </n-card>
-        </n-drawer-content>
-    </n-drawer>
+          <!-- 导入导出 -->
+          <n-tab-pane name="import" tab="导入导出配置">
+            <n-space vertical style="margin-top: 16px">
+              <n-upload accept=".json,.itermcolors" :show-file-list="false" @change="handleFileUpload">
+                <n-button>导入配置文件</n-button>
+              </n-upload>
+              <n-button @click="exportSettings">导出当前配置</n-button>
+              <n-button @click="resetSettings" type="warning">恢复默认设置</n-button>
+            </n-space>
+          </n-tab-pane>
+        </n-tabs>
+      </n-card>
+    </n-drawer-content>
+  </n-drawer>
 </template>
 
 <script setup>
@@ -360,4 +359,4 @@ const parseITerm2JsonTheme = (data) => {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-</style> 
+</style>

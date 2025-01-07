@@ -6,7 +6,7 @@
       <div style="display: flex; height: 100%; align-items: center">
         <span>Terminal Air</span>
         <div style="flex: 1;"></div>
-        <div style="height: 100%; display: flex; align-items: center; margin-right: 16px;">
+        <div style="height: 100%; display: flex; align-items: center; margin-right: 16px;" v-if="InLogin">
           <n-icon size="24" style="cursor: pointer; margin-right: 8px;" @click="openTerminalSettings">
             <Terminal />
           </n-icon>
@@ -81,12 +81,18 @@
 
           <!-- 判断是否未登录 -->
           <div v-if="!InLogin"
-            style="background: #1d1f20; height: 100%; color: white; display: flex; justify-content: center; align-items: center; position: relative;">
-
-            <!-- 打字机效果的文字 -->
-            <p id="typed-output"
+            style="background: #000000; height: 100%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative;">
+            <!-- 添加 SVG 动画 -->
+            <img 
+              src="https://jrenc.azurewebsites.net/api/signature?code=zHZRCCItO-yB8t7d2KyitELFDwADnXIotkeeIQL3juyNAzFucnyrWA%3D%3D&name=Terminal%20Air&animate=true&speed=1&color=%23ffffff" 
+              alt="Terminal Air"
+              style="margin-bottom: 2rem; max-width: 80%; height: auto;"
+            />
+            
+            <!-- 注释掉打字机效果的文字 -->
+            <!-- <p id="typed-output"
               style="font-size: 24px; text-align: center; font-family: 'Courier New', Courier, monospace; position: relative;">
-            </p>
+            </p> -->
           </div>
 
           <!-- 已登录状态，显示正常内容 -->
@@ -139,19 +145,6 @@ const router = useRouter();
 import Typed from 'typed.js';
 import { Terminal } from '@vicons/ionicons5';
 import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons-vue';
-
-const startTypingEffect = () => {
-  const options = {
-    strings: ["请登录以查看内容"],
-    typeSpeed: 100,
-    backSpeed: 50,
-    backDelay: 1000,
-    showCursor: false,
-    loop: false,
-  };
-
-  new Typed("#typed-output", options);
-}
 
 const showLoginOrRegisterModal = ref(false);
 const connect_list = ref([]);
@@ -257,9 +250,10 @@ const toggleFullscreen = () => {
 onMounted(() => {
   fetchConnectionList();
   fetchUserInfo();
-  if (!InLogin.value) {
-    startTypingEffect();
-  }
+  // 注释掉打字机效果的调用
+  // if (!InLogin.value) {
+  //   startTypingEffect();
+  // }
 });
 </script>
 
@@ -331,8 +325,12 @@ onMounted(() => {
 
 #typed-output {
   color: white;
+  margin-left: 24px;
+  align-content: center;
+  font-family: ui-sans-serif, -apple-system, system-ui !important;
   font-size: 24px;
   text-align: center;
-  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  margin-top: 1rem; /* 添加上边距 */
 }
 </style>
