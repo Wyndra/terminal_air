@@ -26,8 +26,10 @@ import java.util.concurrent.Executors;
 @Service
 @Slf4j
 public class WebSSHServiceImpl implements WebSSHService {
-    // 使用 sessionId 来区分每个 WebSocket 会话，避免同一用户在多个标签页使用时发生冲突
-    private static Map<String, Object> sshMap = new ConcurrentHashMap<>();
+
+    // 使用 WebSocketSession 作为 key，这样每个标签页有独立的连接信息
+    private static Map<WebSocketSession, SSHConnectInfo> sshMap = new ConcurrentHashMap<>();
+
     // 线程池
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -36,10 +38,11 @@ public class WebSSHServiceImpl implements WebSSHService {
 
     @Override
     public void initConnection(WebSocketSession session) {
-        // 使用 sessionId 来唯一标识每个 WebSocket 会话
-        String sessionId = session.getId();
-        if (sshMap.containsKey(sessionId)) {
-            log.error("会话 {} 已经有一个活跃的连接", sessionId);
+        String username = (String) session.getAttributes().get("username");
+
+        // 检查当前 WebSocket 会话是否已有连接
+        if (sshMap.containsKey(session)) {
+            log.error("用户 {} 已经有一个活跃的连接", username);
             return;
         }
 
@@ -48,8 +51,10 @@ public class WebSSHServiceImpl implements WebSSHService {
         SSHConnectInfo sshConnectInfo = new SSHConnectInfo();
         sshConnectInfo.setJSch(jSch);
         sshConnectInfo.setWebSocketSession(session);
-        sshMap.put(sessionId, sshConnectInfo);
-        log.info("初始化会话 {} 的连接信息", sessionId);
+
+        // 将当前 WebSocket 会话与连接信息关联
+        sshMap.put(session, sshConnectInfo);
+        log.info("初始化用户 {} 的连接信息", username);
     }
 
     @Override
@@ -57,7 +62,7 @@ public class WebSSHServiceImpl implements WebSSHService {
         ObjectMapper objectMapper = new ObjectMapper();
         WebSSHData webSSHData = null;
         try {
-            // 读取 WebSocket 的数据，并转换成 WebSSHData 对象
+            // 读取WebSocket的数据，并转换成WebSSHData对象
             webSSHData = objectMapper.readValue(buffer, WebSSHData.class);
         } catch (IOException e) {
             log.error("数据转换成对象失败");
@@ -65,12 +70,12 @@ public class WebSSHServiceImpl implements WebSSHService {
             return;
         }
 
-        String sessionId = session.getId();
-        log.info("接收到会话 {} 的请求", sessionId);
+        String userId = (String) session.getAttributes().get("username");
+        log.info("接收到用户 {} 的请求", userId);
 
-        SSHConnectInfo sshConnectInfo = (SSHConnectInfo) sshMap.get(sessionId);
+        SSHConnectInfo sshConnectInfo = sshMap.get(session);
         if (sshConnectInfo == null) {
-            log.error("未找到会话 {} 的连接信息", sessionId);
+            log.error("未找到用户 {} 的连接信息", userId);
             // 重新初始化连接信息
             initConnection(session);
             return;
@@ -109,16 +114,14 @@ public class WebSSHServiceImpl implements WebSSHService {
 
     @Override
     public void close(WebSocketSession session) {
-        String sessionId = session.getId();
-        SSHConnectInfo sshConnectInfo = (SSHConnectInfo) sshMap.get(sessionId);
+        SSHConnectInfo sshConnectInfo = sshMap.get(session);
         if (sshConnectInfo != null) {
             // 断开连接
             if (sshConnectInfo.getChannel() != null) {
                 sshConnectInfo.getChannel().disconnect();
             }
-            // 移除 map 中的连接信息
-            sshMap.remove(sessionId);
-            log.info("会话 {} 的连接已关闭", sessionId);
+            // 移除连接信息
+            sshMap.remove(session);
         }
     }
 
@@ -133,29 +136,28 @@ public class WebSSHServiceImpl implements WebSSHService {
         config.put("StrictHostKeyChecking", "no");
         JSch jSch = sshConnectInfo.getJSch();
 
-        // 从 WebSocketSession 中获取 UUID（UUID 即用户名）
-        String uuid = webSocketSession.getId();
+        // 从 WebSocketSession 中获取 UUID, UUID就是用户名
+        String uuid = (String) webSocketSession.getAttributes().get("username");
         log.info("尝试连接 SSH 主机: {}:{}", webSSHData.getHost(), webSSHData.getPort());
 
         try {
-            // 获取 Key
+            // 获取Key
             String salt = authService.getSaltByUsername(uuid);
             log.info("获取到 {} 的盐值为：{}", uuid, salt);
-
             // 解密密码
             String decryptedPassword = AESUtils.decryptFromHex(webSSHData.getPassword(), salt);
             log.info("解密后的密码为：{}", decryptedPassword);
 
-            // 创建 SSH 会话并设置配置
+            // 创建SSH会话并设置配置
             session = jSch.getSession(webSSHData.getUsername(), webSSHData.getHost(), webSSHData.getPort());
             session.setConfig(config);
             session.setPassword(decryptedPassword);
 
-            session.connect(30000);  // 设置连接超时 30 秒
+            session.connect(30000);  // 设置连接超时 30秒
             log.info("SSH 会话连接成功");
 
             Channel channel = session.openChannel("shell");
-            channel.connect(3000);  // 设置通道连接超时 3 秒
+            channel.connect(3000);  // 设置通道连接超时 3秒
             log.info("SSH 通道连接成功");
 
             sshConnectInfo.setChannel(channel);
