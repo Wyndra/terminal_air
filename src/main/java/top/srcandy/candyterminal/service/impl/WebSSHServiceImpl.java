@@ -109,6 +109,7 @@ public class WebSSHServiceImpl implements WebSSHService {
 
     @Override
     public void sendMessage(WebSocketSession session, byte[] buffer) throws IOException {
+        // 发回数据给前端
         session.sendMessage(new TextMessage(buffer));
     }
 
