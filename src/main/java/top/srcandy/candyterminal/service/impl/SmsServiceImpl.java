@@ -46,7 +46,7 @@ public class SmsServiceImpl implements SmsService {
             }
         }
 
-        if (Objects.equals(request.getChannel(), "1022")) {
+        if (Objects.equals(request.getChannel(), "1008")) {
             User existingUser = userDao.selectByUserPhone(phone);
             if (existingUser == null) {
                 // Return failure response if phone is not registered
