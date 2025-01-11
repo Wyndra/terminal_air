@@ -46,6 +46,14 @@ public class SmsServiceImpl implements SmsService {
             }
         }
 
+        if (Objects.equals(request.getChannel(), "1022")) {
+            User existingUser = userDao.selectByUserPhone(phone);
+            if (existingUser == null) {
+                // Return failure response if phone is not registered
+                return ResponseResult.fail(null, "该手机号未注册，请先注册");
+            }
+        }
+
         // Apply rate-limiting for requests within a 5-minute window
         String redisKey = "sms_request_count:" + phone;
         Long requestCount = stringRedisTemplate.opsForValue().increment(redisKey, 1);
