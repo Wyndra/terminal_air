@@ -17,7 +17,11 @@
                 <n-input-number v-model:value="settings.fontSize" :min="8" :max="32" />
               </n-form-item>
               <n-form-item label="字体">
-                <n-select v-model:value="settings.fontFamily" :options="fontOptions" filterable tag />
+                <n-select v-model:value="settings.fontFamily" :options="fontOptions" filterable tag>
+                  <template #option="{ option }">
+                    <span :style="{ fontFamily: option.value }">{{ option.label }}</span>
+                  </template>
+                </n-select>
               </n-form-item>
               <n-form-item label="行高">
                 <n-input-number v-model:value="settings.lineHeight" :min="1" :max="2" :step="0.1" />

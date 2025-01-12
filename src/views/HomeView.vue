@@ -125,7 +125,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import { useMessage } from 'naive-ui';
+import { useMessage, useNotification } from 'naive-ui';
 import { useRouter } from 'vue-router';
 
 import { getUserInfo } from '@/api/auth';
@@ -140,6 +140,7 @@ import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
 
 const store = useStore();
 const message = useMessage();
+const notification = useNotification();
 
 const router = useRouter();
 import Typed from 'typed.js';
@@ -188,6 +189,14 @@ async function fetchUserInfo() {
   getUserInfo().then(res => {
     if (res.status === '200') {
       userInfo.value = res.data;
+      // 检查用户昵称和邮箱是否为空
+      if (!userInfo.value.nickname || !userInfo.value.email) {
+        notification.warning({
+          title: '提醒',
+          content: '您的昵称或邮箱为空，请及时更新信息。',
+          duration: 5000
+        });
+      }
     } else {
       if (!hasShownError.value) {
         message.error(res.message || '获取用户信息失败');
