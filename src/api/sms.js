@@ -14,3 +14,10 @@ export const verifyCode = (data) => {
         data,
     });
 }
+
+export const sendSmsCodeByToken = () => {
+    return serviceAxios({
+        url: "/sms/sendSmsCodeByToken",
+        method: "get",
+    });
+}
