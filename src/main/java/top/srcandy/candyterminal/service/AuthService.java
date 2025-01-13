@@ -1,16 +1,18 @@
 package top.srcandy.candyterminal.service;
 
+import top.srcandy.candyterminal.bean.vo.LoginResultVO;
 import top.srcandy.candyterminal.bean.vo.UserProfileVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.model.User;
-import top.srcandy.candyterminal.request.LoginBySmsCodeRequest;
-import top.srcandy.candyterminal.request.LoginRequest;
-import top.srcandy.candyterminal.request.RegisterRequest;
-import top.srcandy.candyterminal.request.UpdateProfileRequest;
+import top.srcandy.candyterminal.request.*;
+
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 
 public interface AuthService {
+    ResponseResult<LoginResultVO> login(LoginRequest request);
 
-    ResponseResult<String> login(LoginRequest request);
+    ResponseResult<String> loginRequireTwoFactorAuth(String twoFactorAuthToken,VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
     ResponseResult<String> loginBySmsCode(LoginBySmsCodeRequest request);
 
@@ -30,6 +32,10 @@ public interface AuthService {
 
     ResponseResult<UserProfileVO> updateProfile(String token, UpdateProfileRequest request);
 
+    String switchTwoFactorAuth(String token);
 
+    String getTwoFactorAuthSecretQRCode(String token);
+
+    boolean verifyTwoFactorAuthCode(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
 }

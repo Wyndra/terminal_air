@@ -17,6 +17,8 @@ public interface UserProfileConverter {
     @Mapping(target = "password", source = "password")
     @Mapping(target = "phone", source = "phone")
     @Mapping(target = "avatar", source = "avatar")
+    @Mapping(target = "isTwoFactorAuth", source = "isTwoFactorAuth")
+    @Mapping(target = "twoFactorAuthSecret", source = "twoFactorAuthSecret")
     void updateUserProfileRequestToUser(UpdateProfileRequest request, @MappingTarget User user);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -27,5 +29,8 @@ public interface UserProfileConverter {
     @Mapping(target = "salt", source = "salt")
     @Mapping(target = "phone", source = "phone")
     @Mapping(target = "avatar", source = "avatar")
+    @Mapping(target = "isTwoFactorAuth", source = "isTwoFactorAuth")
+    @Mapping(target = "twoFactorAuthSecret", source = "twoFactorAuthSecret")
+    @Mapping(target = "createTime", source = "createTime")
     UserProfileVO userToUserProfileVO(User user);
 }

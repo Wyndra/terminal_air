@@ -6,13 +6,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import top.srcandy.candyterminal.bean.vo.LoginResultVO;
 import top.srcandy.candyterminal.bean.vo.UserProfileVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
-import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.*;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.utils.AuthAccess;
 import top.srcandy.candyterminal.utils.JWTUtil;
+
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 
 @RestController
 @Slf4j
@@ -25,7 +28,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @AuthAccess
-    public ResponseResult<String> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
+    public ResponseResult<LoginResultVO> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
         return authService.login(request);
     }
 
@@ -60,11 +63,24 @@ public class AuthController {
     public ResponseResult<UserProfileVO> updateProfile(@RequestHeader("Authorization") String token, @Valid @RequestBody(required = false) @NonNull UpdateProfileRequest request) {
         return authService.updateProfile(token.substring(7), request);
     }
-//
-//        @GetMapping("/updatePassword")
-//        @ApiOperation("修改密码")
-//        @ApiImplicitParam(name = "username", value = "用户名", required = true)
-//        public String updatePassword(@RequestParam String username) {
-//            return "update password success";
-//        }
+
+    @GetMapping("/switchTwoFactorAuth")
+    public ResponseResult<String> switchTwoFactorAuth(@RequestHeader("Authorization") String token) {
+        return ResponseResult.success(authService.switchTwoFactorAuth(token.substring(7)));
+    }
+
+    @GetMapping("/getTwoFactorAuthSecretQRCode")
+    public ResponseResult<String> getTwoFactorAuthSecretQRCode(@RequestHeader("Authorization") String token) {
+        return ResponseResult.success(authService.getTwoFactorAuthSecretQRCode(token.substring(7)));
+    }
+
+    @PostMapping("/verifyTwoFactorAuthCode")
+    public ResponseResult<Boolean> verifyTwoFactorAuthCode(@RequestHeader("Authorization") String twoFactorAuthToken, @Valid @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+        return ResponseResult.success(authService.verifyTwoFactorAuthCode(twoFactorAuthToken.substring(7), request));
+    }
+
+    @PostMapping("/loginRequireTwoFactorAuth")
+    public ResponseResult<String> loginRequireTwoFactorAuth(@Valid @RequestHeader("Authorization") String twoFactorAuthToken, @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+        return authService.loginRequireTwoFactorAuth(twoFactorAuthToken.substring(7),request);
+    }
 }

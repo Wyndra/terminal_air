@@ -79,7 +79,7 @@ public class AESUtils {
     public static void main(String[] args) throws GeneralSecurityException, UnsupportedEncodingException {
         // 示例：使用自定义密钥加解密
         String customKey = "Ynd6ZGM1MjAu";
-        String customEncrypted = encryptToHex("Bwzdc520.", customKey);
+        String customEncrypted = encryptToHex("KT7HYEKTP2UJ4546POG35Q3HLYDK7YS4", customKey);
         System.out.println("Encrypted with custom key: " + customEncrypted);
 
         String customDecrypted = decryptFromHex(customEncrypted, customKey);
