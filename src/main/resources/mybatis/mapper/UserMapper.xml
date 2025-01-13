@@ -28,8 +28,8 @@
         values (#{username}, #{password}, #{salt})
     </insert>
     <insert id="insertSelective" parameterType="top.srcandy.candyterminal.bean.dto.RegisterDTO">
-        insert into User (username, password, salt, phone)
-        values (#{username}, #{password}, #{salt}, #{phone})
+        insert into User (username, password, salt, phone, twoFactorAuthSecret)
+        values (#{username}, #{password}, #{salt}, #{phone},#{twoFactorSecret})
     </insert>
     <update id="update" parameterType="top.srcandy.candyterminal.request.UpdateProfileRequest">
         update User
