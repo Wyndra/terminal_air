@@ -69,7 +69,6 @@
                     <div class="section-header">
                       <h3>详细信息</h3>
                     </div>
-
                     <!-- 展示模式 -->
                     <n-descriptions :column="2" label-align="left" style="margin-top: 16px">
                       <n-descriptions-item v-for="(field, key) in editableFields" :key="field.key" :label="field.label"
@@ -128,26 +127,26 @@
                 </n-descriptions>
               </n-tab-pane>
               <n-tab-pane name="双重认证" tab="双重认证">
-                <n-descriptions :column="1" label-align="left" label-style="width: 120px; padding-right: 16px;">
-                  <n-descriptions-item label="双重认证">
+                <n-form :model="userInfo" label-placement="left" label-width="120px" label-align="left">
+                  <n-form-item label="双重认证">
                     <div class="two-factor-wrapper">
                       <n-switch v-model:value="userInfo.isTwoFactorAuth" @update:value="handleTwoFactorChange" />
                       <span class="description-text">开启双重认证后，每次登录将需要额外验证</span>
                     </div>
-                  </n-descriptions-item>
-                  <n-descriptions-item label="二维码绑定" v-if="userInfo.isTwoFactorAuth">
+                  </n-form-item>
+                  <n-form-item style="display: flex;align-items: center;" label="凭证二维码" v-if="userInfo.isTwoFactorAuth">
                     <div class="qrcode-section">
                       <div class="qrcode-wrapper">
                         <img v-if="qrcodeImage" :src="qrcodeImage" alt="二维码" style="width: 200px; height: 200px;" />
                         <n-skeleton v-else text :repeat="1" />
-                      </div>
-                      <div class="qrcode-tips">
-                        <n-text depth="3">请使用 Microsoft Authenticator 扫描二维码进行绑定</n-text>
-                        <n-text depth="2">每次登录时需要输入动态验证码</n-text>
+                        <div class="qrcode-tips">
+                          <n-text depth="3">使用 Microsoft Authenticator</n-text>
+                          <n-text depth="3">扫描二维码</n-text>
+                        </div>
                       </div>
                     </div>
-                  </n-descriptions-item>
-                </n-descriptions>
+                  </n-form-item>
+                </n-form>
               </n-tab-pane>
             </n-tabs>
           </n-card>
@@ -324,7 +323,6 @@ async function fetchUserInfo() {
       // 确保双重认证状态与服务器一致 ('1' -> true, '0' -> false)
       userData.isTwoFactorAuth = userData.isTwoFactorAuth === '1';
       userInfo.value = userData;
-      // 格式化createTime 2025-01-12T20:58:31.000+00:00 应该是 2025-01-12 20:58:31
       userInfo.value.createTime = userInfo.value.createTime.replace('T', ' ').split('.')[0];
       safeSettingForm.value = {
         salt: res.data.salt || ''
@@ -964,11 +962,13 @@ onMounted(() => {
 
 .two-factor-wrapper {
   display: flex;
-  gap: 12px;
-  align-items: center;
+  gap: 8px;
+  align-items: flex-start;
+  flex-direction: column;
+  // align-items: center;
 
   .description-text {
-    color: #666;
+    color: #a1a1a1;
     font-size: 14px;
   }
 }
@@ -977,6 +977,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 8px 0;
 
@@ -984,6 +985,10 @@ onMounted(() => {
     background: #fff;
     padding: 8px;
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
@@ -992,6 +997,7 @@ onMounted(() => {
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    font-family: ui-sans-serif, -apple-system, system-ui;
   }
 }
 </style>
