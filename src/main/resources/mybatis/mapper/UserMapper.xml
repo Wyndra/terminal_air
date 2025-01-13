@@ -9,20 +9,39 @@
         <result column="email" property="email" jdbcType="VARCHAR"/>
         <result column="nickname" property="nickname" jdbcType="VARCHAR"/>
         <result column="avatar" property="avatar" jdbcType="VARCHAR"/>
+        <result column="isTwoFactorAuth" property="isTwoFactorAuth" jdbcType="VARCHAR"/>
+        <result column="twoFactorAuthSecret" property="twoFactorAuthSecret" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
     </resultMap>
     <select id="selectByUserName" parameterType="String" resultType="top.srcandy.candyterminal.model.User">
-        select * from User where username = #{username}
+        select *
+        from User
+        where username = #{username}
     </select>
     <select id="selectByUserPhone" parameterType="String" resultType="top.srcandy.candyterminal.model.User">
-        select * from User where phone = #{phone}
+        select *
+        from User
+        where phone = #{phone}
     </select>
     <insert id="insert" parameterType="top.srcandy.candyterminal.bean.dto.LoginDTO">
-        insert into User (username, password,salt) values (#{username}, #{password}, #{salt})
+        insert into User (username, password, salt)
+        values (#{username}, #{password}, #{salt})
     </insert>
     <insert id="insertSelective" parameterType="top.srcandy.candyterminal.bean.dto.RegisterDTO">
-        insert into User (username, password, salt, phone) values (#{username}, #{password}, #{salt},#{phone})
+        insert into User (username, password, salt, phone)
+        values (#{username}, #{password}, #{salt}, #{phone})
     </insert>
     <update id="update" parameterType="top.srcandy.candyterminal.request.UpdateProfileRequest">
-        update User set username = #{username}, password = #{password}, salt = #{salt}, nickname = #{nickname}, email = #{email}, phone = #{phone},avatar = #{avatar} where uid = #{uid}
+        update User
+        set username = #{username},
+            password = #{password},
+            salt     = #{salt},
+            nickname = #{nickname},
+            email    = #{email},
+            phone    = #{phone},
+            avatar   = #{avatar},
+            isTwoFactorAuth = #{isTwoFactorAuth},
+            twoFactorAuthSecret = #{twoFactorAuthSecret}
+        where uid = #{uid}
     </update>
 </mapper>

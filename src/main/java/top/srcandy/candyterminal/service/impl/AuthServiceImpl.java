@@ -4,21 +4,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.srcandy.candyterminal.bean.dto.RegisterDTO;
+import top.srcandy.candyterminal.bean.vo.LoginResultVO;
 import top.srcandy.candyterminal.bean.vo.UserProfileVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.converter.UserProfileConverter;
 import top.srcandy.candyterminal.dao.UserDao;
 import top.srcandy.candyterminal.bean.dto.LoginDTO;
 import top.srcandy.candyterminal.model.User;
-import top.srcandy.candyterminal.request.LoginBySmsCodeRequest;
-import top.srcandy.candyterminal.request.LoginRequest;
-import top.srcandy.candyterminal.request.RegisterRequest;
-import top.srcandy.candyterminal.request.UpdateProfileRequest;
+import top.srcandy.candyterminal.request.*;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.service.SmsService;
+import top.srcandy.candyterminal.utils.AESUtils;
 import top.srcandy.candyterminal.utils.JWTUtil;
 import top.srcandy.candyterminal.utils.SaltUtils;
+import top.srcandy.candyterminal.utils.TwoFactorAuthUtil;
 
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 import java.util.Base64;
 
 @Service
@@ -33,22 +35,52 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private SmsService smsService;
 
+    @Autowired
+    private MicrosoftAuth microsoftAuth;
+
     public AuthServiceImpl(UserDao userDao) {
         this.userDao = userDao;
     }
 
     @Override
-    public ResponseResult<String> login(LoginRequest request) {
+    public ResponseResult<LoginResultVO> login(LoginRequest request) {
         User result = userDao.selectByUserName(request.getUsername());
         if (result == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
         if (result.getPassword().equals(request.getPassword())) {
-            return ResponseResult.success(JWTUtil.generateToken(result));
-        } else {
+            if (result.getIsTwoFactorAuth().equals("1")) {
+                // 生成两步验证的Token
+                return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
+            } else {
+                // 直接生成token
+                return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
+            }
+        }else {
             return ResponseResult.fail(null, "密码错误");
         }
     }
+
+    @Override
+    public ResponseResult<String> loginRequireTwoFactorAuth(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+        String username = JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("username").asString();
+        User user = userDao.selectByUserName(username);
+        if (user == null) {
+            return ResponseResult.fail(null, "用户不存在");
+        }
+        // 判断token中的twoFactorAuthSecret是否与用户的twoFactorAuthSecret一致
+        String twoFactorAuthSecret = JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("twoFactorAuthSecret").asString();
+        if (!AESUtils.decryptFromHex(twoFactorAuthSecret,user.getSalt()).equals(user.getTwoFactorAuthSecret())) {
+            return ResponseResult.fail(null, "校验失败");
+        }
+        boolean verifyTwoFactorAuthCodeResult = microsoftAuth.checkCode(user.getTwoFactorAuthSecret(), request.getCode(), request.getTime());
+        if (verifyTwoFactorAuthCodeResult) {
+            return ResponseResult.success(JWTUtil.generateToken(user));
+        } else {
+            return ResponseResult.fail(null, "验证码错误");
+        }
+    }
+
 
     @Override
     public ResponseResult<String> loginBySmsCode(LoginBySmsCodeRequest request) {
@@ -80,6 +112,7 @@ public class AuthServiceImpl implements AuthService {
         registerDTO.setPassword(request.getPassword());
         registerDTO.setPhone(request.getPhone());
         registerDTO.setSalt(SaltUtils.getSalt(16));
+        registerDTO.setTwoFactorSecret(microsoftAuth.getSecretKey());
 
         int rows = userDao.insertSelective(registerDTO);
         if (rows == 0) {
@@ -182,11 +215,55 @@ public class AuthServiceImpl implements AuthService {
                 .uid(user.getUid())
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .phone(user.getPhone())
                 .nickname(user.getNickname())
                 .salt(user.getSalt())
+                .isTwoFactorAuth(user.getIsTwoFactorAuth())
+//                .twoFactorAuthSecret(user.getTwoFactorAuthSecret())
                 .build();
 
         return ResponseResult.success(profileVO);
     }
+
+    @Override
+    public String switchTwoFactorAuth(String token) {
+        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
+        User user = userDao.selectByUserName(username);
+        if (user == null) {
+            return null;
+        }
+        if (user.getIsTwoFactorAuth().equals("0")) {
+            user.setIsTwoFactorAuth("1");
+        } else {
+            user.setIsTwoFactorAuth("0");
+        }
+        userDao.update(user);
+        return user.getIsTwoFactorAuth();
+    }
+
+    @Override
+    public String getTwoFactorAuthSecretQRCode(String token) {
+        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
+        User user = userDao.selectByUserName(username);
+        if (user == null) {
+            return null;
+        }
+        return new TwoFactorAuthUtil().getQrCode(username, user.getTwoFactorAuthSecret());
+    }
+
+    @Override
+    public boolean verifyTwoFactorAuthCode(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+        String username = JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("username").asString();
+        User user = userDao.selectByUserName(username);
+        if (user == null) {
+            return false;
+        }
+        // 判断token中的twoFactorAuthSecret是否与用户的twoFactorAuthSecret一致
+        if (!AESUtils.decryptFromHex(JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("twoFactorAuthSecret").asString(),user.getSalt()).equals(user.getTwoFactorAuthSecret())) {
+            return false;
+        }
+        return microsoftAuth.checkCode(user.getTwoFactorAuthSecret(), request.getCode(), request.getTime());
+    }
+
 
 }
