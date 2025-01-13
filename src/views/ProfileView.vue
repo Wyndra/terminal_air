@@ -76,8 +76,7 @@
                         class="info-item">
                         <div class="value-wrapper">
                           <n-text>{{ userInfo[field.key] }}</n-text>
-                          <n-button v-if="field.key !== 'username'" secondary size="tiny" text
-                            @click="openEditDialog(field)">
+                          <n-button v-if="field.editable" secondary size="tiny" text @click="openEditDialog(field)">
                             <n-text style="color: cornflowerblue;">编辑</n-text>
                           </n-button>
                         </div>
@@ -128,6 +127,28 @@
                   </n-descriptions-item>
                 </n-descriptions>
               </n-tab-pane>
+              <n-tab-pane name="双重认证" tab="双重认证">
+                <n-descriptions :column="1" label-align="left" label-style="width: 120px; padding-right: 16px;">
+                  <n-descriptions-item label="双重认证">
+                    <div class="two-factor-wrapper">
+                      <n-switch v-model:value="userInfo.isTwoFactorAuth" @update:value="handleTwoFactorChange" />
+                      <span class="description-text">开启双重认证后，每次登录将需要额外验证</span>
+                    </div>
+                  </n-descriptions-item>
+                  <n-descriptions-item label="二维码绑定" v-if="userInfo.isTwoFactorAuth">
+                    <div class="qrcode-section">
+                      <div class="qrcode-wrapper">
+                        <img v-if="qrcodeImage" :src="qrcodeImage" alt="二维码" style="width: 200px; height: 200px;" />
+                        <n-skeleton v-else text :repeat="1" />
+                      </div>
+                      <div class="qrcode-tips">
+                        <n-text depth="3">请使用 Microsoft Authenticator 扫描二维码进行绑定</n-text>
+                        <n-text depth="2">每次登录时需要输入动态验证码</n-text>
+                      </div>
+                    </div>
+                  </n-descriptions-item>
+                </n-descriptions>
+              </n-tab-pane>
             </n-tabs>
           </n-card>
         </n-layout-content>
@@ -149,6 +170,52 @@
     <n-modal v-model:show="showLoginOrRegisterModal">
       <LoginAndRegisterModal @close="showLoginOrRegisterModal = false" />
     </n-modal>
+
+    <!-- 验证码弹窗 -->
+    <n-modal v-model:show="showVerifyModal" preset="card" :title="`验证${currentField?.label || ''}`"
+      style="width: 300px">
+      <n-form>
+        <n-form-item label="验证码">
+          <n-input v-model:value="phone" placeholder="请输入手机号" />
+          <n-input-group>
+            <n-input v-model:value="verifyCode" placeholder="请输入验证码" />
+            <n-button type="primary" ghost>获取验证码</n-button>
+          </n-input-group>
+        </n-form-item>
+      </n-form>
+      <template #footer>
+        <n-space justify="end">
+          <n-button size="small" @click="showVerifyModal = false">取消</n-button>
+          <n-button size="small" type="primary" :disabled="!verifyCode" @click="handleVerifySubmit">
+            确认
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
+    <n-modal v-model:show="showVerifyModal" preset="card" :title="`验证${currentField?.label || ''}`"
+      style="width: 300px">
+      <n-form :model="phoneForm" :rules="phoneRules" ref="phoneFormRef">
+        <n-form-item label="新手机号" path="newPhone">
+          <n-input v-model:value="phoneForm.newPhone" placeholder="请输入新手机号" />
+        </n-form-item>
+        <n-form-item label="验证码" path="verifyCode">
+          <n-input-group>
+            <n-input v-model:value="phoneForm.verifyCode" placeholder="请输入验证码" />
+            <n-button :disabled="!canSendCode" type="primary" ghost @click="handleSendCode">
+              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+            </n-button>
+          </n-input-group>
+        </n-form-item>
+      </n-form>
+      <template #footer>
+        <n-space justify="end">
+          <n-button size="small" @click="showPhoneVerifyModal = false">取消</n-button>
+          <n-button size="small" type="primary" :disabled="!phoneForm.verifyCode" @click="handlePhoneUpdate">
+            确认
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </n-layout>
 </template>
 
@@ -156,7 +223,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
-import { getUserInfo, updateUserInfo } from '@/api/auth';
+import { getUserInfo, updateUserInfo, switchTwoFactorAuth, getTwoFactorAuthSecretQRCode } from '@/api/auth';
 import { LockClosed, LockOpen, EditOutline } from '@vicons/ionicons5';
 import axios from 'axios';
 
@@ -253,10 +320,19 @@ async function fetchUserInfo() {
   try {
     const res = await getUserInfo();
     if (res.status === '200') {
-      userInfo.value = res.data;
+      const userData = res.data;
+      // 确保双重认证状态与服务器一致 ('1' -> true, '0' -> false)
+      userData.isTwoFactorAuth = userData.isTwoFactorAuth === '1';
+      userInfo.value = userData;
+      // 格式化createTime 2025-01-12T20:58:31.000+00:00 应该是 2025-01-12 20:58:31
+      userInfo.value.createTime = userInfo.value.createTime.replace('T', ' ').split('.')[0];
       safeSettingForm.value = {
         salt: res.data.salt || ''
       };
+      // 如果开启了双重认证，获取二维码
+      if (userData.isTwoFactorAuth) {
+        await fetchQRCode();
+      }
     } else {
       if (!hasShownError.value) {
         message.error(res.message || '获取用户信息失败');
@@ -457,22 +533,60 @@ const cancelEditing = () => {
 };
 
 const editableFields = [
-  { key: 'username', label: '用户名' },
-  { key: 'nickname', label: '昵称' },
-  { key: 'phone', label: '手机号码' },
-  { key: 'email', label: '邮箱' }
+  { key: 'username', label: '用户名', editable: false },
+  { key: 'nickname', label: '昵称', editable: true },
+  { 
+    key: 'phone', 
+    label: '手机号码', 
+    editable: true,
+    needVerify: true, // 需要验证码验证
+    verifyType: 'sms' // 验证方式
+  },
+  { key: 'email', label: '邮箱', editable: true },
+  { key: 'createTime', label: "注册时间", editable: false }
 ];
+
+// 添加验证码相关的响应式变量
+const showVerifyModal = ref(false);
+const verifyCode = ref('');
+const updatedValue = ref(''); // 暂存要更新的值
+
+// 修改openEditDialog方法
+const openEditDialog = (field) => {
+  if (!field.editable) return;
+  currentField.value = field;
+  
+  if (field.key === 'phone') {
+    phoneForm.value.newPhone = '';
+    phoneForm.value.verifyCode = '';
+    showPhoneVerifyModal.value = true;
+  } else {
+    editForm.value.value = userInfo.value[field.key];
+    showEditModal.value = true;
+  }
+};
+
+// 添加验证码处理方法
+const handleVerifySubmit = async () => {
+  try {
+    // 这里应该调用验证码验证接口
+    const verified = await verifyCode(verifyCode.value);
+    if (verified) {
+      message.success('验证成功');
+      showVerifyModal.value = false;
+      showEditModal.value = true; // 显示编辑弹窗
+    } else {
+      message.error('验证码错误');
+    }
+  } catch (error) {
+    message.error('验证失败');
+  }
+};
 
 const showEditModal = ref(false);
 const currentField = ref(null);
 const editForm = ref({ value: '' });
 const editFormRef = ref(null);
-
-const openEditDialog = (field) => {
-  currentField.value = field;
-  editForm.value.value = userInfo.value[field.key];
-  showEditModal.value = true;
-};
 
 const getFieldRules = computed(() => {
   if (!currentField.value) return {};
@@ -504,6 +618,120 @@ const handleFieldUpdate = async () => {
   } catch (error) {
     console.error(error);
     message.error('验证失败或更新时出错');
+  }
+};
+
+// 手机号相关
+const showPhoneVerifyModal = ref(false);
+const phoneFormRef = ref(null);
+const phoneForm = ref({
+  newPhone: '',
+  verifyCode: ''
+});
+const countdown = ref(0);
+const canSendCode = computed(() => {
+  return /^1[3-9]\d{9}$/.test(phoneForm.value.newPhone) && countdown.value === 0;
+});
+
+const phoneRules = {
+  newPhone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+  ],
+  verifyCode: [
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { pattern: /^\d{6}$/, message: '验证码格式不正确', trigger: 'blur' }
+  ]
+};
+
+// 发送验证码
+const handleSendCode = async () => {
+  try {
+    await phoneFormRef.value?.validate(['newPhone']);
+    // 调用发送验证码接口
+    // const res = await sendVerifyCode(phoneForm.value.newPhone);
+    
+    // 开始倒计时
+    countdown.value = 60;
+    const timer = setInterval(() => {
+      countdown.value--;
+      if (countdown.value <= 0) {
+        clearInterval(timer);
+      }
+    }, 1000);
+    
+    message.success('验证码已发送');
+  } catch (error) {
+    message.error('发送验证码失败');
+  }
+};
+
+// 更新手机号
+const handlePhoneUpdate = async () => {
+  try {
+    await phoneFormRef.value?.validate();
+    // 调用验证码验证接口
+    // const verified = await verifyCode(phoneForm.value.newPhone, phoneForm.value.verifyCode);
+    
+    // 验证通过后更新手机号
+    const res = await updateUserInfo({
+      phone: phoneForm.value.newPhone,
+      uid: userInfo.value.uid
+    });
+    
+    if (res.status === '200') {
+      message.success('手机号更新成功');
+      showPhoneVerifyModal.value = false;
+      await fetchUserInfo();
+    } else {
+      message.error(res.message || '更新失败');
+    }
+  } catch (error) {
+    message.error('验证失败或更新出错');
+  }
+};
+
+// 处理双重认证开关
+const handleTwoFactorChange = async (value) => {
+  try {
+    const res = await switchTwoFactorAuth();
+    if (res.status === '200') {
+      const isTwoFactorEnabled = res.data === '1';
+      // 根据服务器返回值设置状态，而不是用传入的value
+      userInfo.value.isTwoFactorAuth = isTwoFactorEnabled;
+      message.success(isTwoFactorEnabled ? '双重认证已开启' : '双重认证已关闭');
+      
+      // 如果开启了双重认证，获取二维码
+      if (isTwoFactorEnabled) {
+        fetchQRCode();
+      } else {
+        qrcodeImage.value = '';
+      }
+    } else {
+      // 如果失败，回滚开关状态为原来的状态
+      userInfo.value.isTwoFactorAuth = !value;
+      message.error(res.message || '操作失败');
+    }
+  } catch (error) {
+    // 发生错误时保持原状态
+    userInfo.value.isTwoFactorAuth = !value;
+    message.error('操作失败');
+  }
+};
+
+const qrcodeImage = ref("");
+
+// 获取二维码
+const fetchQRCode = async () => {
+  try {
+    const res = await getTwoFactorAuthSecretQRCode();
+    if (res.status === '200') {
+      qrcodeImage.value = res.data;
+    } else {
+      message.error('获取二维码失败');
+    }
+  } catch (error) {
+    message.error('获取二维码失败');
   }
 };
 
@@ -631,6 +859,7 @@ onMounted(() => {
       margin: 4px 0 0;
       color: #666;
       font-size: 14px;
+      font-family: ui-sans-serif, -apple-system, system-ui;
     }
   }
 }
@@ -694,13 +923,15 @@ onMounted(() => {
 }
 
 .value-wrapper {
-  // display: flex;
   align-items: center;
   gap: 12px;
+  display: flex;
+  justify-content: space-between;
 
-  span {
+  .n-text {
     flex: 1;
     color: var(--n-text-color);
+    font-family: ui-sans-serif, -apple-system, system-ui;
   }
 
   .n-button {
@@ -710,11 +941,57 @@ onMounted(() => {
     padding: 2px 8px;
     height: 24px;
     opacity: 0.8;
-    transition: opacity 0.2s;
+    transition: all 0.2s ease;
 
     &:hover {
       opacity: 1;
     }
+  }
+}
+
+:deep(.n-input-group) {
+  display: flex;
+  gap: 8px;
+  
+  .n-input {
+    flex: 1;
+  }
+  
+  .n-button {
+    min-width: 100px;
+  }
+}
+
+.two-factor-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+
+  .description-text {
+    color: #666;
+    font-size: 14px;
+  }
+}
+
+.qrcode-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+
+  .qrcode-wrapper {
+    background: #fff;
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .qrcode-tips {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
   }
 }
 </style>

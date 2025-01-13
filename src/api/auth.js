@@ -45,3 +45,18 @@ export const updateUserInfo = (data) => {
         data,
     });
 }
+
+export const switchTwoFactorAuth = () => {
+    return serviceAxios({
+        url: "/auth/switchTwoFactorAuth",
+        method: "get",
+    });
+}
+
+export const getTwoFactorAuthSecretQRCode = () => {
+    return serviceAxios({
+        url: "/auth/getTwoFactorAuthSecretQRCode",
+        method: "get",
+    });
+}
+
