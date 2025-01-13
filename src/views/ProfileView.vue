@@ -191,6 +191,7 @@
         </n-space>
       </template>
     </n-modal>
+
     <n-modal v-model:show="showVerifyModal" preset="card" :title="`验证${currentField?.label || ''}`"
       style="width: 300px">
       <n-form :model="phoneForm" :rules="phoneRules" ref="phoneFormRef">
@@ -215,6 +216,30 @@
         </n-space>
       </template>
     </n-modal>
+    <!-- 验证原手机号弹窗 -->
+    <n-modal v-model:show="showVerifyOldPhoneModal" preset="card" title="验证原手机号" style="width: 300px">
+      <n-form :model="oldPhoneForm" :rules="oldPhoneRules" ref="oldPhoneFormRef">
+        <n-form-item label="原手机号" path="oldPhone">
+          <n-input v-model:value="oldPhoneForm.oldPhone" placeholder="请输入原手机号" disabled />
+        </n-form-item>
+        <n-form-item label="验证码" path="verifyCode">
+          <n-input-group>
+            <n-input v-model:value="oldPhoneForm.verifyCode" placeholder="请输入验证码" />
+            <n-button :disabled="!canSendOldPhoneCode" type="primary" ghost @click="handleSendOldPhoneCode">
+              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+            </n-button>
+          </n-input-group>
+        </n-form-item>
+      </n-form>
+      <template #footer>
+        <n-space justify="end">
+          <n-button size="small" @click="showVerifyOldPhoneModal = false">取消</n-button>
+          <n-button size="small" type="primary" :disabled="!oldPhoneForm.verifyCode" @click="handleVerifyOldPhoneSubmit">
+            确认
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </n-layout>
 </template>
 
@@ -223,6 +248,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
 import { getUserInfo, updateUserInfo, switchTwoFactorAuth, getTwoFactorAuthSecretQRCode } from '@/api/auth';
+import { sendSmsCodeByToken, sendVerificationCode, verifyCode } from '@/api/sms';
 import { LockClosed, LockOpen, EditOutline } from '@vicons/ionicons5';
 import axios from 'axios';
 
@@ -419,7 +445,7 @@ const gotoHomeView = () => {
 const uploadUrl = 'http://static.srcandy.top/upload';
 
 // 自定义上传函数
-const customUpload = async ({ file, onProgress, onSuccess, onError }) => {
+const customUpload = async ({ file, onProgress, onError }) => {
   if (!file || !file.file) { // 添加文件存在性检查
     message.error('未选择文件');
     onError(new Error('未选择文件'));
@@ -558,7 +584,7 @@ const editableFields = [
 
 // 添加验证码相关的响应式变量
 const showVerifyModal = ref(false);
-const verifyCode = ref('');
+const verifyCodeInput = ref(''); // 修改变量名避免冲突
 const updatedValue = ref(''); // 暂存要更新的值
 
 // 修改openEditDialog方法
@@ -567,9 +593,9 @@ const openEditDialog = (field) => {
   currentField.value = field;
   
   if (field.key === 'phone') {
-    phoneForm.value.newPhone = '';
-    phoneForm.value.verifyCode = '';
-    showPhoneVerifyModal.value = true;
+    oldPhoneForm.value.oldPhone = userInfo.value.phone;
+    oldPhoneForm.value.verifyCode = '';
+    showVerifyOldPhoneModal.value = true; // 显示原手机号校验弹窗
   } else {
     editForm.value.value = userInfo.value[field.key];
     showEditModal.value = true;
@@ -579,9 +605,8 @@ const openEditDialog = (field) => {
 // 添加验证码处理方法
 const handleVerifySubmit = async () => {
   try {
-    // 这里应该调用验证码验证接口
-    const verified = await verifyCode(verifyCode.value);
-    if (verified) {
+    const verified = await verifySmsCode({ code: verifyCodeInput.value });
+    if (verified.data.success) {
       message.success('验证成功');
       showVerifyModal.value = false;
       showEditModal.value = true; // 显示编辑弹窗
@@ -657,9 +682,11 @@ const phoneRules = {
 // 发送验证码
 const handleSendCode = async () => {
   try {
-    await phoneFormRef.value?.validate(['newPhone']);
+    // await phoneFormRef.value?.validate();
     // 调用发送验证码接口
-    // const res = await sendVerifyCode(phoneForm.value.newPhone);
+    const res = await sendVerificationCode({ phone: phoneForm.value.newPhone, channel: '1021' });
+    localStorage.setItem('newPhone', phoneForm.value.newPhone);
+    localStorage.setItem('newSerial', res.data.serial);
     
     // 开始倒计时
     countdown.value = 60;
@@ -681,20 +708,31 @@ const handlePhoneUpdate = async () => {
   try {
     await phoneFormRef.value?.validate();
     // 调用验证码验证接口
-    // const verified = await verifyCode(phoneForm.value.newPhone, phoneForm.value.verifyCode);
-    
-    // 验证通过后更新手机号
-    const res = await updateUserInfo({
-      phone: phoneForm.value.newPhone,
-      uid: userInfo.value.uid
+    const verified = await verifyCode({ 
+      phone: localStorage.getItem('newPhone'), 
+      serial: localStorage.getItem('newSerial'),
+      code: phoneForm.value.verifyCode 
     });
     
-    if (res.status === '200') {
-      message.success('手机号更新成功');
-      showPhoneVerifyModal.value = false;
-      await fetchUserInfo();
+    if (verified.data) {
+      // 验证通过后更新手机号
+      const res = await updateUserInfo({
+        phone: phoneForm.value.newPhone,
+        uid: userInfo.value.uid
+      });
+      
+      if (res.status === '200') {
+        message.success('手机号更新成功');
+        showPhoneVerifyModal.value = false;
+        showVerifyModal.value = false;
+        await fetchUserInfo();
+        localStorage.removeItem('newPhone');
+        localStorage.removeItem('newSerial');
+      } else {
+        message.error(res.message || '更新失败');
+      }
     } else {
-      message.error(res.message || '更新失败');
+      message.error('验证码错误');
     }
   } catch (error) {
     message.error('验证失败或更新出错');
@@ -758,6 +796,76 @@ const fetchQRCode = async () => {
     }
   } catch (error) {
     message.error('获取二维码失败');
+  }
+};
+
+const showVerifyOldPhoneModal = ref(false);
+const oldPhoneForm = ref({
+  oldPhone: '',
+  verifyCode: ''
+});
+const oldPhoneRules = {
+  oldPhone: [
+    { required: true, message: '请输入原手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+  ],
+  verifyCode: [
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { pattern: /^\d{6}$/, message: '验证码格式不正确', trigger: 'blur' }
+  ]
+};
+
+const canSendOldPhoneCode = computed(() => {
+  return countdown.value === 0;
+});
+
+const oldPhoneData = ref({
+  phone: '',
+  serial: ''
+});
+
+const handleSendOldPhoneCode = async () => {
+  try {
+    // 调用发送验证码接口
+    const res = await sendSmsCodeByToken();
+    oldPhoneData.value.phone = res.data.phone;
+    oldPhoneData.value.serial = res.data.serial;
+    localStorage.setItem('oldPhone', res.data.phone);
+    localStorage.setItem('oldSerial', res.data.serial);
+    
+    // 开始倒计时
+    countdown.value = 60;
+    const timer = setInterval(() => {
+      countdown.value--;
+      if (countdown.value <= 0) {
+        clearInterval(timer);
+      }
+    }, 1000);
+    
+    message.success('验证码已发送');
+  } catch (error) {
+    message.error('发送验证码失败');
+  }
+};
+
+const handleVerifyOldPhoneSubmit = async () => {
+  try {
+    const verified = await verifyCode({ 
+      phone: oldPhoneData.value.phone,
+      serial: oldPhoneData.value.serial,
+      code: oldPhoneForm.value.verifyCode
+    });
+    if (verified.data) {
+      message.success('原手机号验证成功');
+      showVerifyOldPhoneModal.value = false;
+      showVerifyModal.value = true; // 显示新手机号校验弹窗
+      localStorage.removeItem('oldPhone');
+      localStorage.removeItem('oldSerial');
+    } else {
+      message.error('验证码错误');
+    }
+  } catch (error) {
+    message.error('验证失败');
   }
 };
 
