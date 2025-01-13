@@ -35,4 +35,15 @@ public class SmsController {
     public ResponseResult<Boolean> verifyCode(@Valid @RequestBody(required = false) @NotNull VerifyCodeRequest request) {
         return ResponseResult.success(smsService.verifySmsCode(request.getPhone(), request.getSerial(), request.getCode()));
     }
+
+    @GetMapping("/sendSmsCodeByToken")
+    public ResponseResult<SmsCodeVO> sendSmsCodeByToken(@RequestHeader("Authorization") String token) {
+        String token_no_bearer = token.substring(7);
+        try {
+            return smsService.sendSmsCodeByToken(token_no_bearer);
+        } catch (Exception e) {
+            log.error("Failed to send SMS code", e);
+        }
+        return ResponseResult.success(null);
+    }
 }

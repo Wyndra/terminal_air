@@ -1,6 +1,5 @@
 package top.srcandy.candyterminal.service.impl;
 
-import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -12,6 +11,7 @@ import top.srcandy.candyterminal.exception.TooManyRequestsException;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.SendVerificationCodeRequest;
 import top.srcandy.candyterminal.service.SmsService;
+import top.srcandy.candyterminal.utils.JWTUtil;
 import top.srcandy.candyterminal.utils.SMSUtils;
 
 import java.util.Objects;
@@ -70,6 +70,31 @@ public class SmsServiceImpl implements SmsService {
         // Send the SMS verification code
         SmsCodeVO smsCodeVO = sendVerificationCode(phone);
         return ResponseResult.success(smsCodeVO); // Return success response with SMS code and serial number
+    }
+
+    @Override
+    public ResponseResult<SmsCodeVO> sendSmsCodeByToken(String token_no_bearer) throws Exception {
+        String username = JWTUtil.getTokenClaimMap(token_no_bearer).get("username").asString();
+        User user = userDao.selectByUserName(username);
+        String phone = user.getPhone();
+
+        // Apply rate-limiting for requests within a 5-minute window
+        String redisKey = "sms_request_count:" + phone;
+        Long requestCount = stringRedisTemplate.opsForValue().increment(redisKey, 1);
+        if (requestCount == 1) {
+            // Set expiry for the key when it is first created (5 minutes)
+            stringRedisTemplate.expire(redisKey, 5, TimeUnit.MINUTES);
+        }
+
+        // If more than 3 requests are made in 5 minutes, throw an exception for too many requests
+        if (requestCount > 3) {
+            throw new TooManyRequestsException("请求验证码过于频繁，请稍后再试");
+        }
+
+        // Send the SMS verification code
+        SmsCodeVO smsCodeVO = sendVerificationCode(phone);
+        return ResponseResult.success(smsCodeVO); // Return success response with SMS code and serial number
+
     }
 
     /**
