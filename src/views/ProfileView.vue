@@ -445,6 +445,18 @@ const customUpload = async ({ file, onProgress, onSuccess, onError }) => {
     if (response.status === 200) {
       console.log('上传成功:', response.data);
       userInfo.value.avatar = response.data.data.url;
+
+      // 更新到服务器
+      const updateRes = await updateUserInfo({
+        uid: userInfo.value.uid,
+        avatar: response.data.data.url
+      });
+
+      if (updateRes.status === '200') {
+        message.success('头像更新成功');
+      } else {
+        message.error('头像更新失败');
+      }
     } else {
       message.error('头像上传失败');
       onError(new Error('头像上传失败'));
@@ -492,7 +504,7 @@ const handleUploadFinish = async ({ file }) => {
 
       // 更新到服务器
       const updateRes = await updateUserInfo({
-        ...userInfo.value,
+        uid: userInfo.value.uid,
         avatar: response.data.url
       });
 
@@ -686,6 +698,22 @@ const handlePhoneUpdate = async () => {
     }
   } catch (error) {
     message.error('验证失败或更新出错');
+  }
+};
+
+const handleAvatarUpdate = async () => {
+  try {
+    const res = await updateUserInfo({
+      avatar: userInfo.value.avatar,
+      uid: userInfo.value.uid
+    });
+    if (res.status === '200') {
+      message.success('头像更新成功');
+    } else {
+      message.error(res.message || '头像更新失败');
+    }
+  } catch (error) {
+    message.error('头像更新失败');
   }
 };
 
