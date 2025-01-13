@@ -60,3 +60,22 @@ export const getTwoFactorAuthSecretQRCode = () => {
     });
 }
 
+export const verifyTwoFactorAuthCode = (data) => {
+    return serviceAxios({
+        url: "/auth/verifyTwoFactorAuthCode",
+        method: "post",
+        data,
+    });
+}
+
+export const loginRequireTwoFactorAuth = (data) => {
+    return serviceAxios({
+        url: "/auth/loginRequireTwoFactorAuth",
+        method: "post",
+        data,
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("twoFactorAuthToken"),
+        },
+    });
+}
+

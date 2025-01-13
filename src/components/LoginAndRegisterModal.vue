@@ -10,13 +10,21 @@
 
         <!-- 登录表单 -->
         <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules"
-            v-if="currentServiceType === '登录' && !useCodeLogin">
+            v-if="currentServiceType === '登录' && !useCodeLogin && !isTwoFactor">
             <n-form-item label="用户名" path="username">
                 <n-input v-model:value="loginForm.username" placeholder="请输入用户名" @keydown.enter.prevent />
             </n-form-item>
             <n-form-item label="密码" path="password">
                 <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
                     show-password-on="mousedown" @keydown.enter.prevent />
+            </n-form-item>
+        </n-form>
+
+        <!-- 二次验证表单 -->
+        <n-form ref="twoFactorFormRef" label-position="top" :model="twoFactorForm" :rules="twoFactorAuthRules"
+            v-if="isTwoFactor">
+            <n-form-item label="一次性验证码" path="code">
+                <n-input v-model:value="twoFactorForm.code" placeholder="请输入一次性验证码" @keydown.enter.prevent />
             </n-form-item>
         </n-form>
 
@@ -91,10 +99,11 @@
 <script setup>
 import { ref, computed, defineEmits, nextTick } from 'vue';
 import { useMessage } from 'naive-ui';
-import { login, register, getVerificationCode, loginWithCode, loginBySmsCode } from '../api/auth';  // 确保你的 API 路径正确
+import { login, register, getVerificationCode, loginWithCode, loginBySmsCode,loginRequireTwoFactorAuth } from '../api/auth';  // 确保你的 API 路径正确
 import { sendVerificationCode } from '../api/sms';
 import { useStore } from 'vuex';
 import { Close } from '@vicons/ionicons5';
+import { loadRouteLocation } from 'vue-router';
 
 // 获取 Vuex store
 const store = useStore();
@@ -126,16 +135,22 @@ const registerForm = ref({
     verificationCode: ''
 });
 
+const twoFactorForm = ref({
+    code: '',
+});
+
 // 当前服务类型（登录/注册）
 const currentServiceType = ref('登录');
 
 // 是否使用验证码登录
 const useCodeLogin = ref(false);
+const isTwoFactor = ref(false);
 
 // 表单引用
 const loginFormRef = ref(null);
 const codeLoginFormRef = ref(null);
 const registerFormRef = ref(null);
+const twoFactorFormRef = ref(null);
 
 // 获取验证码按钮状态
 const isCodeButtonDisabled = ref(false);
@@ -198,6 +213,13 @@ const registerRules = {
     ]
 };
 
+const twoFactorAuthRules = {
+    code: [
+        { required: true, message: '请输入一次性验证码', trigger: 'blur' },
+        { length: 6, message: '请输入正确的一次性验证码', trigger: 'blur' }
+    ]
+}
+
 // 登录提交
 async function async_login() {
     const res = await login({
@@ -206,8 +228,38 @@ async function async_login() {
     });
     console.log(res);
     if (res.status === '200') {
+        if (res.data.requireTwoFactorAuth) {
+            isTwoFactor.value = true;
+            localStorage.setItem('twoFactorAuthToken', res.data.token);
+
+            message.warning("账户已开启双重认证，请输入一次性验证码")
+            return;
+        }else{
+            localStorage.setItem('token', res.data.token);
+            message.success('登录成功');
+        }
+        // 重置错误显示状态
+        store.dispatch("resetHasShownError");
+        emit('close'); // 关闭模态框
+        location.reload();
+    } else {
+        message.error(res.message || '登录失败');
+    }
+}
+
+// 二次验证提交
+async function async_twoFactor() {
+    const res = await loginRequireTwoFactorAuth({
+        // 均为数字类型
+        code: Number(twoFactorForm.value.code),
+        time: Number(new Date().getTime())
+    });
+
+    if (res.status === '200') {
         localStorage.setItem('token', res.data);
         message.success('登录成功');
+        // 移除twoFactorAuthToken
+        localStorage.removeItem("twoFactorAuthToken")
         // 重置错误显示状态
         store.dispatch("resetHasShownError");
         emit('close'); // 关闭模态框
@@ -323,6 +375,14 @@ const handleSubmit = () => {
                     message.error('请填写完整的登录信息');
                 }
             });
+        } else if (isTwoFactor.value) {
+            twoFactorFormRef.value.validate((valid) => {
+                if (!valid) {
+                    async_twoFactor();
+                } else {
+                    message.error('请填写完整的一次性验证码');
+                }
+            });
         } else {
             loginFormRef.value.validate((valid) => {
                 console.log(valid);
@@ -333,6 +393,7 @@ const handleSubmit = () => {
                 }
             });
         }
+
     } else {
         registerFormRef.value.validate((valid) => {
             if (!valid) {

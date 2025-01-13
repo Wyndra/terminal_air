@@ -219,6 +219,8 @@ const openLoginModal = () => {
 
 const logout = () => {
   localStorage.removeItem('token');
+  
+  localStorage.removeItem("twoFactorAuthToken")
   InLogin.value = false;
   location.reload();
 };
