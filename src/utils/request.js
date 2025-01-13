@@ -61,10 +61,11 @@ serviceAxios.interceptors.response.use(
             handleGlobalError("Token已过期");
             return data;
         }
-        if (data.status === '500' && data.message === 'is null') {
+        if (data.status === '500' && data.message === '用户不存在') {
             localStorage.removeItem("token");
             // window.location.href = "/";
-            handleGlobalError("Token为空");
+            // handleGlobalError("Token为空");
+            handleGlobalError("用户不存在");
             return data;
         }
         console.error("Response Error:", data);
