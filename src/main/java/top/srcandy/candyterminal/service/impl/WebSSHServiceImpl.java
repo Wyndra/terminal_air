@@ -30,12 +30,16 @@ public class WebSSHServiceImpl implements WebSSHService {
     // 使用 WebSocketSession 作为 key，这样每个标签页有独立的连接信息
     private static Map<WebSocketSession, SSHConnectInfo> sshMap = new ConcurrentHashMap<>();
 
-    // 线程池
+    // 线程池，处理异步任务（如 SSH 连接和命令执行）
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
     @Autowired
-    private AuthService authService;
+    private AuthService authService;  // 用于验证用户身份及获取加密密码的服务
 
+    /**
+     * 初始化 WebSocket 会话的 SSH 连接信息。
+     * @param session 当前 WebSocket 会话
+     */
     @Override
     public void initConnection(WebSocketSession session) {
         String username = (String) session.getAttributes().get("username");
@@ -46,7 +50,7 @@ public class WebSSHServiceImpl implements WebSSHService {
             return;
         }
 
-        // 创建新的 JSch 对象
+        // 创建新的 JSch 对象，并初始化连接信息
         JSch jSch = new JSch();
         SSHConnectInfo sshConnectInfo = new SSHConnectInfo();
         sshConnectInfo.setJSch(jSch);
@@ -57,12 +61,17 @@ public class WebSSHServiceImpl implements WebSSHService {
         log.info("初始化用户 {} 的连接信息", username);
     }
 
+    /**
+     * 处理接收到的数据。
+     * @param session 当前 WebSocket 会话
+     * @param buffer 接收到的 WebSocket 数据
+     */
     @Override
     public void receiveHandle(WebSocketSession session, String buffer) {
         ObjectMapper objectMapper = new ObjectMapper();
         WebSSHData webSSHData = null;
         try {
-            // 读取WebSocket的数据，并转换成WebSSHData对象
+            // 将接收到的 WebSocket 数据转换为 WebSSHData 对象
             webSSHData = objectMapper.readValue(buffer, WebSSHData.class);
         } catch (IOException e) {
             log.error("数据转换成对象失败");
@@ -81,51 +90,72 @@ public class WebSSHServiceImpl implements WebSSHService {
             return;
         }
 
+        // 根据操作类型判断执行逻辑
         if ("connect".equals(webSSHData.getOperate())) {
             WebSSHData finalWebSSHData = webSSHData;
             executorService.execute(() -> {
                 try {
+                    // 尝试连接 SSH
                     connectToSSH(sshConnectInfo, finalWebSSHData, session);
                 } catch (IOException | JSchException e) {
                     log.error("连接失败");
                     log.error("异常信息：{}", e.getMessage());
-                    close(session);
+                    close(session);  // 连接失败，关闭会话
                 }
             });
         } else if ("command".equals(webSSHData.getOperate())) {
             String command = webSSHData.getCommand();
             try {
+                // 执行 SSH 命令
                 transToSSH(sshConnectInfo.getChannel(), command);
             } catch (IOException e) {
                 log.error("发送命令失败");
                 log.error("异常信息：{}", e.getMessage());
-                close(session);
+                close(session);  // 命令发送失败，关闭会话
             }
         } else {
             log.error("不支持的操作");
-            close(session);
+            close(session);  // 不支持的操作，关闭会话
         }
     }
 
+    /**
+     * 向客户端 WebSocket 发送数据。
+     * @param session 当前 WebSocket 会话
+     * @param buffer 要发送的字节数据
+     * @throws IOException 发送消息时可能发生的异常
+     */
     @Override
     public void sendMessage(WebSocketSession session, byte[] buffer) throws IOException {
-        // 发回数据给前端
+        // 将数据发送到前端
         session.sendMessage(new TextMessage(buffer));
     }
 
+    /**
+     * 关闭当前 WebSocket 会话及其 SSH 连接。
+     * @param session 当前 WebSocket 会话
+     */
     @Override
     public void close(WebSocketSession session) {
         SSHConnectInfo sshConnectInfo = sshMap.get(session);
         if (sshConnectInfo != null) {
-            // 断开连接
+            // 断开 SSH 连接
             if (sshConnectInfo.getChannel() != null) {
                 sshConnectInfo.getChannel().disconnect();
             }
-            // 移除连接信息
+            // 移除该会话的连接信息
             sshMap.remove(session);
         }
     }
 
+    /**
+     * 建立 SSH 连接并执行命令。
+     * @param sshConnectInfo 当前 SSH 连接信息
+     * @param webSSHData WebSocket 请求数据
+     * @param webSocketSession 当前 WebSocket 会话
+     * @throws JSchException 建立 SSH 会话时抛出的异常
+     * @throws IOException 在通信过程中抛出的异常
+     */
     private void connectToSSH(SSHConnectInfo sshConnectInfo, WebSSHData webSSHData, WebSocketSession webSocketSession) throws JSchException, IOException {
         if (sshConnectInfo == null || sshConnectInfo.getJSch() == null) {
             log.error("SSHConnectInfo 为空，无法建立连接");
@@ -134,45 +164,45 @@ public class WebSSHServiceImpl implements WebSSHService {
 
         Session session = null;
         Properties config = new Properties();
-        config.put("StrictHostKeyChecking", "no");
-        JSch jSch = sshConnectInfo.getJSch();
+        config.put("StrictHostKeyChecking", "no");  // 忽略 SSH 主机密钥检查
 
-        // 从 WebSocketSession 中获取 UUID, UUID就是用户名
-        String uuid = (String) webSocketSession.getAttributes().get("username");
+        JSch jSch = sshConnectInfo.getJSch();
+        String uuid = (String) webSocketSession.getAttributes().get("username");  // 获取用户名作为 UUID
         log.info("尝试连接 SSH 主机: {}:{}", webSSHData.getHost(), webSSHData.getPort());
 
         try {
-            // 获取Key
+            // 获取盐值并解密密码
             String salt = authService.getSaltByUsername(uuid);
             log.info("获取到 {} 的盐值为：{}", uuid, salt);
-            // 解密密码
             String decryptedPassword = AESUtils.decryptFromHex(webSSHData.getPassword(), salt);
             log.info("解密后的密码为：{}", decryptedPassword);
 
-            // 创建SSH会话并设置配置
+            // 创建 SSH 会话
             session = jSch.getSession(webSSHData.getUsername(), webSSHData.getHost(), webSSHData.getPort());
             session.setConfig(config);
             session.setPassword(decryptedPassword);
 
-            session.connect(30000);  // 设置连接超时 30秒
+            session.connect(30000);  // 设置连接超时为 30 秒
             log.info("SSH 会话连接成功");
 
-            Channel channel = session.openChannel("shell");
-            channel.connect(3000);  // 设置通道连接超时 3秒
+            Channel channel = session.openChannel("shell");  // 打开一个 shell 通道
+            channel.connect(3000);  // 设置通道连接超时为 3 秒
             log.info("SSH 通道连接成功");
 
             sshConnectInfo.setChannel(channel);
-            transToSSH(channel, webSSHData.getCommand());
+            transToSSH(channel, webSSHData.getCommand());  // 发送命令到 SSH
             log.info("命令已发送到 SSH");
 
+            // 获取命令执行的输出
             InputStream inputStream = channel.getInputStream();
             try {
                 byte[] buffer = new byte[1024];
-                int i = 0;
+                int i;
                 while ((i = inputStream.read(buffer)) != -1) {
-                    sendMessage(webSocketSession, Arrays.copyOfRange(buffer, 0, i));
+                    sendMessage(webSocketSession, Arrays.copyOfRange(buffer, 0, i));  // 将输出发送给 WebSocket 客户端
                 }
             } finally {
+                // 关闭连接和流
                 if (session.isConnected()) {
                     session.disconnect();
                     log.info("SSH 会话断开");
@@ -188,15 +218,21 @@ public class WebSSHServiceImpl implements WebSSHService {
             }
         } catch (Exception e) {
             log.error("SSH 连接异常：{}", e.getMessage());
-            close(webSocketSession);
+            close(webSocketSession);  // 发生异常时关闭连接
         }
     }
 
+    /**
+     * 将命令发送到 SSH 通道。
+     * @param channel 当前 SSH 通道
+     * @param command 要执行的命令
+     * @throws IOException 发送命令时可能抛出的异常
+     */
     private void transToSSH(Channel channel, String command) throws IOException {
         if (channel != null) {
             OutputStream outputStream = channel.getOutputStream();
             outputStream.write(command.getBytes());
-            outputStream.flush();
+            outputStream.flush();  // 确保命令被发送
         }
     }
 }

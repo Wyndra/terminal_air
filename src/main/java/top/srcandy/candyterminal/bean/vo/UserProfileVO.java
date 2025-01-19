@@ -15,7 +15,7 @@ public class UserProfileVO {
     private String username;
     @Sensitive(strategy = SensitiveStrategy.MOBILE_PHONE)
     private String phone;
-    @Sensitive(strategy = SensitiveStrategy.EMAIL)
+//    @Sensitive(strategy = SensitiveStrategy.EMAIL)
     private String email;
     private String avatar;
     @Sensitive(strategy = SensitiveStrategy.CUSTOMIZE_FILTER_WORDS)
