@@ -103,7 +103,6 @@ import { login, register, getVerificationCode, loginWithCode, loginBySmsCode,log
 import { sendVerificationCode } from '../api/sms';
 import { useStore } from 'vuex';
 import { Close } from '@vicons/ionicons5';
-import { loadRouteLocation } from 'vue-router';
 
 // 获取 Vuex store
 const store = useStore();
