@@ -130,7 +130,7 @@ const getDeviceType = () => {
 const settings = ref({ ...store.state.terminalSettings });
 // 根据设备类型设置默认字体大小
 if (getDeviceType() === 'mobile') {
-  settings.value.fontSize = 12;
+  settings.value.fontSize = 8;
 }else if (getDeviceType() === 'tablet') {
   settings.value.fontSize = 14;
 }else {
