@@ -116,7 +116,26 @@ const show = computed({
   set: (value) => store.commit('setShowTerminalSettings', value)
 });
 
+const getDeviceType = () => {
+  const userAgent = navigator.userAgent;
+  if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry/i.test(userAgent)) {
+    return 'mobile'; // 移动设备
+  }
+  if (/iPad|Tablet/i.test(userAgent)) {
+    return 'tablet'; // 平板设备
+  }
+  return 'desktop'; // 桌面设备
+};
+
 const settings = ref({ ...store.state.terminalSettings });
+// 根据设备类型设置默认字体大小
+if (getDeviceType() === 'mobile') {
+  settings.value.fontSize = 12;
+}else if (getDeviceType() === 'tablet') {
+  settings.value.fontSize = 14;
+}else {
+  settings.value.fontSize = 18;
+}
 const currentTheme = ref('dark');
 
 const fontOptions = [
