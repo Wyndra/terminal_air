@@ -136,6 +136,7 @@ if (getDeviceType() === 'mobile') {
 }else {
   settings.value.fontSize = 18;
 }
+store.commit('updateTerminalSettings', settings.value);
 const currentTheme = ref('dark');
 
 const fontOptions = [
