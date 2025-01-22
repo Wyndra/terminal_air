@@ -107,7 +107,7 @@
                 <n-descriptions :column="1" label-align="left" label-style="width: 120px; padding-right: 16px;">
                   <n-descriptions-item label="加密密钥">
                     <div class="salt-input-wrapper">
-                      <n-input type="password" show-password-on="mousedown" v-model:value="displayedSalt"
+                      <n-input type="password" show-password-on="mousedown" v-model:value="safeSettingForm.salt"
                         :disabled="!saltLockStatus" @focus="handleSaltInputFocus" />
                       <n-button circle size="small" @click="handleLockByPassword">
                         <template #icon>
@@ -118,12 +118,12 @@
                       </n-button>
                     </div>
                   </n-descriptions-item>
-                  <n-descriptions-item label="本地服务">
+                  <!-- <n-descriptions-item label="本地服务">
                     <div class="local-service-wrapper">
                       <n-switch v-model:value="store.state.usingLocalhostWs" :disabled="!saltLockStatus" />
                       <span class="description-text">使用本地 WebSocket 服务，更安全，最放心</span>
                     </div>
-                  </n-descriptions-item>
+                  </n-descriptions-item> -->
                 </n-descriptions>
               </n-tab-pane>
               <n-tab-pane name="双重认证" tab="双重认证">
@@ -161,9 +161,12 @@
       </div>
     </n-layout-footer>
 
-    <!-- 加密密钥弹出框 -->
+    <!-- 密钥 密码解锁弹出框 -->
     <UseLockByPasswordModal v-model:show="showLockByPasswordModal"
       @unlockByPasswordEvent="handleVerifyUserPasswordResult" />
+
+    <!-- TOTP 解锁弹出框 -->
+    <UseLockByTotpModal v-model:show="showLockByTotpModal" @unlockByTotpEvent="handleVerifyUserTotpResult" />
 
     <!-- 登录/注册模态框 -->
     <n-modal v-model:show="showLoginOrRegisterModal">
@@ -192,6 +195,7 @@
       </template>
     </n-modal>
 
+    <!-- 新手机号验证弹窗 -->
     <n-modal v-model:show="showVerifyModal" preset="card" :title="`验证${currentField?.label || ''}`"
       style="width: 300px">
       <n-form :model="phoneForm" :rules="phoneRules" ref="phoneFormRef">
@@ -234,7 +238,8 @@
       <template #footer>
         <n-space justify="end">
           <n-button size="small" @click="showVerifyOldPhoneModal = false">取消</n-button>
-          <n-button size="small" type="primary" :disabled="!oldPhoneForm.verifyCode" @click="handleVerifyOldPhoneSubmit">
+          <n-button size="small" type="primary" :disabled="!oldPhoneForm.verifyCode"
+            @click="handleVerifyOldPhoneSubmit">
             确认
           </n-button>
         </n-space>
@@ -249,11 +254,12 @@ import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
 import { getUserInfo, updateUserInfo, switchTwoFactorAuth, getTwoFactorAuthSecretQRCode } from '@/api/auth';
 import { sendSmsCodeByToken, sendVerificationCode, verifyCode } from '@/api/sms';
-import { LockClosed, LockOpen, EditOutline } from '@vicons/ionicons5';
+import { LockClosed, LockOpen } from '@vicons/ionicons5';
 import axios from 'axios';
 
 import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
 import UseLockByPasswordModal from '@/components/UseLockByPasswordModal.vue';
+import UseLockByTotpModal from '@/components/UseLockByTOTPModal.vue';
 
 const store = useStore();
 const message = useMessage();
@@ -279,25 +285,12 @@ const safeSettingForm = ref({
 });
 const saltLockStatus = ref(false);
 const showLockByPasswordModal = ref(false);
+const showLockByTotpModal = ref(false);
 const isShaking = ref(false);
 
 const InLogin = ref(!!localStorage.getItem('token'));
 const hasShownError = ref(store.getters.hasShownError);
 const isLoading = ref(true);  // 添加一个加载状态
-
-const displayedSalt = computed({
-  get: () => {
-    if (!saltLockStatus.value) {
-      return '*'.repeat(safeSettingForm.value.salt?.length || 0);
-    }
-    return safeSettingForm.value.salt;
-  },
-  set: (val) => {
-    if (saltLockStatus.value) {
-      safeSettingForm.value.salt = val;
-    }
-  }
-});
 
 // 打开登录模态框
 const openLoginModal = () => {
@@ -346,7 +339,6 @@ async function fetchUserInfo() {
     const res = await getUserInfo();
     if (res.status === '200') {
       const userData = res.data;
-      // 确保双重认证状态与服务器一致 ('1' -> true, '0' -> false)
       userData.isTwoFactorAuth = userData.isTwoFactorAuth === '1';
       userInfo.value = userData;
       userInfo.value.createTime = userInfo.value.createTime.replace('T', ' ').split('.')[0];
@@ -401,11 +393,25 @@ const handleVerifyUserPasswordResult = (isUnlocked) => {
   }
 };
 
+const handleVerifyUserTotpResult = (isUnlocked) => {
+  if (isUnlocked) {
+    // 解锁成功，并关闭弹窗
+    saltLockStatus.value = true;
+    showLockByTotpModal.value = false;
+  } else {
+    saltLockStatus.value = false;  // 解锁失败，继续显示弹窗
+  }
+};
+
 const handleLockByPassword = () => {
   if (saltLockStatus.value) {
     saltLockStatus.value = false;
   } else {
-    showLockByPasswordModal.value = true;
+    if (userInfo.value.isTwoFactorAuth) {
+      showLockByTotpModal.value = true;
+    } else {
+      showLockByPasswordModal.value = true;
+    }
   }
   // 添加抖动效果
   isShaking.value = true;
@@ -571,9 +577,9 @@ const cancelEditing = () => {
 const editableFields = [
   { key: 'username', label: '用户名', editable: false },
   { key: 'nickname', label: '昵称', editable: true },
-  { 
-    key: 'phone', 
-    label: '手机号码', 
+  {
+    key: 'phone',
+    label: '手机号码',
     editable: true,
     needVerify: true, // 需要验证码验证
     verifyType: 'sms' // 验证方式
@@ -591,7 +597,7 @@ const updatedValue = ref(''); // 暂存要更新的值
 const openEditDialog = (field) => {
   if (!field.editable) return;
   currentField.value = field;
-  
+
   if (field.key === 'phone') {
     oldPhoneForm.value.oldPhone = userInfo.value.phone;
     oldPhoneForm.value.verifyCode = '';
@@ -635,15 +641,15 @@ const handleFieldUpdate = async () => {
       [currentField.value.key]: editForm.value.value,
       uid: userInfo.value.uid // 保持 uid
     };
-    
+
     const res = await updateUserInfo(updatedField);
     if (res.status === '200') {
       message.success('更新成功');
       userInfo.value[currentField.value.key] = editForm.value.value;
       showEditModal.value = false;
-      
+
       // 如果修改了昵称,需要更新显示
-      if(currentField.value.key === 'nickname') {
+      if (currentField.value.key === 'nickname') {
         await fetchUserInfo();
       }
       fetchUserInfo();
@@ -687,7 +693,7 @@ const handleSendCode = async () => {
     const res = await sendVerificationCode({ phone: phoneForm.value.newPhone, channel: '1021' });
     localStorage.setItem('newPhone', phoneForm.value.newPhone);
     localStorage.setItem('newSerial', res.data.serial);
-    
+
     // 开始倒计时
     countdown.value = 60;
     const timer = setInterval(() => {
@@ -696,7 +702,7 @@ const handleSendCode = async () => {
         clearInterval(timer);
       }
     }, 1000);
-    
+
     message.success('验证码已发送');
   } catch (error) {
     message.error('发送验证码失败');
@@ -708,19 +714,19 @@ const handlePhoneUpdate = async () => {
   try {
     await phoneFormRef.value?.validate();
     // 调用验证码验证接口
-    const verified = await verifyCode({ 
-      phone: localStorage.getItem('newPhone'), 
+    const verified = await verifyCode({
+      phone: localStorage.getItem('newPhone'),
       serial: localStorage.getItem('newSerial'),
-      code: phoneForm.value.verifyCode 
+      code: phoneForm.value.verifyCode
     });
-    
+
     if (verified.data) {
       // 验证通过后更新手机号
       const res = await updateUserInfo({
         phone: phoneForm.value.newPhone,
         uid: userInfo.value.uid
       });
-      
+
       if (res.status === '200') {
         message.success('手机号更新成功');
         showPhoneVerifyModal.value = false;
@@ -764,7 +770,7 @@ const handleTwoFactorChange = async (value) => {
       // 根据服务器返回值设置状态，而不是用传入的value
       userInfo.value.isTwoFactorAuth = isTwoFactorEnabled;
       message.success(isTwoFactorEnabled ? '双重认证已开启' : '双重认证已关闭');
-      
+
       // 如果开启了双重认证，获取二维码
       if (isTwoFactorEnabled) {
         fetchQRCode();
@@ -832,7 +838,7 @@ const handleSendOldPhoneCode = async () => {
     oldPhoneData.value.serial = res.data.serial;
     localStorage.setItem('oldPhone', res.data.phone);
     localStorage.setItem('oldSerial', res.data.serial);
-    
+
     // 开始倒计时
     countdown.value = 60;
     const timer = setInterval(() => {
@@ -841,7 +847,7 @@ const handleSendOldPhoneCode = async () => {
         clearInterval(timer);
       }
     }, 1000);
-    
+
     message.success('验证码已发送');
   } catch (error) {
     message.error('发送验证码失败');
@@ -850,7 +856,7 @@ const handleSendOldPhoneCode = async () => {
 
 const handleVerifyOldPhoneSubmit = async () => {
   try {
-    const verified = await verifyCode({ 
+    const verified = await verifyCode({
       phone: oldPhoneData.value.phone,
       serial: oldPhoneData.value.serial,
       code: oldPhoneForm.value.verifyCode
@@ -1086,11 +1092,11 @@ onMounted(() => {
 :deep(.n-input-group) {
   display: flex;
   gap: 8px;
-  
+
   .n-input {
     flex: 1;
   }
-  
+
   .n-button {
     min-width: 100px;
   }
