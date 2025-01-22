@@ -45,6 +45,7 @@ const initTerminal = () => {
 
         terminal.onData((data) => {
             sendCommand(data);
+            fitAddon.fit();
         });
 
         window.addEventListener('resize', () => {
