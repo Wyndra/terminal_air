@@ -1,12 +1,12 @@
 <template>
     <div id="terminal-container">
-        <div id="terminal" class="xterm"></div>
+        <div @click="refresh_fitAddon" id="terminal" class="xterm"></div>
     </div>
 </template>
 
 <script setup>
 import "xterm/css/xterm.css";
-import { onMounted, ref, watch, nextTick } from "vue";
+import { onMounted, ref, watch, nextTick,defineEmits } from "vue";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { WebglAddon } from "xterm-addon-webgl";
@@ -29,13 +29,17 @@ const connectionInfo = ref({
 });
 
 const isFirstConnection = ref(true);  // 标志是否是第一次连接
+const fitAddon = new FitAddon();
+
+const refresh_fitAddon = () => {
+    fitAddon.fit();
+}
 
 const initTerminal = () => {
     requestAnimationFrame(() => {
         const terminalElement = document.getElementById("terminal");
         if (!terminalElement) return;
 
-        const fitAddon = new FitAddon();
         const webglAddon = new WebglAddon();
         terminal.loadAddon(fitAddon);
         terminal.loadAddon(webglAddon);
@@ -108,7 +112,6 @@ const sendCommand = (command) => {
 
 const sendToggleConnect = () => {
     terminal.clear();
-
     setTimeout(() => {
         const datas = {
             operate: "connect",

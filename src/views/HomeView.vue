@@ -46,7 +46,8 @@
       <!-- 侧边 -->
       <n-layout has-sider style="height: 100%;">
         <n-layout-sider bordered content-style="padding: 14px;" collapse-mode="width" :collapsed-width="0" :width="240"
-          show-trigger="bar">
+          show-trigger="bar" 
+          show-collapsed-content="false">
           <!-- 判断是否未登录 -->
           <div v-if="!InLogin"
             style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center;">
@@ -83,12 +84,10 @@
           <div v-if="!InLogin"
             style="background: #000000; height: 100%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative;">
             <!-- 添加 SVG 动画 -->
-            <img 
-              src="https://jrenc.azurewebsites.net/api/signature?code=zHZRCCItO-yB8t7d2KyitELFDwADnXIotkeeIQL3juyNAzFucnyrWA%3D%3D&name=Terminal%20Air&animate=true&speed=1&color=%23ffffff" 
-              alt="Terminal Air"
-              style="margin-bottom: 2rem; max-width: 80%; height: auto;"
-            />
-            
+            <img
+              src="https://jrenc.azurewebsites.net/api/signature?code=zHZRCCItO-yB8t7d2KyitELFDwADnXIotkeeIQL3juyNAzFucnyrWA%3D%3D&name=Terminal%20Air&animate=true&speed=1&color=%23ffffff"
+              alt="Terminal Air" style="margin-bottom: 2rem; max-width: 80%; height: auto;" />
+
             <!-- 注释掉打字机效果的文字 -->
             <!-- <p id="typed-output"
               style="font-size: 24px; text-align: center; font-family: 'Courier New', Courier, monospace; position: relative;">
@@ -97,7 +96,7 @@
 
           <!-- 已登录状态，显示正常内容 -->
           <div style="height: 100%;" v-else>
-            <SshDisplay />
+            <SshDisplay ref="sshDisplay" />
           </div>
 
         </n-layout-content>
@@ -219,7 +218,7 @@ const openLoginModal = () => {
 
 const logout = () => {
   localStorage.removeItem('token');
-  
+
   localStorage.removeItem("twoFactorAuthToken")
   InLogin.value = false;
   location.reload();
@@ -342,6 +341,7 @@ onMounted(() => {
   font-size: 24px;
   text-align: center;
   font-weight: bold;
-  margin-top: 1rem; /* 添加上边距 */
+  margin-top: 1rem;
+  /* 添加上边距 */
 }
 </style>
