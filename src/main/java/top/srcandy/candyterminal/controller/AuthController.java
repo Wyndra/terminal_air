@@ -79,6 +79,11 @@ public class AuthController {
         return ResponseResult.success(authService.verifyTwoFactorAuthCode(twoFactorAuthToken.substring(7), request));
     }
 
+    @GetMapping("/getTwoFactorAuthTokenByCurrentUser")
+    public ResponseResult<String> getTwoFactorAuthTokenByCurrentUser(@RequestHeader("Authorization") String token) {
+        return ResponseResult.success(JWTUtil.generateTwoFactorAuthSecretToken(authService.getUserByUsername(JWTUtil.getTokenClaimMap(token.substring(7)).get("username").asString())));
+    }
+
     @PostMapping("/loginRequireTwoFactorAuth")
     public ResponseResult<String> loginRequireTwoFactorAuth(@Valid @RequestHeader("Authorization") String twoFactorAuthToken, @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return authService.loginRequireTwoFactorAuth(twoFactorAuthToken.substring(7),request);

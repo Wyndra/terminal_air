@@ -8,6 +8,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import top.srcandy.candyterminal.exception.ServiceException;
 import top.srcandy.candyterminal.utils.AuthAccess;
+import top.srcandy.candyterminal.utils.JWTUtil;
 
 @Component
 @Slf4j
@@ -24,9 +25,11 @@ public class JWTIntercept implements HandlerInterceptor {
             }
         }
         String authorization = request.getHeader("Authorization");
+        // 如果不存在则抛出异常
         if (authorization == null) {
             throw new ServiceException("未登录,请先登录");
         }
+        JWTUtil.validateToken(authorization.substring(PREFIX.length()));
         if (!authorization.startsWith(PREFIX)) {
             return false;
         }
