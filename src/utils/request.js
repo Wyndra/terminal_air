@@ -20,7 +20,11 @@ serviceAxios.interceptors.request.use(
         // 如果开启 token 认证
         if (serverConfig.useTokenAuthorization) {
             const token = localStorage.getItem("token");
-            if (token) {
+            const twoFactorAuthToken = localStorage.getItem("twoFactorAuthToken");
+            if (twoFactorAuthToken && token) {
+                config.headers["Authorization"] = "Bearer " + twoFactorAuthToken; // 请求头携带 token
+                // console.log("附加 token 到请求头:", config.headers["Authorization"]); // 调试信息
+            } else if (token) {
                 config.headers["Authorization"] = "Bearer " + token; // 请求头携带 token
                 // console.log("附加 token 到请求头:", config.headers["Authorization"]); // 调试信息
             }
@@ -55,10 +59,11 @@ serviceAxios.interceptors.response.use(
             console.log("Response Successful:", data);
             return data;
         }
-        if (data.status === '500' && data.message === 'Token已过期') {
+        if (data.status === '500' && data.message === '登录已过期，请重新登录') {
             localStorage.removeItem("token");
+            localStorage.removeItem("twoFactorAuthToken");
             // window.location.href = "/";
-            handleGlobalError("Token已过期");
+            handleGlobalError("登录已过期，请重新登录");
             return data;
         }
         if (data.status === '500' && data.message === 'is null') {

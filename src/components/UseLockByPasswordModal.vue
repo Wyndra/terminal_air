@@ -21,7 +21,6 @@ import { verifyUserPassword } from '@/api/auth';
 const props = defineProps({
     lockByPasswordModalVisible: Boolean, // 这里是弹窗的显示控制
 });
-
 const emit = defineEmits(["unlockByPasswordEvent"]);
 
 const passwordForm = ref({

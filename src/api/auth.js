@@ -65,6 +65,9 @@ export const verifyTwoFactorAuthCode = (data) => {
         url: "/auth/verifyTwoFactorAuthCode",
         method: "post",
         data,
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("twoFactorAuthToken"),
+        },
     });
 }
 
@@ -76,6 +79,13 @@ export const loginRequireTwoFactorAuth = (data) => {
         headers: {
             "Authorization": "Bearer " + localStorage.getItem("twoFactorAuthToken"),
         },
+    });
+}
+// 通过用户当前的token获取二次验证的token
+export const getTwoFactorAuthTokenByCurrentUser = () => {
+    return serviceAxios({
+        url: "/auth/getTwoFactorAuthTokenByCurrentUser",
+        method: "get",
     });
 }
 
