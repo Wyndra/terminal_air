@@ -21,9 +21,10 @@ public class JWTUtil {
     private static final String SECRET = "1393**@&&*@&#!(#&*@#&@*^#^!3¥";
     private static final Algorithm algorithm = Algorithm.HMAC256(SECRET);
 
-    private static final JWTVerifier verifier = JWT.require(algorithm).withIssuer("Terminal Air").acceptExpiresAt(1800).build();
+    private static final JWTVerifier verifier = JWT.require(algorithm).withIssuer("Terminal Air").acceptExpiresAt(60).build();
     private static final long EXPIRATION = 86400L; //单位为秒
-
+    // 测试过期时间
+//    private static final long EXPIRATION = 60L; //单位为秒
     public static String generateToken(User user){
         Date expireDate = new Date(System.currentTimeMillis() + EXPIRATION * 1000);
         try{
