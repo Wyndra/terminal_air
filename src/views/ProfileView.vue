@@ -256,6 +256,7 @@ import { getUserInfo, updateUserInfo, switchTwoFactorAuth, getTwoFactorAuthSecre
 import { sendSmsCodeByToken, sendVerificationCode, verifyCode } from '@/api/sms';
 import { LockClosed, LockOpen } from '@vicons/ionicons5';
 import axios from 'axios';
+import router from '@/router';
 
 import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
 import UseLockByPasswordModal from '@/components/UseLockByPasswordModal.vue';
@@ -438,13 +439,14 @@ const changeSaltPassword = () => {
 
 const logout = () => {
   localStorage.removeItem('token');
+  localStorage.removeItem("twoFactorAuthToken")
   InLogin.value = false;
-  location.href = '/';
-  location.reload();
+  store.dispatch('logout');
+  router.push('/');
 };
 
 const gotoHomeView = () => {
-  location.href = '/';
+  router.push('/')
 };
 
 // 上传相关配置

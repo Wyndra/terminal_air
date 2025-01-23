@@ -3,9 +3,8 @@
         style="width:25%" :bordered="false" transform-origin="center">
         <n-form :model="totpForm" :rules="formRules">
             <n-form-item label="一次性代码" required path="totp">
-                <!-- 使用标准的 v-model 来绑定 PasswordForm.password -->
-                <n-input v-model:value="totpForm.totp" placeholder="XXX XXX" show-password-on="mousedown"
-                    style="width: 100%;" :class="{ shake: isShaking }" />
+                <n-input :allow-input="onlyAllowNumber" v-model:value="totpForm.totp" placeholder="XXX XXX"
+                    show-password-on="mousedown" style="width: 100%;" :class="{ shake: isShaking }" />
             </n-form-item>
             <n-button type="primary" style="width: 100%;" @click="handleUnlockByTotp">
                 解锁
@@ -25,6 +24,14 @@ const emit = defineEmits(["unlockByTotpEvent"]);
 const totpForm = ref({
     totp: ''  // 绑定的密码字段
 });
+
+const formRules = {
+    totp: [
+        { required: true, message: '请输入一次性代码', trigger: 'blur' },
+        { pattern: /^\d{6}$/, message: '请输入 6 位数字', trigger: 'blur' }
+    ]
+};
+
 const isShaking = ref(false);
 const getTwoFactorToken = async () => {
     try {
@@ -37,7 +44,9 @@ const getTwoFactorToken = async () => {
         return null;  // 如果请求失败，返回 null
     }
 }
-
+const onlyAllowNumber = (value) => {
+    return !value || /^\d+$/.test(value);
+}
 // 点击解锁按钮时调用
 const handleUnlockByTotp = async () => {  // 注意加上 async
     const tokenResult = await getTwoFactorToken();

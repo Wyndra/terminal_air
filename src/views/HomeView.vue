@@ -1,6 +1,6 @@
 <template>
-  <n-watermark v-if="watermark_show" :content="userInfo.username || ''" cross fullscreen :font-size="20"
-    :line-height="20" :width="384" :height="384" :x-offset="12" :y-offset="60" :rotate="-15" />
+  <!-- <n-watermark v-if="watermark_show" :content="userInfo.username || ''" cross fullscreen :font-size="20"
+    :line-height="20" :width="384" :height="384" :x-offset="12" :y-offset="60" :rotate="-15" /> -->
   <n-layout style="height: 100vh; position: relative;">
     <n-layout-header class="header" bordered>
       <div style="display: flex; height: 100%; align-items: center">
@@ -122,7 +122,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted,watch } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage, useNotification } from 'naive-ui';
 import { useRouter } from 'vue-router';
@@ -146,11 +146,15 @@ import Typed from 'typed.js';
 import { Terminal } from '@vicons/ionicons5';
 import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons-vue';
 
+watch(() => store.getters.isLoggedIn, (value) => {
+  InLogin.value = value;
+});
+
 const showLoginOrRegisterModal = ref(false);
 const connect_list = ref([]);
 const userInfo = ref({});
-const watermark_show = ref(false);
-const InLogin = ref(!!localStorage.getItem('token'));
+// 绑定来自 store 的登录状态
+const InLogin = ref(store.getters.isLoggedIn);
 const isFullscreen = ref(false);
 
 const current_connect = ref({});
@@ -196,6 +200,13 @@ async function fetchUserInfo() {
           duration: 5000
         });
       }
+      if (userInfo.value.isTwoFactorAuth == '0') {
+        notification.warning({
+          title: '提醒',
+          content: '建议您开启两步验证，以提高账户安全。',
+          duration: 5000
+        });
+      }
     } else {
       if (!hasShownError.value) {
         message.error(res.message || '获取用户信息失败');
@@ -218,10 +229,10 @@ const openLoginModal = () => {
 
 const logout = () => {
   localStorage.removeItem('token');
-
   localStorage.removeItem("twoFactorAuthToken")
   InLogin.value = false;
-  location.reload();
+  store.dispatch('logout');
+  router.push('/');
 };
 
 const gotoProfileView = () => {
