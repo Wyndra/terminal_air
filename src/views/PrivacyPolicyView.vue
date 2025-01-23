@@ -111,6 +111,7 @@ onMounted(() => {
     padding: 20px;
     display: flex;
     justify-content: center;
+    font-family: ui-sans-serif, -apple-system, system-ui;
 }
 
 .privacy-policy {

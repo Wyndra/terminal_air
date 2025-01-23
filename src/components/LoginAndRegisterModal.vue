@@ -351,6 +351,8 @@ const startCodeButtonCountdown = () => {
 // 切换登录方式
 const toggleLoginMethod = async () => {
     useCodeLogin.value = !useCodeLogin.value;
+    isTwoFactor.value = false;
+    localStorage.removeItem("twoFactorAuthToken");
     // 重置表单数据和验证状态
     await nextTick();
     if (useCodeLogin.value) {
@@ -363,6 +365,8 @@ const toggleLoginMethod = async () => {
 // 切换到注册界面
 const handleClickRegister = () => {
     currentServiceType.value = '注册';
+    isTwoFactor.value = false;
+    localStorage.removeItem("twoFactorAuthToken");
 };
 
 // 关闭模态框
