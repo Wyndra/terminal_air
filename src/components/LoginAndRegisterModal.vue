@@ -24,7 +24,8 @@
         <n-form ref="twoFactorFormRef" label-position="top" :model="twoFactorForm" :rules="twoFactorAuthRules"
             v-if="isTwoFactor">
             <n-form-item label="一次性验证码" path="code">
-                <n-input v-model:value="twoFactorForm.code" placeholder="请输入一次性验证码" @keydown.enter.prevent />
+                <n-input :allow-input="onlyAllowNumber" v-model:value="twoFactorForm.code" placeholder="请输入一次性验证码"
+                    @keydown.enter.prevent />
             </n-form-item>
         </n-form>
 
@@ -36,7 +37,8 @@
             </n-form-item>
             <n-form-item label="验证码" path="verificationCode">
                 <div style="display: flex; gap: 8px;">
-                    <n-input v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
+                    <n-input v-model:value="codeLoginForm.verificationCode" :allow-input="onlyAllowNumber"
+                        placeholder="请输入验证码" />
                     <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
                         style="background-color: #319154; color: white;">
                         {{ codeButtonText }}
@@ -69,7 +71,8 @@
                 </n-form-item>
                 <n-form-item label="验证码" path="verificationCode" style="flex: 1;">
                     <div style="display: flex; gap: 8px;">
-                        <n-input v-model:value="registerForm.verificationCode" placeholder="请输入验证码" />
+                        <n-input v-model:value="registerForm.verificationCode" :allow-input="onlyAllowNumber"
+                            placeholder="请输入验证码" />
                         <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
                             style="background-color: #319154; color: white;">
                             {{ codeButtonText }}
@@ -214,9 +217,13 @@ const registerRules = {
 
 const twoFactorAuthRules = {
     code: [
-        { required: true, message: '请输入一次性验证码', trigger: 'blur' },
-        { length: 6, message: '请输入正确的一次性验证码', trigger: 'blur' }
+        { required: true, message: '请输入一次性代码', trigger: 'blur' },
+        { pattern: /^\d{6}$/, message: '请输入 6 位数字', trigger: 'blur' }
     ]
+}
+
+const onlyAllowNumber = (value) => {
+    return !value || /^\d+$/.test(value);
 }
 
 // 登录提交

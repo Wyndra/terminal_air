@@ -1,6 +1,8 @@
 import axios from "axios";
 import serverConfig from "./config";
 import md5 from 'js-md5';
+import store from "@/store";
+import router from "@/router";
 
 // 创建 axios 请求实例
 const serviceAxios = axios.create({
@@ -21,15 +23,13 @@ serviceAxios.interceptors.request.use(
         if (serverConfig.useTokenAuthorization) {
             const token = localStorage.getItem("token");
             const twoFactorAuthToken = localStorage.getItem("twoFactorAuthToken");
+            // token和twoFactorAuthToken都存在时，优先使用twoFactorAuthToken
             if (twoFactorAuthToken && token) {
                 config.headers["Authorization"] = "Bearer " + twoFactorAuthToken; // 请求头携带 token
-                // console.log("附加 token 到请求头:", config.headers["Authorization"]); // 调试信息
             } else if (token) {
                 config.headers["Authorization"] = "Bearer " + token; // 请求头携带 token
-                // console.log("附加 token 到请求头:", config.headers["Authorization"]); // 调试信息
             }
         }
-        // 设置请求头
         if (!config.headers["content-type"]) { // 如果没有设置请求头
             if (config.method === 'post' || config.method === 'put') {
                 if (config.data && config.data.password && (config.url === '/auth/login' || config.url === '/auth/register' || config.url === '/auth/verifyUserPassword')) {
@@ -44,10 +44,8 @@ serviceAxios.interceptors.request.use(
         return config;
     },
     (error) => {
-        
-        // console.log("请求错误", error);
+        // 全局错误处理
         handleGlobalError("请求错误");
-        // return Promise.reject(error);
     }
 );
 
@@ -60,9 +58,13 @@ serviceAxios.interceptors.response.use(
             return data;
         }
         if (data.status === '500' && data.message === '登录已过期，请重新登录') {
+            // 清除 token
             localStorage.removeItem("token");
             localStorage.removeItem("twoFactorAuthToken");
-            // window.location.href = "/";
+            // 重置 store 中的登录状态
+            store.dispatch("logout");
+            // 返回主页
+            router.push("/");
             handleGlobalError("登录已过期，请重新登录");
             return data;
         }

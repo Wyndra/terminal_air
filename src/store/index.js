@@ -14,9 +14,9 @@ export default createStore({
     editConnectionInfo: {},
     showTerminalSettings: false, // 控制终端设置抽屉的显示
     terminalSettings: {
-      fontSize: 18,
+      fontSize: 16,
       fontFamily: "Menlo, Monaco, 'Courier New', monospace",
-      lineHeight: 1.2,
+      lineHeight: 1,
       letterSpacing: 0,
       cursorStyle: 'block',
       cursorBlink: true,
@@ -37,11 +37,14 @@ export default createStore({
   mutations: {
     setLoginState(state, isLoggedIn) {
       state.isLoggedIn = isLoggedIn
-      if (isLoggedIn) {
-        localStorage.setItem('token', 'your-token') // 登录时存储 token
-      } else {
-        localStorage.removeItem('token') // 登出时移除 token
+      if (!isLoggedIn) {
+        localStorage.removeItem('token')
       }
+      // if (isLoggedIn) {
+      //   localStorage.setItem('token', 'your-token') // 登录时存储 token
+      // } else {
+      //   localStorage.removeItem('token') // 登出时移除 token
+      // }
     },
     setHasShownError(state, hasShownError) {
       state.hasShownError = hasShownError
