@@ -45,43 +45,15 @@
               <n-form-item label="预设主题">
                 <n-select v-model:value="currentTheme" :options="themeOptions" />
               </n-form-item>
-              <n-divider>自定义主题</n-divider>
-              <n-form-item label="前景色">
-                <n-color-picker v-model:value="settings.theme.foreground" />
-              </n-form-item>
-              <n-form-item label="背景色">
-                <n-color-picker v-model:value="settings.theme.background" />
-              </n-form-item>
-              <n-form-item label="光标颜色">
-                <n-color-picker v-model:value="settings.theme.cursor" />
-              </n-form-item>
-              <n-form-item label="选中背景">
-                <n-color-picker v-model:value="settings.theme.selection" />
-              </n-form-item>
-              <n-form-item label="黑色">
-                <n-color-picker v-model:value="settings.theme.black" />
-              </n-form-item>
-              <n-form-item label="红色">
-                <n-color-picker v-model:value="settings.theme.red" />
-              </n-form-item>
-              <n-form-item label="绿色">
-                <n-color-picker v-model:value="settings.theme.green" />
-              </n-form-item>
-              <n-form-item label="黄色">
-                <n-color-picker v-model:value="settings.theme.yellow" />
-              </n-form-item>
-              <n-form-item label="蓝色">
-                <n-color-picker v-model:value="settings.theme.blue" />
-              </n-form-item>
-              <n-form-item label="紫色">
-                <n-color-picker v-model:value="settings.theme.magenta" />
-              </n-form-item>
-              <n-form-item label="青色">
-                <n-color-picker v-model:value="settings.theme.cyan" />
-              </n-form-item>
-              <n-form-item label="白色">
-                <n-color-picker v-model:value="settings.theme.white" />
-              </n-form-item>
+              <!-- 暂时取消自定义主题功能 -->
+              <!-- <n-divider>自定义主题</n-divider>
+              <n-grid x-gap="12" y-gap="8" :cols="2">
+                <n-grid-item v-for="color in Object.keys(settings.theme)" :key="color">
+                  <n-form-item label-placement="top" :label="colorToChineseName[color]">
+                    <n-color-picker v-model:value="settings.theme[color]" />
+                  </n-form-item>
+                </n-grid-item>
+              </n-grid> -->
             </n-form>
           </n-tab-pane>
 
@@ -102,14 +74,40 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
 import plist from 'plist';
 import { Close } from '@vicons/ionicons5';
+import themeOptions from '@/constant/themeOptions';
 
 const store = useStore();
 const message = useMessage();
+
+const currentPresetTheme = ref(localStorage.getItem("currentPresetTheme"));
+
+const colorToChineseName = {
+  foreground: '前景色',
+  background: '背景色',
+  cursor: '光标颜色',
+  selection: '选中背景',
+  black: '黑色',
+  red: '红色',
+  green: '绿色',
+  yellow: '黄色',
+  blue: '蓝色',
+  magenta: '紫色',
+  cyan: '青色',
+  white: '白色',
+  brightBlack: '亮黑',
+  brightRed: '亮红',
+  brightGreen: '亮绿',
+  brightYellow: '亮黄',
+  brightBlue: '亮蓝',
+  brightMagenta: '亮紫',
+  brightCyan: '亮青',
+  brightWhite: '亮白'
+};
 
 const show = computed({
   get: () => store.state.showTerminalSettings,
@@ -158,51 +156,25 @@ const cursorStyleOptions = [
   { label: '竖线', value: 'bar' }
 ];
 
-const themeOptions = [
-  {
-    label: '深色',
-    value: 'dark',
-    theme: {
-      foreground: "#ECECEC",
-      background: "#000000",
-      cursor: "#FFFFFF",
-      selection: "#4040ff",
-      black: "#000000",
-      red: "#ff0000",
-      green: "#33ff00",
-      yellow: "#ffff00",
-      blue: "#0066ff",
-      magenta: "#cc00ff",
-      cyan: "#00ffff",
-      white: "#d0d0d0"
-    }
-  },
-  {
-    label: '浅色',
-    value: 'light',
-    theme: {
-      foreground: "#2c3e50",
-      background: "#ffffff",
-      cursor: "#2c3e50",
-      selection: "#b2d7fe",
-      black: "#000000",
-      red: "#cc0000",
-      green: "#4e9a06",
-      yellow: "#c4a000",
-      blue: "#3465a4",
-      magenta: "#75507b",
-      cyan: "#06989a",
-      white: "#d3d7cf"
-    }
-  }
-];
-
 watch(currentTheme, (value) => {
   const theme = themeOptions.find(t => t.value === value);
   if (theme) {
     settings.value.theme = { ...theme.theme };
+    localStorage.setItem('currentPresetTheme',theme.value)
   }
 });
+
+onMounted(() => {
+  loadingPresetTheme()
+})
+
+const loadingPresetTheme = () => {
+  const theme = themeOptions.find(t => t.value === currentPresetTheme.value);
+  if (theme){
+    settings.value.theme = {...theme.theme}
+    currentTheme.value = currentPresetTheme.value
+  }
+}
 
 watch(settings, (newSettings) => {
   store.commit('updateTerminalSettings', newSettings);
