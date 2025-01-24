@@ -57,7 +57,7 @@ serviceAxios.interceptors.response.use(
             console.log("Response Successful:", data);
             return data;
         }
-        if (data.status === '500' && data.message === '登录已过期，请重新登录') {
+        if (data.status === '500' && data.message === '登录已过期，请重新登录' || data.message === '非法登录') {
             // 清除 token
             localStorage.removeItem("token");
             localStorage.removeItem("twoFactorAuthToken");
