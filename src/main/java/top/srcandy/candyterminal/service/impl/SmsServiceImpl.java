@@ -38,6 +38,7 @@ public class SmsServiceImpl implements SmsService {
         String phone = request.getPhone();
 
         // Check if the phone number is already registered (for registration flow)
+        // 1021 is the channel for registration
         if (Objects.equals(request.getChannel(), "1021")) {
             User existingUser = userDao.selectByUserPhone(phone);
             if (existingUser != null) {
@@ -72,6 +73,12 @@ public class SmsServiceImpl implements SmsService {
         return ResponseResult.success(smsCodeVO); // Return success response with SMS code and serial number
     }
 
+    /**
+     * Sends an SMS code based on the token provided.
+     * @param token_no_bearer The token containing the username.
+     * @return The response containing phone and serial number, or failure if the phone number is not found.
+     * @throws Exception if there are any issues during SMS sending.
+     */
     @Override
     public ResponseResult<SmsCodeVO> sendSmsCodeByToken(String token_no_bearer) throws Exception {
         String username = JWTUtil.getTokenClaimMap(token_no_bearer).get("username").asString();

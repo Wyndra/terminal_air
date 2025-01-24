@@ -11,6 +11,7 @@ import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.request.SendVerificationCodeRequest;
 import top.srcandy.candyterminal.request.VerifyCodeRequest;
 import top.srcandy.candyterminal.service.SmsService;
+import top.srcandy.candyterminal.utils.AuthAccess;
 import top.srcandy.candyterminal.utils.SMSUtils;
 
 @Slf4j
@@ -21,6 +22,7 @@ public class SmsController {
     private SmsService smsService;
 
     @PostMapping ("/sendVerificationCode")
+    @AuthAccess
     public ResponseResult<SmsCodeVO> sendVerifyCode(@Valid @RequestBody(required = false) @NotNull SendVerificationCodeRequest request) {
 
         try {
@@ -32,6 +34,7 @@ public class SmsController {
     }
 
     @PostMapping("/verifyCode")
+    @AuthAccess
     public ResponseResult<Boolean> verifyCode(@Valid @RequestBody(required = false) @NotNull VerifyCodeRequest request) {
         return ResponseResult.success(smsService.verifySmsCode(request.getPhone(), request.getSerial(), request.getCode()));
     }

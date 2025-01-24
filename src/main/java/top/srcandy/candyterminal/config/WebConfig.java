@@ -21,8 +21,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // 需要排除的路径列表
         String[] excludePaths = {
-//                "/auth/login",
-                "/auth/register",
                 "/doc.html",
                 "/webjars/**",
                 "/swagger-ui",
@@ -30,9 +28,6 @@ public class WebConfig implements WebMvcConfigurer {
                 "/v3/**",
                 "/favicon.ico",
                 "Mozilla/**",
-                "/sms/sendVerificationCode",
-                "/auth/loginBySmsCode",
-                "/sms/verifyCode"
         };
 
         // 配置拦截器，除了上面指定的路径，其他所有请求都会经过拦截器

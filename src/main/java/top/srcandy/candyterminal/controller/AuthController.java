@@ -33,11 +33,13 @@ public class AuthController {
     }
 
     @PostMapping("/loginBySmsCode")
+    @AuthAccess
     public ResponseResult<String> loginByPhoneAndSmsCode(@Valid @RequestBody(required = false) @NonNull LoginBySmsCodeRequest request) {
         return authService.loginBySmsCode(request);
     }
 
     @PostMapping("/register")
+    @AuthAccess
     public ResponseResult<String> register(@Valid @RequestBody(required = false) @NonNull RegisterRequest request) {
         log.info("register user:{}", request);
         return authService.register(request);
