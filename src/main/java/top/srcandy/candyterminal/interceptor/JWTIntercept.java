@@ -9,6 +9,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import top.srcandy.candyterminal.exception.ServiceException;
 import top.srcandy.candyterminal.utils.AuthAccess;
 import top.srcandy.candyterminal.utils.JWTUtil;
+import top.srcandy.candyterminal.utils.UsingTwoFactorAuth;
 
 @Component
 @Slf4j
@@ -29,7 +30,17 @@ public class JWTIntercept implements HandlerInterceptor {
         if (authorization == null) {
             throw new ServiceException("未登录,请先登录");
         }
-        JWTUtil.validateToken(authorization.substring(PREFIX.length()));
+
+        if (handler instanceof HandlerMethod) {
+            UsingTwoFactorAuth usingTwoFactorAuth = ((HandlerMethod) handler).getMethodAnnotation(UsingTwoFactorAuth.class);
+            if (usingTwoFactorAuth != null) {
+                JWTUtil.validateTwoFactorAuthSecretToken(authorization.substring(PREFIX.length()));
+            } else {
+                JWTUtil.validateToken(authorization.substring(PREFIX.length()));
+            }
+        }
+//        JWTUtil.validateTwoFactorAuthSecretToken(authorization.substring(PREFIX.length()));
+//        JWTUtil.validateToken(authorization.substring(PREFIX.length()));
         if (!authorization.startsWith(PREFIX)) {
             return false;
         }

@@ -3,6 +3,7 @@ package top.srcandy.candyterminal.utils;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
@@ -22,6 +23,8 @@ public class JWTUtil {
     private static final Algorithm algorithm = Algorithm.HMAC256(SECRET);
 
     private static final JWTVerifier verifier = JWT.require(algorithm).withIssuer("Terminal Air").acceptExpiresAt(1800).build();
+
+    private static final JWTVerifier twoFactorAuthSecretVerifier = JWT.require(algorithm).withIssuer("Terminal Air TwoFactorAuth").acceptExpiresAt(300).build();
     private static final long EXPIRATION = 86400L; //单位为秒
     // 测试过期时间
 //    private static final long EXPIRATION = 60L; //单位为秒
@@ -45,7 +48,7 @@ public class JWTUtil {
         Date expireDate = new Date(System.currentTimeMillis() + 600 * 1000);
         try{
             return JWT.create()
-                    .withIssuer("Terminal Air")
+                    .withIssuer("Terminal Air TwoFactorAuth")
                     .withIssuedAt(new Date())
                     .withExpiresAt(expireDate)
                     .withClaim("username", user.getUsername())
@@ -64,9 +67,31 @@ public class JWTUtil {
         try {
             DecodedJWT jwt = verifier.verify(token);
             log.info("JWT validation passed");
+        } catch (InvalidClaimException e){
+            if (e.getMessage().contains("The Token has expired")){
+                throw new ServiceException("登录已过期，请重新登录");
+            }
+            if (e.getMessage().contains("issuer")){
+                throw new ServiceException("非法登录");
+            }
+        }
+//        catch (JWTVerificationException e) {
+//            log.error("JWT validation failed", e);
+//            throw new ServiceException("登录已过期，请重新登录");
+//        }
+    }
+
+    public static void validateTwoFactorAuthSecretToken(String token) {
+        try {
+            DecodedJWT jwt = twoFactorAuthSecretVerifier.verify(token);
+            log.info("TwoFactorAuthSecret JWT validation passed");
         } catch (JWTVerificationException e) {
-            log.error("JWT validation failed", e);
-            throw new ServiceException("登录已过期，请重新登录");
+            if (e.getMessage().contains("The Token has expired")){
+                throw new ServiceException("二次认证已过期，请重新登录");
+            }
+            if (e.getMessage().contains("issuer")){
+                throw new ServiceException("非法登录");
+            }
         }
     }
 

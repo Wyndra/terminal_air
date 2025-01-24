@@ -13,6 +13,7 @@ import top.srcandy.candyterminal.request.*;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.utils.AuthAccess;
 import top.srcandy.candyterminal.utils.JWTUtil;
+import top.srcandy.candyterminal.utils.UsingTwoFactorAuth;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -77,6 +78,7 @@ public class AuthController {
     }
 
     @PostMapping("/verifyTwoFactorAuthCode")
+    @UsingTwoFactorAuth
     public ResponseResult<Boolean> verifyTwoFactorAuthCode(@RequestHeader("Authorization") String twoFactorAuthToken, @Valid @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return ResponseResult.success(authService.verifyTwoFactorAuthCode(twoFactorAuthToken.substring(7), request));
     }
@@ -86,7 +88,9 @@ public class AuthController {
         return ResponseResult.success(JWTUtil.generateTwoFactorAuthSecretToken(authService.getUserByUsername(JWTUtil.getTokenClaimMap(token.substring(7)).get("username").asString())));
     }
 
+
     @PostMapping("/loginRequireTwoFactorAuth")
+    @UsingTwoFactorAuth
     public ResponseResult<String> loginRequireTwoFactorAuth(@Valid @RequestHeader("Authorization") String twoFactorAuthToken, @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return authService.loginRequireTwoFactorAuth(twoFactorAuthToken.substring(7),request);
     }
