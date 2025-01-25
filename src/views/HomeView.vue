@@ -46,8 +46,7 @@
       <!-- 侧边 -->
       <n-layout has-sider style="height: 100%;">
         <n-layout-sider bordered content-style="padding: 14px;" collapse-mode="width" :collapsed-width="0" :width="240"
-          show-trigger="bar" 
-          show-collapsed-content="false">
+          show-trigger="bar" show-collapsed-content="false">
           <!-- 判断是否未登录 -->
           <div v-if="!InLogin"
             style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center;">
@@ -141,7 +140,8 @@ const store = useStore();
 const message = useMessage();
 const notification = useNotification();
 
-const router = useRouter();
+
+const router = useRouter(); 
 import Typed from 'typed.js';
 import { Terminal } from '@vicons/ionicons5';
 import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons-vue';

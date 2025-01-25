@@ -157,7 +157,7 @@
     <!-- Footer -->
     <n-layout-footer class="footer" bordered>
       <div>
-        <span>© 2025 Terminal Air 慕垂科技 - 浙ICP备2023031974号</span>
+        <span>© 2025 Terminal Air 慕垂科技 - 浙ICP备2023031974号 - Commit ID: {{ gitCommitHash }}</span>
       </div>
     </n-layout-footer>
 
@@ -261,6 +261,8 @@ import router from '@/router';
 import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
 import UseLockByPasswordModal from '@/components/UseLockByPasswordModal.vue';
 import UseLockByTotpModal from '@/components/UseLockByTOTPModal.vue';
+
+const gitCommitHash = process.env.VUE_APP_GIT_COMMIT_HASH;
 
 const store = useStore();
 const message = useMessage();
