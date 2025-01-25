@@ -1,12 +1,12 @@
 <template>
-    <n-card bordered style="background-color: #fff;width: 30%;">
-        <template #header-extra>
+    <n-card @close='closeModal' bordered style="background-color: #fff;width: 30%;">
+        <!-- <template #header-extra>
             <n-button text @click="closeModal">
                 <n-icon size="20">
                     <Close />
                 </n-icon>
             </n-button>
-        </template>
+        </template> -->
         <n-tabs v-model:value="currentTab">
             <n-tab-pane name="login" tab="登录">
                 <!-- 登录表单 -->
