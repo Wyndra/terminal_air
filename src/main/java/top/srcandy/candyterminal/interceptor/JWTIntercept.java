@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import top.srcandy.candyterminal.exception.ServiceException;
+import top.srcandy.candyterminal.utils.AllowTwoFactorAuth;
 import top.srcandy.candyterminal.utils.AuthAccess;
 import top.srcandy.candyterminal.utils.JWTUtil;
-import top.srcandy.candyterminal.utils.UsingTwoFactorAuth;
 
 @Component
 @Slf4j
@@ -32,7 +32,7 @@ public class JWTIntercept implements HandlerInterceptor {
         }
 
         if (handler instanceof HandlerMethod) {
-            UsingTwoFactorAuth usingTwoFactorAuth = ((HandlerMethod) handler).getMethodAnnotation(UsingTwoFactorAuth.class);
+            AllowTwoFactorAuth usingTwoFactorAuth = ((HandlerMethod) handler).getMethodAnnotation(AllowTwoFactorAuth.class);
             if (usingTwoFactorAuth != null) {
                 JWTUtil.validateTwoFactorAuthSecretToken(authorization.substring(PREFIX.length()));
             } else {

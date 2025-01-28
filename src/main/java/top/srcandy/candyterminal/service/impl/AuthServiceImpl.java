@@ -57,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
                 return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
             }
         }else {
-            return ResponseResult.fail(null, "密码错误");
+            return ResponseResult.fail(null, "用户名或密码错误");
         }
     }
 
@@ -97,7 +97,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseResult<String> register(RegisterRequest request) {
-        // TODO: Check if the user already exists
         User result = userDao.selectByUserName(request.getUsername());
         // 通过用户名校验是否存在用户
         if (result != null) {
@@ -133,6 +132,16 @@ public class AuthServiceImpl implements AuthService {
         UserProfileVO userProfileVO = userProfileConverter.userToUserProfileVO(user);
 //        UserProfileVO userProfileVO = UserProfileVO.builder().uid(user.getUid()).username(user.getUsername()).email(user.getEmail()).nickname(user.getNickname()).salt(user.getSalt()).phone(user.getPhone()).build();
         return ResponseResult.success(userProfileVO);
+    }
+
+    @Override
+    public ResponseResult<String> getUserAvatar(String no_bearer_token) {
+        String username = JWTUtil.getTokenClaimMap(no_bearer_token).get("username").asString();
+        User user = userDao.selectByUserName(username);
+        if (user != null) {
+            return ResponseResult.success(user.getAvatar());
+        }
+        return ResponseResult.fail(null, "用户不存在");
     }
 
     @Override

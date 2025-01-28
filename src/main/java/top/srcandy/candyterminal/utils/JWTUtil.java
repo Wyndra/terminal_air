@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,7 @@ import java.util.Map;
 
 @Slf4j
 public class JWTUtil {
-    private static final String SECRET = "1393**@&&*@&#!(#&*@#&@*^#^!3¥";
+    private static final String SECRET = "Aj/k73A6sXZUyHyt";
     private static final Algorithm algorithm = Algorithm.HMAC256(SECRET);
 
     private static final JWTVerifier verifier = JWT.require(algorithm).withIssuer("Terminal Air").acceptExpiresAt(1800).build();
@@ -68,12 +69,11 @@ public class JWTUtil {
             DecodedJWT jwt = verifier.verify(token);
             log.info("JWT validation passed");
         } catch (InvalidClaimException e){
-            if (e.getMessage().contains("The Token has expired")){
-                throw new ServiceException("登录已过期，请重新登录");
-            }
             if (e.getMessage().contains("issuer")){
                 throw new ServiceException("非法登录");
             }
+        }catch (TokenExpiredException e){
+            throw new ServiceException("登录已过期，请重新登录");
         }
 //        catch (JWTVerificationException e) {
 //            log.error("JWT validation failed", e);
@@ -85,13 +85,12 @@ public class JWTUtil {
         try {
             DecodedJWT jwt = twoFactorAuthSecretVerifier.verify(token);
             log.info("TwoFactorAuthSecret JWT validation passed");
-        } catch (JWTVerificationException e) {
-            if (e.getMessage().contains("The Token has expired")){
-                throw new ServiceException("二次认证已过期，请重新登录");
-            }
+        } catch (InvalidClaimException e) {
             if (e.getMessage().contains("issuer")){
                 throw new ServiceException("非法登录");
             }
+        } catch (TokenExpiredException e){
+            throw new ServiceException("登录已过期，请重新登录");
         }
     }
 

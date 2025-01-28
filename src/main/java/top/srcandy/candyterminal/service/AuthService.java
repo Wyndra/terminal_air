@@ -20,6 +20,8 @@ public interface AuthService {
 
     ResponseResult<UserProfileVO> getUserProfile(String no_bearer_token);
 
+    ResponseResult<String> getUserAvatar(String no_bearer_token);
+
     User getUserByUsername(String username);
 
     User getUserInfo(String username);

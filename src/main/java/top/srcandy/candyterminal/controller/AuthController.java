@@ -11,9 +11,9 @@ import top.srcandy.candyterminal.bean.vo.UserProfileVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.request.*;
 import top.srcandy.candyterminal.service.AuthService;
+import top.srcandy.candyterminal.utils.AllowTwoFactorAuth;
 import top.srcandy.candyterminal.utils.AuthAccess;
 import top.srcandy.candyterminal.utils.JWTUtil;
-import top.srcandy.candyterminal.utils.UsingTwoFactorAuth;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -78,7 +78,7 @@ public class AuthController {
     }
 
     @PostMapping("/verifyTwoFactorAuthCode")
-    @UsingTwoFactorAuth
+    @AllowTwoFactorAuth
     public ResponseResult<Boolean> verifyTwoFactorAuthCode(@RequestHeader("Authorization") String twoFactorAuthToken, @Valid @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return ResponseResult.success(authService.verifyTwoFactorAuthCode(twoFactorAuthToken.substring(7), request));
     }
@@ -90,8 +90,14 @@ public class AuthController {
 
 
     @PostMapping("/loginRequireTwoFactorAuth")
-    @UsingTwoFactorAuth
+    @AllowTwoFactorAuth
     public ResponseResult<String> loginRequireTwoFactorAuth(@Valid @RequestHeader("Authorization") String twoFactorAuthToken, @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return authService.loginRequireTwoFactorAuth(twoFactorAuthToken.substring(7),request);
+    }
+
+    @GetMapping("/getUserAvatar")
+    @AllowTwoFactorAuth
+    public ResponseResult<String> getUserAvatar(@RequestHeader("Authorization") String token) {
+        return authService.getUserAvatar(token.substring(7));
     }
 }
