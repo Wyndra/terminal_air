@@ -89,3 +89,13 @@ export const getTwoFactorAuthTokenByCurrentUser = () => {
     });
 }
 
+export const getUserAvatar = () => {
+    return serviceAxios({
+        url: "/auth/getUserAvatar",
+        method: "get",
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("twoFactorAuthToken"),
+        },
+    });
+}
+

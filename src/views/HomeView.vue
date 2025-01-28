@@ -114,7 +114,7 @@
     <EditConnectionDrawer @refresh_connection_list="fetchConnectionList()" />
 
     <!-- 登录/注册模态框 -->
-    <n-modal v-model:show="showLoginOrRegisterModal">
+    <n-modal v-model:show="showLoginOrRegisterModal" :mask-closable="false">
       <LoginAndRegisterModal @close="showLoginOrRegisterModal = false" />
     </n-modal>
   </n-layout>
