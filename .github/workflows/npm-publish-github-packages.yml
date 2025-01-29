@@ -12,23 +12,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
-      - name: Install dependencies and build
+      - name: Build and deploy
         run: |
           npm install
           npm run build
-      - name: Set up SSH key for scp
-        run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H sh.srcandy.top >> ~/.ssh/known_hosts
-      - name: Copy files to remote server
-        run: |
           rsync -avz dist/ root@sh.srcandy.top:/etc/Share/terminal_air/
