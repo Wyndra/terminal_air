@@ -55,7 +55,7 @@
                       <n-upload :action="uploadUrl" :max-size="2097152" accept="image/*"
                         @before-upload="handleBeforeUpload" @finish="handleUploadFinish" @error="handleUploadError"
                         :custom-request="customUpload">
-                        <n-button size="small" class="change-avatar-btn">更换头像</n-button>
+                        <n-button type="text" size="small" class="change-avatar-btn">创建你的头像</n-button>
                       </n-upload>
                     </div>
                     <div class="basic-info">
@@ -84,7 +84,7 @@
 
                     <!-- 编辑弹窗 -->
                     <n-modal v-model:show="showEditModal" preset="card" :title="`修改${currentField?.label || ''}`"
-                      style="width:20%" :bordered="false" transform-origin="center">
+                      style="width:35%" :bordered="false" transform-origin="center">
 
                       <n-form :model="editForm" ref="editFormRef" :rules="getFieldRules" label-placement="left">
                         <n-form-item :path="currentField?.key || ''" :label="currentField?.label">
@@ -175,7 +175,7 @@
 
     <!-- 验证码弹窗 -->
     <n-modal v-model:show="showVerifyModal" preset="card" :title="`验证${currentField?.label || ''}`"
-      style="width: 300px">
+      style="width: 500px">
       <n-form>
         <n-form-item label="验证码">
           <n-input v-model:value="phone" placeholder="请输入手机号" />
@@ -197,7 +197,7 @@
 
     <!-- 新手机号验证弹窗 -->
     <n-modal v-model:show="showVerifyModal" preset="card" :title="`验证${currentField?.label || ''}`"
-      style="width: 300px">
+      style="width: 500px">
       <n-form :model="phoneForm" :rules="phoneRules" ref="phoneFormRef">
         <n-form-item label="新手机号" path="newPhone">
           <n-input v-model:value="phoneForm.newPhone" placeholder="请输入新手机号" />
@@ -221,7 +221,7 @@
       </template>
     </n-modal>
     <!-- 验证原手机号弹窗 -->
-    <n-modal v-model:show="showVerifyOldPhoneModal" preset="card" title="验证原手机号" style="width: 300px">
+    <n-modal v-model:show="showVerifyOldPhoneModal" preset="card" title="验证原手机号" style="width: 500px">
       <n-form :model="oldPhoneForm" :rules="oldPhoneRules" ref="oldPhoneFormRef">
         <n-form-item label="原手机号" path="oldPhone">
           <n-input v-model:value="oldPhoneForm.oldPhone" placeholder="请输入原手机号" disabled />
@@ -588,7 +588,7 @@ const editableFields = [
     needVerify: true, // 需要验证码验证
     verifyType: 'sms' // 验证方式
   },
-  { key: 'email', label: '邮箱', editable: true },
+  { key: 'email', label: '邮箱地址', editable: true },
   { key: 'createTime', label: "注册时间", editable: false }
 ];
 
@@ -1145,5 +1145,22 @@ onMounted(() => {
     gap: 8px;
     font-family: ui-sans-serif, -apple-system, system-ui;
   }
+}
+
+.change-avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-family: ui-sans-serif, -apple-system, system-ui;
+  color: cornflowerblue;
+}
+
+.change-avatar-btn:hover {
+  color: cornflowerblue;
+}
+
+.change-avatar-btn:active {
+  color: cornflowerblue;
 }
 </style>
