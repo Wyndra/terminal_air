@@ -257,6 +257,7 @@ import { sendSmsCodeByToken, sendVerificationCode, verifyCode } from '@/api/sms'
 import { LockClosed, LockOpen } from '@vicons/ionicons5';
 import axios from 'axios';
 import router from '@/router';
+import { userInfoRules } from '@/constant/rules';
 
 import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
 import UseLockByPasswordModal from '@/components/UseLockByPasswordModal.vue';
@@ -281,7 +282,6 @@ const userInfo = ref({
   phone: '',
   avatar: '',
   isTwoFactorAuth: '',
-  twoFactorAuthSecret: ''
 });
 const safeSettingForm = ref({
   salt: ''
@@ -298,37 +298,6 @@ const isLoading = ref(true);  // 添加一个加载状态
 // 打开登录模态框
 const openLoginModal = () => {
   showLoginOrRegisterModal.value = true;
-};
-
-const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
-const userInfoRules = {
-  username: [
-    { required: true, message: '用户名不能为空', trigger: ['blur'] }
-  ],
-  nickname: [
-    { required: true, message: '昵称不能为空', trigger: ['blur'] },
-    { min: 2, max: 20, message: '昵称长度在 2 到 20 个字符', trigger: ['blur'] }
-  ],
-  phone: [
-    { required: true, message: '手机号码不能为空', trigger: ['blur'] },
-    {
-      pattern: /^1[3-9][0-9]{9}$/, message: '请输入有效的手机号码', trigger: ['blur']
-    }
-  ],
-  email: [
-    { required: true, message: '邮箱不能为空', trigger: ['blur'] },
-    { pattern: emailPattern, message: '请输入有效的邮箱地址', trigger: ['blur'] }
-  ],
-  salt: [
-    { required: false, trigger: ['blur'] }
-  ],
-  isTwoFactorAuth: [
-    { required: false, trigger: ['blur'] }
-  ],
-  twoFactorAuthSecret: [
-    { required: false, trigger: ['blur'] }
-  ]
 };
 
 const safeSettingRules = {

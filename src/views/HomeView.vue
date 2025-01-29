@@ -4,15 +4,16 @@
   <n-layout style="height: 100vh; position: relative;">
     <n-layout-header class="header" bordered>
       <div style="display: flex; height: 100%; align-items: center">
-        <span>Terminal Air</span>
+        <img src="@/assets/shell.svg" alt="Terminal Air" style="height: 24px;" />
+        <span>
+          Terminal Air
+        </span>
         <div style="flex: 1;"></div>
         <div style="height: 100%; display: flex; align-items: center; margin-right: 16px;" v-if="InLogin">
           <n-icon size="24" style="cursor: pointer; margin-right: 8px;" @click="openTerminalSettings">
             <Terminal />
           </n-icon>
-          <n-icon size="24" style="cursor: pointer;" @click="toggleFullscreen">
-            <component :is="isFullscreen ? FullscreenExitOutlined : FullscreenOutlined" />
-          </n-icon>
+          
         </div>
         <div style="height: 100%; display: flex; align-items: center">
           <n-button v-if="!InLogin" style="margin-right: 24px;" @click="openLoginModal">
@@ -144,7 +145,6 @@ const notification = useNotification();
 const router = useRouter(); 
 import Typed from 'typed.js';
 import { Terminal } from '@vicons/ionicons5';
-import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons-vue';
 
 watch(() => store.getters.isLoggedIn, (value) => {
   InLogin.value = value;
@@ -155,7 +155,6 @@ const connect_list = ref([]);
 const userInfo = ref({});
 // 绑定来自 store 的登录状态
 const InLogin = ref(store.getters.isLoggedIn);
-const isFullscreen = ref(false);
 
 const current_connect = ref({});
 
@@ -255,19 +254,6 @@ const openTerminalSettings = () => {
   store.commit('setShowTerminalSettings', true);
 };
 
-const toggleFullscreen = () => {
-  const elem = document.documentElement;
-  if (!document.fullscreenElement) {
-    elem.requestFullscreen().catch(err => {
-      console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-    });
-    isFullscreen.value = true;
-  } else {
-    document.exitFullscreen();
-    isFullscreen.value = false;
-  }
-};
-
 onMounted(() => {
   fetchConnectionList();
   fetchUserInfo();
@@ -290,9 +276,14 @@ onMounted(() => {
   span {
     font-size: 20px;
     font-weight: bold;
-    margin-left: 24px;
+    // margin-left: 24px;
     align-content: center;
     font-family: ui-sans-serif, -apple-system, system-ui;
+  }
+
+  img {
+    margin-left: 24px;
+    margin-right: 10px;
   }
 }
 
