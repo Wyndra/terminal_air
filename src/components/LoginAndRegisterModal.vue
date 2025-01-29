@@ -1,102 +1,109 @@
 <template>
-    <n-card @close='closeModal' bordered style="background-color: #fff;width: 30%;">
-        <!-- <template #header-extra>
+    <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 30%;">
+        <template #header-extra>
             <n-button text @click="closeModal">
                 <n-icon size="20">
                     <Close />
                 </n-icon>
             </n-button>
-        </template> -->
-        <n-tabs v-model:value="currentTab">
-            <n-tab-pane name="login" tab="登录">
-                <!-- 登录表单 -->
-                <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules"
-                    v-if="!useCodeLogin && !isTwoFactor">
-                    <n-form-item label="用户名" path="username">
-                        <n-input v-model:value="loginForm.username" placeholder="请输入用户名" @keydown.enter.prevent />
-                    </n-form-item>
-                    <n-form-item label="密码" path="password">
-                        <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
-                            show-password-on="mousedown" @keydown.enter.prevent />
-                    </n-form-item>
-                </n-form>
+        </template>
 
-                <!-- 二次验证表单 -->
-                <n-form ref="twoFactorFormRef" label-position="top" :model="twoFactorForm" :rules="twoFactorAuthRules"
-                    v-if="isTwoFactor">
-                    <n-form-item label="一次性验证码" path="code">
-                        <n-input :allow-input="onlyAllowNumber" v-model:value="twoFactorForm.code"
-                            placeholder="请输入一次性验证码" @keydown.enter.prevent />
-                    </n-form-item>
-                </n-form>
+        <!-- 登录表单 -->
+        <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules"
+            v-if="currentServiceType === '登录' && !useCodeLogin && !isTwoFactor">
+            <n-form-item label="用户名" path="username">
+                <n-input v-model:value="loginForm.username" placeholder="请输入用户名" @keydown.enter.prevent />
+            </n-form-item>
+            <n-form-item label="密码" path="password">
+                <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
+                    show-password-on="mousedown" @keydown.enter.prevent />
+            </n-form-item>
+        </n-form>
 
-                <!-- 验证码登录表单 -->
-                <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules"
-                    v-if="useCodeLogin">
-                    <n-form-item label="手机号" path="phone">
-                        <n-input v-model:value="codeLoginForm.phone" placeholder="请输入中国大陆手机号" />
-                    </n-form-item>
-                    <n-form-item label="验证码" path="verificationCode">
-                        <div style="display: flex; gap: 8px;">
-                            <n-input v-model:value="codeLoginForm.verificationCode" :allow-input="onlyAllowNumber"
-                                placeholder="请输入验证码" />
-                            <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
-                                style="background-color: #319154; color: white;">
-                                {{ codeButtonText }}
-                            </n-button>
-                        </div>
-                    </n-form-item>
-                </n-form>
-
-                <div style="display: flex; justify-content: space-between; margin-top: 16px;">
-                    <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
-                        @click="switchToRegister">立即注册</n-text>
-                    <n-text style="cursor: pointer; color:#319154; font-weight: bold;" @click="toggleLoginMethod">
-                        {{ useCodeLogin ? '密码登录' : '验证码登录' }}
-                    </n-text>
+        <!-- 二次验证表单 -->
+        <n-form ref="twoFactorFormRef" label-position="top" :model="twoFactorForm" :rules="twoFactorAuthRules"
+            v-if="isTwoFactor">
+            <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
+                <div style="position: relative;">
+                    <n-avatar round :size="48" :src="userAvatar" />
+                    <n-icon color="#cf3f37"
+                        style="position: absolute; bottom: 4px; right: -2px; width: 16px; height: 16px; background-color: transparent;">
+                        <LockClosed />
+                    </n-icon>
                 </div>
-            </n-tab-pane>
+                <n-text style="font-weight: bold; font-size: 16px;">我们需要验证你的身份才能继续</n-text>
+                <n-text style="font-size: 14px;">输入来自身份验证器的代码</n-text>
+                <n-form-item path="code">
+                    <VerifationCodeInput v-model="twoFactorForm.code" />
+                </n-form-item>
+            </div>
+        </n-form>
 
-            <n-tab-pane name="register" tab="注册">
-                <!-- 注册表单 -->
-                <n-form ref="registerFormRef" label-position="top" :model="registerForm" :rules="registerRules">
-                    <div style="display: flex; gap: 16px;">
-                        <n-form-item label="用户名" path="username" style="flex: 1;">
-                            <n-input v-model:value="registerForm.username" placeholder="请输入用户名" />
-                        </n-form-item>
+        <!-- 验证码登录表单 -->
+        <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules"
+            v-if="currentServiceType === '登录' && useCodeLogin">
+            <n-form-item label="手机号" path="phone">
+                <n-input v-model:value="codeLoginForm.phone" placeholder="请输入中国大陆手机号" />
+            </n-form-item>
+            <n-form-item label="验证码" path="verificationCode">
+                <div style="display: flex; gap: 8px;">
+                    <n-input v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
+                    <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
+                        style="background-color: #319154; color: white;">
+                        {{ codeButtonText }}
+                    </n-button>
+                </div>
+            </n-form-item>
+        </n-form>
+
+        <!-- 注册表单 -->
+        <n-form ref="registerFormRef" label-position="top" :model="registerForm" :rules="registerRules"
+            v-if="currentServiceType === '注册'">
+            <div style="display: flex; gap: 16px;">
+                <n-form-item label="用户名" path="username" style="flex: 1;">
+                    <n-input v-model:value="registerForm.username" placeholder="请输入用户名" />
+                </n-form-item>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <n-form-item label="密码" path="password" style="flex: 1;">
+                    <n-input v-model:value="registerForm.password" placeholder="请输入密码" type="password"
+                        show-password-on="mousedown" />
+                </n-form-item>
+                <n-form-item label="确认密码" path="repeatPassword" style="flex: 1;">
+                    <n-input v-model:value="registerForm.repeatPassword" placeholder="请输入确认密码" type="password"
+                        show-password-on="mousedown" />
+                </n-form-item>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <n-form-item label="手机号" path="phone" style="flex: 1;">
+                    <n-input v-model:value="registerForm.phone" placeholder="请输入中国大陆手机号" />
+                </n-form-item>
+                <n-form-item label="验证码" path="verificationCode" style="flex: 1;">
+                    <div style="display: flex; gap: 8px;">
+                        <n-input v-model:value="registerForm.verificationCode" placeholder="请输入验证码" />
+                        <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
+                            style="background-color: #319154; color: white;">
+                            {{ codeButtonText }}
+                        </n-button>
                     </div>
-                    <div style="display: flex; gap: 16px;">
-                        <n-form-item label="密码" path="password" style="flex: 1;">
-                            <n-input v-model:value="registerForm.password" placeholder="请输入密码" type="password"
-                                show-password-on="mousedown" />
-                        </n-form-item>
-                        <n-form-item label="确认密码" path="repeatPassword" style="flex: 1;">
-                            <n-input v-model:value="registerForm.repeatPassword" placeholder="请输入确认密码" type="password"
-                                show-password-on="mousedown" />
-                        </n-form-item>
-                    </div>
-                    <div style="display: flex; gap: 16px;">
-                        <n-form-item label="手机号" path="phone" style="flex: 1;">
-                            <n-input v-model:value="registerForm.phone" placeholder="请输入中国大陆手机号" />
-                        </n-form-item>
-                        <n-form-item label="验证码" path="verificationCode" style="flex: 1;">
-                            <div style="display: flex; gap: 8px;">
-                                <n-input v-model:value="registerForm.verificationCode" :allow-input="onlyAllowNumber"
-                                    placeholder="请输入验证码" />
-                                <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
-                                    style="background-color: #319154; color: white;">
-                                    {{ codeButtonText }}
-                                </n-button>
-                            </div>
-                        </n-form-item>
-                    </div>
-                </n-form>
-            </n-tab-pane>
-        </n-tabs>
+                </n-form-item>
+            </div>
+        </n-form>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 16px;"
+            v-if="currentServiceType === '登录' && !isTwoFactor">
+
+            <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
+                @click="handleClickRegister">立即注册</n-text>
+            <n-text style="cursor: pointer; color:#319154; font-weight: bold;" @click="toggleLoginMethod">
+                {{ useCodeLogin ? '密码登录' : '验证码登录' }}
+            </n-text>
+        </div>
 
         <template #footer>
-            <n-button type="primary" style="width: 100%;" @click="handleSubmit">{{ currentTab === 'login' ? '登录' : '注册'
-                }}</n-button>
+            <n-button type="primary" style="width: 100%;" @click="handleSubmit">{{ currentServiceType === '登录' ?
+                isTwoFactor ? '继续' : '登录' :
+                '注册' }}</n-button>
         </template>
     </n-card>
 </template>
@@ -104,10 +111,11 @@
 <script setup>
 import { ref, computed, defineEmits, nextTick } from 'vue';
 import { useMessage } from 'naive-ui';
-import { login, register, loginBySmsCode,loginRequireTwoFactorAuth } from '../api/auth';  // 确保你的 API 路径正确
+import { login, register, getVerificationCode, loginWithCode, loginBySmsCode,loginRequireTwoFactorAuth,getUserAvatar } from '../api/auth';  // 确保你的 API 路径正确
 import { sendVerificationCode } from '../api/sms';
 import { useStore } from 'vuex';
-// import { Close } from '@vicons/ionicons5';
+import { Close,LockClosed } from '@vicons/ionicons5';
+import VerifationCodeInput from './VerifationCodeInput.vue';
 
 // 获取 Vuex store
 const store = useStore();
@@ -143,8 +151,8 @@ const twoFactorForm = ref({
     code: '',
 });
 
-// 当前选中的标签
-const currentTab = ref('login');
+// 当前服务类型（登录/注册）
+const currentServiceType = ref('登录');
 
 // 是否使用验证码登录
 const useCodeLogin = ref(false);
@@ -159,6 +167,8 @@ const twoFactorFormRef = ref(null);
 // 获取验证码按钮状态
 const isCodeButtonDisabled = ref(false);
 const codeButtonText = ref('获取验证码');
+
+const userAvatar = ref('');
 
 // 登录表单验证规则
 const loginRules = {
@@ -219,14 +229,11 @@ const registerRules = {
 
 const twoFactorAuthRules = {
     code: [
-        { required: true, message: '请输入一次性代码', trigger: 'blur' },
-        { pattern: /^\d{6}$/, message: '请输入 6 位数字', trigger: 'blur' }
+        { required: true, message: '请输入一次性验证码', trigger: 'blur' },
+        { length: 6, message: '请输入正确的一次性验证码', trigger: 'blur' }
     ]
 }
 
-const onlyAllowNumber = (value) => {
-    return !value || /^\d+$/.test(value);
-}
 
 // 登录提交
 async function async_login() {
@@ -238,9 +245,11 @@ async function async_login() {
     if (res.status === '200') {
         if (res.data.requireTwoFactorAuth) {
             isTwoFactor.value = true;
+            // 如果账户需要双重认证，签发的token为twoFactorAuthToken
             localStorage.setItem('twoFactorAuthToken', res.data.token);
+            userAvatar.value = await getUserAvatar().then(res => res.data || '');
 
-            message.warning("账户已开启双重认证，请输入一次性验证码")
+            message.warning("账户已启用双重认证，请输入一次性验证码")
             return;
         }else{
             localStorage.setItem('token', res.data.token);
@@ -264,8 +273,8 @@ async function async_twoFactor() {
     });
 
     if (res.status === '200') {
-        localStorage.setItem('token', res.data);
         message.success('登录成功');
+        localStorage.setItem('token', res.data);
         // 移除twoFactorAuthToken
         localStorage.removeItem("twoFactorAuthToken")
         // 重置错误显示状态
@@ -274,6 +283,7 @@ async function async_twoFactor() {
         location.reload();
     } else {
         message.error(res.message || '登录失败');
+        twoFactorFormRef.value.code = '';
     }
 }
 
@@ -317,7 +327,7 @@ async function async_register() {
 // 获取验证码
 const handleGetVerificationCode = async () => {
     try {
-        const channel = currentTab.value === 'login' ? '1008' : '1021';
+        const channel = currentServiceType.value === '登录' ? '1008' : '1021';
         const phone = codeLoginForm.value.phone || registerForm.value.phone;
         const res = await sendVerificationCode({ phone, channel });
         if (res.status === '200') {
@@ -353,8 +363,6 @@ const startCodeButtonCountdown = () => {
 // 切换登录方式
 const toggleLoginMethod = async () => {
     useCodeLogin.value = !useCodeLogin.value;
-    isTwoFactor.value = false;
-    localStorage.removeItem("twoFactorAuthToken");
     // 重置表单数据和验证状态
     await nextTick();
     if (useCodeLogin.value) {
@@ -365,10 +373,8 @@ const toggleLoginMethod = async () => {
 };
 
 // 切换到注册界面
-const switchToRegister = () => {
-    currentTab.value = 'register';
-    isTwoFactor.value = false;
-    localStorage.removeItem("twoFactorAuthToken");
+const handleClickRegister = () => {
+    currentServiceType.value = '注册';
 };
 
 // 关闭模态框
@@ -378,7 +384,7 @@ const closeModal = () => {
 
 // 统一提交处理
 const handleSubmit = () => {
-    if (currentTab.value === 'login') {
+    if (currentServiceType.value === '登录') {
         if (useCodeLogin.value) {
             codeLoginFormRef.value.validate((valid) => {
                 if (!valid) {
@@ -422,5 +428,9 @@ const handleSubmit = () => {
 /* 样式部分 */
 n-form-item {
     margin-bottom: 12px;
+}
+
+.n-form-item-blank {
+    justify-content: center !important;
 }
 </style>
