@@ -1,11 +1,11 @@
 <template>
-  <!-- <n-watermark v-if="watermark_show" :content="userInfo.username || ''" cross fullscreen :font-size="20"
+  <!-- <n-watermark v-if="watermark_show" :content="userInfo.username + userInfo.phone || ''" cross fullscreen :font-size="20"
     :line-height="20" :width="384" :height="384" :x-offset="12" :y-offset="60" :rotate="-15" /> -->
   <n-layout style="height: 100vh; position: relative;">
     <n-layout-header class="header" bordered>
       <div style="display: flex; height: 100%; align-items: center">
         <img src="@/assets/shell.svg" alt="Terminal Air" style="height: 24px;" />
-        <span>
+        <span @click="router.push('/')" style="cursor: pointer;">
           Terminal Air
         </span>
         <div style="flex: 1;"></div>
@@ -141,6 +141,8 @@ const store = useStore();
 const message = useMessage();
 const notification = useNotification();
 
+
+const watermark_show = ref(false)
 
 const router = useRouter(); 
 import Typed from 'typed.js';

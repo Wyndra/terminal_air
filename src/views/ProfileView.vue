@@ -3,7 +3,10 @@
     <!-- Header -->
     <n-layout-header class="header" bordered>
       <div style="display: flex; height: 100%; align-items: center">
-        <span>Terminal Air</span>
+        <img src="@/assets/shell.svg" alt="Terminal Air" style="height: 24px;" />
+        <span @click="gotoHomeView" style="cursor: pointer;">
+          Terminal Air
+        </span>
         <div style="flex: 1;"></div>
         <div style="height: 100%; display: flex; align-items: center">
           <!-- 登录按钮显示 -->
@@ -118,20 +121,15 @@
                       </n-button>
                     </div>
                   </n-descriptions-item>
-                  <!-- <n-descriptions-item label="本地服务">
-                    <div class="local-service-wrapper">
-                      <n-switch v-model:value="store.state.usingLocalhostWs" :disabled="!saltLockStatus" />
-                      <span class="description-text">使用本地 WebSocket 服务，更安全，最放心</span>
-                    </div>
-                  </n-descriptions-item> -->
                 </n-descriptions>
               </n-tab-pane>
               <n-tab-pane name="双重认证" tab="双重认证">
                 <n-form :model="userInfo" label-placement="left" label-width="120px" label-align="left">
                   <n-form-item label="双重认证">
                     <div class="two-factor-wrapper">
-                      <n-switch v-model:value="userInfo.isTwoFactorAuth" @update:value="handleTwoFactorChange" />
-                      <span class="description-text">开启双重认证后，每次登录将需要额外验证</span>
+                      <n-button @click="handleTwoFactorChange">添加验证方法</n-button>
+                      <!-- <n-switch v-model:value="userInfo.isTwoFactorAuth" @update:value="handleTwoFactorChange" /> -->
+                      <span class="description-text">使用一次性代码验证你的身份，以确保你的帐号安全。</span>
                     </div>
                   </n-form-item>
                   <n-form-item style="display: flex;align-items: center;" label="凭证二维码" v-if="userInfo.isTwoFactorAuth">
@@ -258,8 +256,8 @@ import { LockClosed, LockOpen } from '@vicons/ionicons5';
 import axios from 'axios';
 import router from '@/router';
 import { userInfoRules } from '@/constant/rules';
-
 import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
+
 import UseLockByPasswordModal from '@/components/UseLockByPasswordModal.vue';
 import UseLockByTotpModal from '@/components/UseLockByTOTPModal.vue';
 
@@ -663,7 +661,7 @@ const handleSendCode = async () => {
   try {
     // await phoneFormRef.value?.validate();
     // 调用发送验证码接口
-    const res = await sendVerificationCode({ phone: phoneForm.value.newPhone, channel: '1021' });
+    const res = await sendVerificationCode({ phone: phoneForm.value.newPhone, channel: '1021' })
     localStorage.setItem('newPhone', phoneForm.value.newPhone);
     localStorage.setItem('newSerial', res.data.serial);
 
@@ -691,7 +689,7 @@ const handlePhoneUpdate = async () => {
       phone: localStorage.getItem('newPhone'),
       serial: localStorage.getItem('newSerial'),
       code: phoneForm.value.verifyCode
-    });
+    })
 
     if (verified.data) {
       // 验证通过后更新手机号
@@ -867,9 +865,14 @@ onMounted(() => {
   span {
     font-size: 20px;
     font-weight: bold;
-    margin-left: 24px;
+    // margin-left: 24px;
     align-content: center;
     font-family: ui-sans-serif, -apple-system, system-ui;
+  }
+
+  img {
+    margin-left: 24px;
+    margin-right: 10px;
   }
 }
 
@@ -1005,7 +1008,7 @@ onMounted(() => {
 
   .description-text {
     color: #666;
-    font-size: 14px;
+    font-size: 12px;
   }
 }
 
