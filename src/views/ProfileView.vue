@@ -19,7 +19,7 @@
             <template #trigger>
               <div class="username_avatar" v-if="userInfo && userInfo.username">
                 <n-avatar id="user-avatar" round size="large"
-                  :src="userInfo.avatar || 'https://s2.loli.net/2024/08/07/1wVfdgByjev7IP6.jpg'" />
+                  :src="userInfo.avatar || ''" />
                 <span v-if="userInfo.username" style="margin-right: 24px; margin-left: 10px !important;">
                   {{ userInfo.nickname || userInfo.username }}
                 </span>
@@ -53,7 +53,7 @@
                     <div class="avatar-section"
                       style="display: flex;justify-content: center !important;align-items: center;">
                       <n-avatar round :size="120"
-                        :src="userInfo.avatar || 'https://s2.loli.net/2024/08/07/1wVfdgByjev7IP6.jpg'"
+                        :src="userInfo.avatar || ''"
                         class="main-avatar" />
                       <n-upload :action="uploadUrl" :max-size="2097152" accept="image/*"
                         @before-upload="handleBeforeUpload" @finish="handleUploadFinish" @error="handleUploadError"
