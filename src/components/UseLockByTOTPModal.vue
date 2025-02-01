@@ -1,24 +1,36 @@
 <template>
-    <n-modal v-model:show="props.lockByTotpModalVisible" class="custom-card" preset="card" title="请输入来自身份验证器的代码"
-        style="width:25%" :bordered="false" transform-origin="center">
-        <n-form :model="totpForm" :rules="formRules">
-            <n-form-item label="一次性代码" required path="totp">
-                <n-input :allow-input="onlyAllowNumber" v-model:value="totpForm.totp" placeholder="XXX XXX"
-                    show-password-on="mousedown" style="width: 100%;" :class="{ shake: isShaking }" />
+    <n-modal v-model:show="props.lockByTotpModalVisible" class="custom-card" preset="card" title="身份验证"
+        style="width:30%" :bordered="false" transform-origin="center">
+        <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
+            <div style="position: relative;">
+                <n-avatar round :size="48" :src="userAvatar" />
+                <n-icon color="#cf3f37"
+                    style="position: absolute; bottom: 4px; right: -2px; width: 16px; height: 16px; background-color: transparent;">
+                    <LockClosed />
+                </n-icon>
+            </div>
+            <n-text style="font-weight: bold; font-size: 16px;">我们需要验证你的身份才能继续</n-text>
+            <n-text style="font-size: 14px;">输入来自身份验证器的代码</n-text>
+            <n-form-item path="code">
+                <VerifationCodeInput :class="{ shake: isShaking }" v-model="totpForm.totp" />
             </n-form-item>
-            <n-button type="primary" style="width: 100%;" @click="handleUnlockByTotp">
-                解锁
-            </n-button>
-        </n-form>
+        </div>
+        <n-button type="primary" style="width: 100%;" @click="handleUnlockByTotp">
+            解锁
+        </n-button>
     </n-modal>
 </template>
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue';
-import { getTwoFactorAuthTokenByCurrentUser, verifyTwoFactorAuthCode } from '@/api/auth';
+import { ref, defineProps, defineEmits,watch } from 'vue';
+import { getTwoFactorAuthTokenByCurrentUser, verifyTwoFactorAuthCode,getUserAvatar } from '@/api/auth';
+import VerifationCodeInput from './VerifationCodeInput.vue';
+import { LockClosed } from '@vicons/ionicons5';
 
 const props = defineProps({
     lockByTotpModalVisible: Boolean, // 这里是弹窗的显示控制
 });
+
+const userAvatar = ref(localStorage.getItem('userAvatar'));
 
 const emit = defineEmits(["unlockByTotpEvent"]);
 const totpForm = ref({
@@ -43,9 +55,6 @@ const getTwoFactorToken = async () => {
     } catch (error) {
         return null;  // 如果请求失败，返回 null
     }
-}
-const onlyAllowNumber = (value) => {
-    return !value || /^\d+$/.test(value);
 }
 // 点击解锁按钮时调用
 const handleUnlockByTotp = async () => {  // 注意加上 async

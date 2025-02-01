@@ -315,6 +315,7 @@ async function fetchUserInfo() {
       safeSettingForm.value = {
         salt: res.data.salt || ''
       };
+      localStorage.setItem('userAvatar', userInfo.value.avatar);
       // 如果开启了双重认证，获取二维码
       if (userData.isTwoFactorAuth) {
         await fetchQRCode();
@@ -997,6 +998,7 @@ onMounted(() => {
 
 .salt-input-wrapper {
   display: flex;
+  margin-top: 8px;
   gap: 12px;
   align-items: center;
 }

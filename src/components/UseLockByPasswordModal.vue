@@ -1,10 +1,22 @@
 <template>
-    <n-modal v-model:show="props.lockByPasswordModalVisible" class="custom-card" preset="card" title="请输入登录密码"
-        style="width:25%" :bordered="false" transform-origin="center">
+    <n-modal v-model:show="props.lockByPasswordModalVisible" class="custom-card" preset="card" title="身份验证"
+        style="width:30%" :bordered="false" transform-origin="center">
         <n-form :model="passwordForm" :rules="formRules">
-            <n-form-item label="密码" required path="password">
+            <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
+                <div style="position: relative;">
+                    <n-avatar round :size="48" :src="userAvatar" />
+                    <n-icon color="#cf3f37"
+                        style="position: absolute; bottom: 4px; right: -2px; width: 16px; height: 16px; background-color: transparent;">
+                        <LockClosed />
+                    </n-icon>
+                </div>
+                <n-text style="font-weight: bold; font-size: 16px;">我们需要验证你的身份才能继续</n-text>
+                <n-text style="font-size: 14px;">输入登录的密码</n-text>
+
+            </div>
+            <n-form-item required path="password">
                 <!-- 使用标准的 v-model 来绑定 PasswordForm.password -->
-                <n-input v-model:value="passwordForm.password" placeholder="请输入密码" type="password"
+                <n-input v-model:value="passwordForm.password" placeholder="请输入登录密码" type="password"
                     show-password-on="mousedown" style="width: 100%;" :class="{ shake: isShaking }" />
             </n-form-item>
             <n-button type="primary" style="width: 100%;" @click="handleUnlockByPassword">
@@ -17,6 +29,9 @@
 <script setup>
 import { ref, defineProps, defineEmits } from 'vue';
 import { verifyUserPassword } from '@/api/auth';
+import { LockClosed } from '@vicons/ionicons5';
+
+const userAvatar = ref(localStorage.getItem('userAvatar'));
 
 const props = defineProps({
     lockByPasswordModalVisible: Boolean, // 这里是弹窗的显示控制
