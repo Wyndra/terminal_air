@@ -43,11 +43,13 @@
         <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules"
             v-if="currentServiceType === '登录' && useCodeLogin">
             <n-form-item label="手机号" path="phone">
-                <n-input v-model:value="codeLoginForm.phone" placeholder="请输入中国大陆手机号" />
+                <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="codeLoginForm.phone"
+                    placeholder="请输入中国大陆手机号" />
             </n-form-item>
             <n-form-item label="验证码" path="verificationCode">
                 <div style="display: flex; gap: 8px;">
-                    <n-input v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
+                    <n-input :allow-input="onlyDigitsInput" :maxlength="6"
+                        v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
                     <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
                         style="background-color: #319154; color: white;">
                         {{ codeButtonText }}
@@ -76,11 +78,13 @@
             </div>
             <div style="display: flex; gap: 16px;">
                 <n-form-item label="手机号" path="phone" style="flex: 1;">
-                    <n-input v-model:value="registerForm.phone" placeholder="请输入中国大陆手机号" />
+                    <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="registerForm.phone"
+                        placeholder="请输入中国大陆手机号" />
                 </n-form-item>
                 <n-form-item label="验证码" path="verificationCode" style="flex: 1;">
                     <div style="display: flex; gap: 8px;">
-                        <n-input v-model:value="registerForm.verificationCode" placeholder="请输入验证码" />
+                        <n-input :allow-input="onlyDigitsInput" :maxlength="6" v-model:value="registerForm.verificationCode"
+                            placeholder="请输入验证码" />
                         <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
                             style="background-color: #319154; color: white;">
                             {{ codeButtonText }}
@@ -146,6 +150,11 @@ const registerForm = ref({
     phone: '',
     verificationCode: ''
 });
+
+const onlyDigitsInput = (value) => {
+    // 允许输入数字或者为空
+    return /^\d*$/.test(value);
+};
 
 const twoFactorForm = ref({
     code: '',
@@ -241,7 +250,6 @@ async function async_login() {
         username: loginForm.value.username,
         password: loginForm.value.password
     });
-    console.log(res);
     if (res.status === '200') {
         if (res.data.requireTwoFactorAuth) {
             isTwoFactor.value = true;
@@ -318,7 +326,8 @@ async function async_register() {
 
     if (res.status === '200') {
         message.success('注册成功');
-        emit('close'); // 关闭模态框
+        currentServiceType.value = '登录';
+        // emit('close');
     } else {
         message.error(res.message || '注册失败');
     }

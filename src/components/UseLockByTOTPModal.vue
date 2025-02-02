@@ -37,13 +37,6 @@ const totpForm = ref({
     totp: ''  // 绑定的密码字段
 });
 
-const formRules = {
-    totp: [
-        { required: true, message: '请输入一次性代码', trigger: 'blur' },
-        { pattern: /^\d{6}$/, message: '请输入 6 位数字', trigger: 'blur' }
-    ]
-};
-
 const isShaking = ref(false);
 const getTwoFactorToken = async () => {
     try {
