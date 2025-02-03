@@ -82,7 +82,8 @@ const initSocket = () => {
     };
 
     socket.onmessage = (event) => {
-        terminal.write(event.data);
+        let res = JSON.parse(event.data);
+        terminal.write(res.data.payload);
         terminal.scrollToBottom();
         // console.log(event.data);
     };

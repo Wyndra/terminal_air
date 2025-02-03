@@ -419,7 +419,7 @@ const gotoHomeView = () => {
   router.push('/')
 };
 
-// 上传相关配置
+// 上传头像相关配置
 const uploadUrl = 'http://static.srcandy.top/upload';
 
 // 自定义上传函数
