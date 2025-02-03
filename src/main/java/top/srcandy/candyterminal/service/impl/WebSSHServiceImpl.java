@@ -1,17 +1,22 @@
 package top.srcandy.candyterminal.service.impl;
 
+import cn.hutool.core.lang.copier.SrcToDestCopier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
+import top.srcandy.candyterminal.bean.vo.WebSSHMessageResultVO;
+import top.srcandy.candyterminal.enums.ANSIColor;
+import top.srcandy.candyterminal.enums.ANSIStyle;
 import top.srcandy.candyterminal.pojo.SSHConnectInfo;
 import top.srcandy.candyterminal.pojo.WebSSHData;
 import org.springframework.web.socket.TextMessage;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.service.WebSSHService;
 import top.srcandy.candyterminal.utils.AESUtils;
+import top.srcandy.candyterminal.utils.ANSIFormatterUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -125,12 +130,22 @@ public class WebSSHServiceImpl implements WebSSHService {
      * 向客户端 WebSocket 发送数据。
      * @param session 当前 WebSocket 会话
      * @param buffer 要发送的字节数据
+     * @param type 消息类型
+     * @param message 消息内容
      * @throws IOException 发送消息时可能发生的异常
      */
     @Override
-    public void sendMessage(WebSocketSession session, byte[] buffer) throws IOException {
-        // 将数据发送到前端
-        session.sendMessage(new TextMessage(buffer));
+    public void sendMessage(WebSocketSession session, byte[] buffer, String type, String message) throws IOException {
+        WebSSHMessageResultVO result = WebSSHMessageResultVO.builder()
+                .type(type)
+                .msg(message)
+                .timestamp(System.currentTimeMillis())
+                .data(new TextMessage(new String(buffer)))
+                .build();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonMessage = objectMapper.writeValueAsString(result);
+        session.sendMessage(new TextMessage(jsonMessage));
     }
 
     /**
@@ -201,25 +216,34 @@ public class WebSSHServiceImpl implements WebSSHService {
                 byte[] buffer = new byte[1024];
                 int i;
                 while ((i = inputStream.read(buffer)) != -1) {
-                    sendMessage(webSocketSession, Arrays.copyOfRange(buffer, 0, i));  // 将输出发送给 WebSocket 客户端
+                    sendMessage(webSocketSession, Arrays.copyOfRange(buffer, 0, i),"stdout","success");  // 将输出发送给 WebSocket 客户端
                 }
             } finally {
                 // 关闭连接和流
                 if (session.isConnected()) {
                     session.disconnect();
                     log.info("SSH 会话断开");
+                    sendMessage(webSocketSession, ANSIFormatterUtil.formatMessage("✘ SSH 会话断开", ANSIColor.BRIGHT_RED, ANSIStyle.BOLD).getBytes(),"stdout","error");
                 }
                 if (channel.isConnected()) {
                     channel.disconnect();
                     log.info("SSH 通道断开");
+                    sendMessage(webSocketSession, ANSIFormatterUtil.formatMessage("✘ SSH 通道断开", ANSIColor.BRIGHT_RED, ANSIStyle.BOLD).getBytes(),"stdout","error");
+
                 }
                 if (inputStream != null) {
                     inputStream.close();
                     log.info("输入流已关闭");
+                    sendMessage(webSocketSession, ANSIFormatterUtil.formatMessage("✘ 输入流已关闭", ANSIColor.BRIGHT_RED, ANSIStyle.BOLD).getBytes(),"stdout","error");
+
                 }
             }
         } catch (Exception e) {
             log.error("SSH 连接异常：{}", e.getMessage());
+            String errorMessage = ANSIFormatterUtil.formatMessage("✘ " + e.getMessage(), ANSIColor.BRIGHT_RED, ANSIStyle.BOLD);
+            byte[] buffer = errorMessage.getBytes();
+            sendMessage(webSocketSession, buffer, "stdout", "error");
+
             close(webSocketSession);  // 发生异常时关闭连接
         }
     }
