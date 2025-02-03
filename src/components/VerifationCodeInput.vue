@@ -6,7 +6,8 @@
 </template>
 
 <script setup>
-import { ref, watch, defineProps, defineEmits } from "vue";
+import { ref, watch, defineProps, defineEmits,onMounted } from "vue";
+import { on } from "ws";
 
 const props = defineProps({
     modelValue: String
@@ -14,6 +15,13 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const inputs = ref(new Array(6).fill(""));
+
+onMounted(() => {
+    const firstInput = document.querySelector('.verify-code-input');
+    if (firstInput) {
+        firstInput.focus();
+    }
+});
 
 const onInput = (index, e) => {
     const value = e.target.value;
