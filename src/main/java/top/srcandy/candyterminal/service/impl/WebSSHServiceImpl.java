@@ -28,6 +28,7 @@ import java.util.concurrent.Executors;
 public class WebSSHServiceImpl implements WebSSHService {
 
     // 使用 WebSocketSession 作为 key，这样每个标签页有独立的连接信息
+    // 主要解决了在同一用户登录的情况下，打开了多个标签页的问题
     private static Map<WebSocketSession, SSHConnectInfo> sshMap = new ConcurrentHashMap<>();
 
     // 线程池，处理异步任务（如 SSH 连接和命令执行）
@@ -80,6 +81,7 @@ public class WebSSHServiceImpl implements WebSSHService {
         }
 
         String userId = (String) session.getAttributes().get("username");
+
         log.info("接收到用户 {} 的请求", userId);
 
         SSHConnectInfo sshConnectInfo = sshMap.get(session);
