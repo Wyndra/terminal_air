@@ -223,19 +223,15 @@ public class WebSSHServiceImpl implements WebSSHService {
                 if (session.isConnected()) {
                     session.disconnect();
                     log.info("SSH 会话断开");
-                    sendMessage(webSocketSession, ANSIFormatterUtil.formatMessage("✘ SSH 会话断开", ANSIColor.BRIGHT_RED, ANSIStyle.BOLD).getBytes(),"stdout","error");
                 }
                 if (channel.isConnected()) {
                     channel.disconnect();
                     log.info("SSH 通道断开");
-                    sendMessage(webSocketSession, ANSIFormatterUtil.formatMessage("✘ SSH 通道断开", ANSIColor.BRIGHT_RED, ANSIStyle.BOLD).getBytes(),"stdout","error");
 
                 }
                 if (inputStream != null) {
                     inputStream.close();
                     log.info("输入流已关闭");
-                    sendMessage(webSocketSession, ANSIFormatterUtil.formatMessage("✘ 输入流已关闭", ANSIColor.BRIGHT_RED, ANSIStyle.BOLD).getBytes(),"stdout","error");
-
                 }
             }
         } catch (Exception e) {
