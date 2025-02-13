@@ -1,10 +1,13 @@
 package top.srcandy.candyterminal.service.impl;
 
 import cn.hutool.core.lang.copier.SrcToDestCopier;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Async;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 import top.srcandy.candyterminal.bean.vo.WebSSHMessageResultVO;
@@ -13,6 +16,7 @@ import top.srcandy.candyterminal.enums.ANSIStyle;
 import top.srcandy.candyterminal.pojo.SSHConnectInfo;
 import top.srcandy.candyterminal.pojo.WebSSHData;
 import org.springframework.web.socket.TextMessage;
+import top.srcandy.candyterminal.pojo.WebSocketTypeData;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.service.WebSSHService;
 import top.srcandy.candyterminal.utils.AESUtils;
@@ -44,6 +48,7 @@ public class WebSSHServiceImpl implements WebSSHService {
 
     /**
      * 初始化 WebSocket 会话的 SSH 连接信息。
+     *
      * @param session 当前 WebSocket 会话
      */
     @Override
@@ -69,17 +74,24 @@ public class WebSSHServiceImpl implements WebSSHService {
 
     /**
      * 处理接收到的数据。
+     *
      * @param session 当前 WebSocket 会话
-     * @param buffer 接收到的 WebSocket 数据
+     * @param buffer  接收到的 WebSocket 数据
      */
     @Override
-    public void receiveHandle(WebSocketSession session, String buffer) {
+    public void receiveHandle(WebSocketSession session, String buffer) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         WebSSHData webSSHData = null;
+        WebSocketTypeData webSocketTypeData = null;
         try {
             // 将接收到的 WebSocket 数据转换为 WebSSHData 对象
             webSSHData = objectMapper.readValue(buffer, WebSSHData.class);
         } catch (IOException e) {
+            if (buffer.contains("pong")) {
+//                log.info("接收到 pong 消息");
+                // 心跳消息，不做处理
+                return;
+            }
             log.error("数据转换成对象失败");
             log.error("异常信息：{}", e.getMessage());
             return;
@@ -87,7 +99,7 @@ public class WebSSHServiceImpl implements WebSSHService {
 
         String userId = (String) session.getAttributes().get("username");
 
-        log.info("接收到用户 {} 的请求", userId);
+//        log.info("接收到用户 {} 的请求", userId);
 
         SSHConnectInfo sshConnectInfo = sshMap.get(session);
         if (sshConnectInfo == null) {
@@ -126,11 +138,27 @@ public class WebSSHServiceImpl implements WebSSHService {
         }
     }
 
+    @Scheduled(fixedRate = 5000)
+    @Override
+    public void sendPingToClient() throws IOException {
+        sshMap.forEach((session, sshConnectInfo) -> {
+            try {
+                String pingMessage = "ping";
+                sendMessage(session, pingMessage.getBytes(), "ping", "ping");
+            } catch (IOException e) {
+                log.error("发送 ping 消息失败");
+                log.error("异常信息：{}", e.getMessage());
+                close(session);  // 发送 ping 消息失败，关闭会话
+            }
+        });
+    }
+
     /**
      * 向客户端 WebSocket 发送数据。
+     *
      * @param session 当前 WebSocket 会话
-     * @param buffer 要发送的字节数据
-     * @param type 消息类型
+     * @param buffer  要发送的字节数据
+     * @param type    消息类型
      * @param message 消息内容
      * @throws IOException 发送消息时可能发生的异常
      */
@@ -150,6 +178,7 @@ public class WebSSHServiceImpl implements WebSSHService {
 
     /**
      * 关闭当前 WebSocket 会话及其 SSH 连接。
+     *
      * @param session 当前 WebSocket 会话
      */
     @Override
@@ -167,11 +196,12 @@ public class WebSSHServiceImpl implements WebSSHService {
 
     /**
      * 建立 SSH 连接并执行命令。
-     * @param sshConnectInfo 当前 SSH 连接信息
-     * @param webSSHData WebSocket 请求数据
+     *
+     * @param sshConnectInfo   当前 SSH 连接信息
+     * @param webSSHData       WebSocket 请求数据
      * @param webSocketSession 当前 WebSocket 会话
      * @throws JSchException 建立 SSH 会话时抛出的异常
-     * @throws IOException 在通信过程中抛出的异常
+     * @throws IOException   在通信过程中抛出的异常
      */
     private void connectToSSH(SSHConnectInfo sshConnectInfo, WebSSHData webSSHData, WebSocketSession webSocketSession) throws JSchException, IOException {
         if (sshConnectInfo == null || sshConnectInfo.getJSch() == null) {
@@ -216,7 +246,7 @@ public class WebSSHServiceImpl implements WebSSHService {
                 byte[] buffer = new byte[1024];
                 int i;
                 while ((i = inputStream.read(buffer)) != -1) {
-                    sendMessage(webSocketSession, Arrays.copyOfRange(buffer, 0, i),"stdout","success");  // 将输出发送给 WebSocket 客户端
+                    sendMessage(webSocketSession, Arrays.copyOfRange(buffer, 0, i), "stdout", "success");  // 将输出发送给 WebSocket 客户端
                 }
             } finally {
                 // 关闭连接和流
@@ -246,6 +276,7 @@ public class WebSSHServiceImpl implements WebSSHService {
 
     /**
      * 将命令发送到 SSH 通道。
+     *
      * @param channel 当前 SSH 通道
      * @param command 要执行的命令
      * @throws IOException 发送命令时可能抛出的异常

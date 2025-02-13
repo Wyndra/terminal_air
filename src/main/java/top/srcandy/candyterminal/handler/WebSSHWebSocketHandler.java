@@ -1,10 +1,12 @@
 package top.srcandy.candyterminal.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
+import top.srcandy.candyterminal.pojo.WebSSHData;
 import top.srcandy.candyterminal.service.WebSSHService;
 
 @Component
@@ -33,6 +35,11 @@ public class WebSSHWebSocketHandler implements WebSocketHandler {
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
         if (message instanceof TextMessage){
+            String buffer = message.getPayload().toString();
+            if (buffer.contains("pong")){
+//                log.info("接收到用户 {} 的pong消息{}", session.getAttributes().get("username"), message.getPayload());
+                return;
+            }
             log.info("接收到用户 {} 的消息{}", session.getAttributes().get("username"), message.getPayload());
             webSSHService.receiveHandle(session, message.getPayload().toString());
             // 调用处理消息
