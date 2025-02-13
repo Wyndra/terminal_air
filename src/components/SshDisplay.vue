@@ -83,6 +83,10 @@ const initSocket = () => {
 
     socket.onmessage = (event) => {
         let res = JSON.parse(event.data);
+        if (res.type === "ping") {
+            socket.send(JSON.stringify({ type: "pong", payload: "pong",timestamp: new Date().getTime() }));
+            return;
+        }
         terminal.write(res.data.payload);
         terminal.scrollToBottom();
         // console.log(event.data);

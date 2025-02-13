@@ -115,7 +115,7 @@
 <script setup>
 import { ref, computed, defineEmits, nextTick } from 'vue';
 import { useMessage } from 'naive-ui';
-import { login, register, getVerificationCode, loginWithCode, loginBySmsCode,loginRequireTwoFactorAuth,getUserAvatar } from '../api/auth';  // 确保你的 API 路径正确
+import { login, register, loginBySmsCode,loginRequireTwoFactorAuth,getUserAvatar } from '../api/auth';  // 确保你的 API 路径正确
 import { sendVerificationCode } from '../api/sms';
 import { useStore } from 'vuex';
 import { Close,LockClosed } from '@vicons/ionicons5';
@@ -151,8 +151,12 @@ const registerForm = ref({
     verificationCode: ''
 });
 
+/*
+    * 限制只能输入数字
+    * @param {String} value 输入值
+    * @returns {Boolean} 是否只包含数字
+*/
 const onlyDigitsInput = (value) => {
-    // 允许输入数字或者为空
     return /^\d*$/.test(value);
 };
 
@@ -253,10 +257,8 @@ async function async_login() {
     if (res.status === '200') {
         if (res.data.requireTwoFactorAuth) {
             isTwoFactor.value = true;
-            // 如果账户需要双重认证，签发的token为twoFactorAuthToken
             localStorage.setItem('twoFactorAuthToken', res.data.token);
             userAvatar.value = await getUserAvatar().then(res => res.data || '');
-
             message.warning("账户已启用双重认证，请输入一次性验证码")
             return;
         }else{
