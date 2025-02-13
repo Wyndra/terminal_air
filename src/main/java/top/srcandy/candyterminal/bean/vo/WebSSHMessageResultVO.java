@@ -18,6 +18,4 @@ public class WebSSHMessageResultVO{
     private String sessionId;
     private Long timestamp;
     private TextMessage data;
-
-
 }
