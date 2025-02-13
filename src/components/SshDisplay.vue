@@ -86,9 +86,10 @@ const initSocket = () => {
         if (res.type === "ping") {
             socket.send(JSON.stringify({ type: "pong", payload: "pong",timestamp: new Date().getTime() }));
             return;
-        }
-        terminal.write(res.data.payload);
-        terminal.scrollToBottom();
+        } else {
+            terminal.write(res.data.payload);
+            terminal.scrollToBottom();
+    }
         // console.log(event.data);
     };
 
