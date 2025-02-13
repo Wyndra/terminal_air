@@ -33,7 +33,7 @@ public class WebSSHWebSocketHandler implements WebSocketHandler {
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
         if (message instanceof TextMessage){
-            log.info("接收到用户{}的消息{}", session.getAttributes().get("username"), message.getPayload());
+            log.info("接收到用户 {} 的消息{}", session.getAttributes().get("username"), message.getPayload());
             webSSHService.receiveHandle(session, message.getPayload().toString());
             // 调用处理消息
         }else if (message instanceof BinaryMessage){
