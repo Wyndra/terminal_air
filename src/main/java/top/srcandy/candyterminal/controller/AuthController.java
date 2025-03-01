@@ -11,8 +11,8 @@ import top.srcandy.candyterminal.bean.vo.UserProfileVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.request.*;
 import top.srcandy.candyterminal.service.AuthService;
-import top.srcandy.candyterminal.utils.AllowTwoFactorAuth;
-import top.srcandy.candyterminal.utils.AuthAccess;
+import top.srcandy.candyterminal.aspectj.lang.annoations.AllowTwoFactorAuth;
+import top.srcandy.candyterminal.aspectj.lang.annoations.AuthAccess;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
 import java.io.UnsupportedEncodingException;

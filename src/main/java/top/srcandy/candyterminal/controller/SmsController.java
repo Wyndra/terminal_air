@@ -1,7 +1,6 @@
 package top.srcandy.candyterminal.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +10,7 @@ import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.request.SendVerificationCodeRequest;
 import top.srcandy.candyterminal.request.VerifyCodeRequest;
 import top.srcandy.candyterminal.service.SmsService;
-import top.srcandy.candyterminal.utils.AuthAccess;
-import top.srcandy.candyterminal.utils.SMSUtils;
+import top.srcandy.candyterminal.aspectj.lang.annoations.AuthAccess;
 
 @Slf4j
 @RestController

@@ -1,4 +1,4 @@
-package top.srcandy.candyterminal.utils;
+package top.srcandy.candyterminal.aspectj.lang.annoations;
 
 import java.lang.annotation.*;
 

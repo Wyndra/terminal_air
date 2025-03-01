@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import top.srcandy.candyterminal.exception.ServiceException;
-import top.srcandy.candyterminal.utils.AllowTwoFactorAuth;
-import top.srcandy.candyterminal.utils.AuthAccess;
+import top.srcandy.candyterminal.aspectj.lang.annoations.AllowTwoFactorAuth;
+import top.srcandy.candyterminal.aspectj.lang.annoations.AuthAccess;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
 @Component

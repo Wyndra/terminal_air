@@ -1,4 +1,4 @@
-package top.srcandy.candyterminal.utils;
+package top.srcandy.candyterminal.aspectj.lang.annoations;
 
 import java.lang.annotation.*;
 
@@ -12,4 +12,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface AllowTwoFactorAuth {
+
 }

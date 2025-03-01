@@ -5,11 +5,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Async;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
+import top.srcandy.candyterminal.aspectj.lang.annoations.AESDecrypt;
 import top.srcandy.candyterminal.bean.vo.WebSSHMessageResultVO;
 import top.srcandy.candyterminal.enums.ANSIColor;
 import top.srcandy.candyterminal.enums.ANSIStyle;
@@ -112,10 +114,12 @@ public class WebSSHServiceImpl implements WebSSHService {
         // 根据操作类型判断执行逻辑
         if ("connect".equals(webSSHData.getOperate())) {
             WebSSHData finalWebSSHData = webSSHData;
+            WebSSHServiceImpl proxy = (WebSSHServiceImpl) AopContext.currentProxy();
             executorService.execute(() -> {
                 try {
                     // 尝试连接 SSH
-                    connectToSSH(sshConnectInfo, finalWebSSHData, session);
+//                    connectToSSH(sshConnectInfo, finalWebSSHData, session)
+                    proxy.connectToSSH(sshConnectInfo, finalWebSSHData, session,"");
                 } catch (IOException | JSchException e) {
                     log.error("连接失败");
                     log.error("异常信息：{}", e.getMessage());
@@ -203,7 +207,7 @@ public class WebSSHServiceImpl implements WebSSHService {
      * @throws JSchException 建立 SSH 会话时抛出的异常
      * @throws IOException   在通信过程中抛出的异常
      */
-    private void connectToSSH(SSHConnectInfo sshConnectInfo, WebSSHData webSSHData, WebSocketSession webSocketSession) throws JSchException, IOException {
+    public void connectToSSH(SSHConnectInfo sshConnectInfo, WebSSHData webSSHData, WebSocketSession webSocketSession,String decryptedPassword) throws JSchException, IOException {
         if (sshConnectInfo == null || sshConnectInfo.getJSch() == null) {
             log.error("SSHConnectInfo 为空，无法建立连接");
             return;
@@ -219,10 +223,11 @@ public class WebSSHServiceImpl implements WebSSHService {
 
         try {
             // 获取盐值并解密密码
-            String salt = authService.getSaltByUsername(uuid);
-            log.info("获取到 {} 的盐值为：{}", uuid, salt);
-            String decryptedPassword = AESUtils.decryptFromHex(webSSHData.getPassword(), salt);
-            log.info("解密后的密码为：{}", decryptedPassword);
+            // TODO: 实现切面
+//            String salt = authService.getSaltByUsername(uuid);
+//            log.info("获取到 {} 的盐值为：{}", uuid, salt);
+//            String decryptedPassword = AESUtils.decryptFromHex(webSSHData.getPassword(), salt);
+//            log.info("解密后的密码为：{}", decryptedPassword);
 
             // 创建 SSH 会话
             session = jSch.getSession(webSSHData.getUsername(), webSSHData.getHost(), webSSHData.getPort());
@@ -266,7 +271,7 @@ public class WebSSHServiceImpl implements WebSSHService {
             }
         } catch (Exception e) {
             log.error("SSH 连接异常：{}", e.getMessage());
-            String errorMessage = ANSIFormatterUtil.formatMessage("✘ " + e.getMessage(), ANSIColor.BRIGHT_RED, ANSIStyle.BOLD);
+            String errorMessage = ANSIFormatterUtil.formatMessage("✘ " + e.getMessage() + "\n", ANSIColor.BRIGHT_RED, ANSIStyle.BOLD);
             byte[] buffer = errorMessage.getBytes();
             sendMessage(webSocketSession, buffer, "stdout", "error");
 
