@@ -6,7 +6,7 @@
 
 <script setup>
 import "xterm/css/xterm.css";
-import { onMounted, ref, watch, nextTick,defineEmits } from "vue";
+import { onMounted, ref, watch, nextTick, defineEmits, isReactive } from "vue";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { WebglAddon } from "xterm-addon-webgl";
@@ -17,7 +17,7 @@ import { useMessage } from "naive-ui";
 const token = localStorage.getItem("token") || "";
 
 const store = useStore();
-const { createMessage } = useMessage();
+const message = useMessage();
 
 const socketURI = serverConfig.wsURL + "?token=" + token;
 
@@ -29,7 +29,10 @@ const connectionInfo = ref({
 });
 
 const isFirstConnection = ref(true);  // 标志是否是第一次连接
+const isError = ref(false); // 标志是否有错误
+
 const fitAddon = new FitAddon();
+const hasShownError = ref(store.getters.hasShownError);
 
 const refresh_fitAddon = () => {
     fitAddon.fit();
@@ -75,7 +78,8 @@ const initSocket = () => {
     socket.onopen = () => {
         // console.log("WebSocket connection established");
         if (!isFirstConnection.value) {
-            sendToggleConnect(); // 只有在不是第一次连接时才发送连接命令
+            // 不是第一次连接时，发送连接命令
+            sendToggleConnect();
         } else {
             isFirstConnection.value = false;  // 第一次连接后，将标志设为 false
         }
@@ -84,24 +88,38 @@ const initSocket = () => {
     socket.onmessage = (event) => {
         let res = JSON.parse(event.data);
         if (res.type === "ping") {
-            socket.send(JSON.stringify({ type: "pong", payload: "pong",timestamp: new Date().getTime() }));
+            socket.send(JSON.stringify({ type: "pong", payload: "pong", timestamp: new Date().getTime() }));
             return;
         } else {
+            if (res.type === "error") {
+                message.error(res.msg);
+                terminal.write(res.data.payload);
+                isError.value = true;
+                return;
+            }
             terminal.write(res.data.payload);
             terminal.scrollToBottom();
-    }
+        }
         // console.log(event.data);
     };
 
     socket.onerror = (error) => {
         if (error.type === "error") {
-            createMessage.error("WebSocket connection error");
+            if (!hasShownError.value) {
+                message.error("WebSocket connection error");
+                hasShownError.value = true;
+            }
+        } else {
+            message.error("WebSocket connection error");
         }
         console.error("WebSocket error: " + error);
     };
 
     socket.onclose = () => {
-        // console.log("WebSocket connection closed");
+        if (!hasShownError.value) {
+            message.warning("连接已断开，正在尝试重新连接...");
+            hasShownError.value = true;
+        }
         setTimeout(() => {
             reconnect();
         }, 1000);
@@ -118,6 +136,7 @@ const sendCommand = (command) => {
 
 const sendToggleConnect = () => {
     terminal.clear();
+    isError.value = false
     setTimeout(() => {
         const datas = {
             operate: "connect",
@@ -156,19 +175,20 @@ watch(
     async (newVal) => {
         // 确保 Vuex 状态已经更新
         await nextTick();
-
         connectionInfo.value.connectHost = newVal.host;
         connectionInfo.value.connectPort = newVal.port;
         connectionInfo.value.connectUsername = newVal.username;
         connectionInfo.value.connectPassword = newVal.password;
-
+        if (!isFirstConnection.value || isError.value) {
+            terminal.write("\n\r");
+        }
         // 调用切换连接的函数
         sendToggleConnect();
     },
     { deep: true }
 );
 
-// 监听终端设置变化
+// 终端设置变化时更新终端设置
 watch(() => store.state.terminalSettings, (newSettings) => {
     Object.keys(newSettings).forEach(key => {
         terminal.options[key] = newSettings[key];
@@ -186,15 +206,19 @@ watch(() => store.state.terminalSettings, (newSettings) => {
     height: 100%;
     display: flex;
     flex-direction: column;
-    margin: 0; /* 确保没有外边距 */
-    padding: 0; /* 确保没有内边距 */
+    margin: 0;
+    /* 确保没有外边距 */
+    padding: 0;
+    /* 确保没有内边距 */
 }
 
 #terminal {
     flex: 1;
     width: 100%;
     height: 100%;
-    margin: 0; /* 确保没有外边距 */
-    padding: 0; /* 确保没有内边距 */
+    margin: 0;
+    /* 确保没有外边距 */
+    padding: 0;
+    /* 确保没有内边距 */
 }
 </style>
