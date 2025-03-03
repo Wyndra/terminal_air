@@ -25,10 +25,13 @@ import { ref, defineProps, defineEmits,watch } from 'vue';
 import { getTwoFactorAuthTokenByCurrentUser, verifyTwoFactorAuthCode,getUserAvatar } from '@/api/auth';
 import VerifationCodeInput from './VerifationCodeInput.vue';
 import { LockClosed } from '@vicons/ionicons5';
+import { useMessage } from 'naive-ui';
 
 const props = defineProps({
     lockByTotpModalVisible: Boolean, // 这里是弹窗的显示控制
 });
+
+const message = useMessage();
 
 const userAvatar = ref(localStorage.getItem('userAvatar'));
 
@@ -64,8 +67,10 @@ const handleUnlockByTotp = async () => {  // 注意加上 async
 
     if (result && result.data) {
         emit('unlockByTotpEvent', true);  // 密码验证成功，发出解锁成功事件
+        message.success('解锁成功');
         totpForm.value = { totp: '' };  // 清空密码
     } else {
+        message.error('解锁失败');
         emit('unlockByTotpEvent', false);  // 密码验证失败，发出解锁失败事件
         totpForm.value = { totp: '' };  // 清空密码
         // 触发抖动效果
@@ -73,6 +78,7 @@ const handleUnlockByTotp = async () => {  // 注意加上 async
         setTimeout(() => {
             isShaking.value = false;
         }, 500);
+
     }
     // 清除本地存储的两步验证密钥
     localStorage.removeItem('twoFactorAuthToken');

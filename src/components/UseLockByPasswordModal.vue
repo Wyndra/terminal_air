@@ -30,6 +30,7 @@
 import { ref, defineProps, defineEmits } from 'vue';
 import { verifyUserPassword } from '@/api/auth';
 import { LockClosed } from '@vicons/ionicons5';
+import { useMessage } from 'naive-ui';
 
 const userAvatar = ref(localStorage.getItem('userAvatar'));
 
@@ -37,6 +38,7 @@ const props = defineProps({
     lockByPasswordModalVisible: Boolean, // 这里是弹窗的显示控制
 });
 const emit = defineEmits(["unlockByPasswordEvent"]);
+const message = useMessage();
 
 const passwordForm = ref({
     password: ''  // 绑定的密码字段
@@ -55,8 +57,6 @@ async function verifyPassword(data) {
 
 // 点击解锁按钮时调用
 const handleUnlockByPassword = async () => {  // 注意加上 async
-    console.log('输入的密码:', passwordForm.value.password);  // 调试信息，查看密码是否为空
-
     // 调用 API 验证密码，使用 await 等待请求完成
     const result = await verifyPassword({
         password: passwordForm.value.password  // 使用 PasswordForm.value 来访问实际数据
@@ -65,7 +65,9 @@ const handleUnlockByPassword = async () => {  // 注意加上 async
     if (result && result.data) {
         emit('unlockByPasswordEvent', true);  // 密码验证成功，发出解锁成功事件
         passwordForm.value = { password: '' };  // 清空密码
+        message.success('解锁成功');  // 弹出成功提示
     } else {
+        message.error('解锁失败');  // 弹出错误提示
         emit('unlockByPasswordEvent', false);  // 密码验证失败，发出解锁失败事件
         passwordForm.value = { password: '' };  // 清空密码
         // 触发抖动效果

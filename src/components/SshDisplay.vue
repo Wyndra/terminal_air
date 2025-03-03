@@ -29,7 +29,6 @@ const connectionInfo = ref({
 });
 
 const isFirstConnection = ref(true);  // 标志是否是第一次连接
-const isError = ref(false); // 标志是否有错误
 
 const fitAddon = new FitAddon();
 const hasShownError = ref(store.getters.hasShownError);
@@ -76,7 +75,6 @@ const initSocket = () => {
     socket = new WebSocket(socketURI);
 
     socket.onopen = () => {
-        // console.log("WebSocket connection established");
         if (!isFirstConnection.value) {
             // 不是第一次连接时，发送连接命令
             sendToggleConnect();
@@ -88,13 +86,14 @@ const initSocket = () => {
     socket.onmessage = (event) => {
         let res = JSON.parse(event.data);
         if (res.type === "ping") {
+            // pong back
             socket.send(JSON.stringify({ type: "pong", payload: "pong", timestamp: new Date().getTime() }));
             return;
         } else {
             if (res.type === "error") {
+                // error message
                 message.error(res.msg);
                 terminal.write(res.data.payload);
-                isError.value = true;
                 return;
             }
             terminal.write(res.data.payload);
@@ -136,7 +135,6 @@ const sendCommand = (command) => {
 
 const sendToggleConnect = () => {
     terminal.clear();
-    isError.value = false
     setTimeout(() => {
         const datas = {
             operate: "connect",
@@ -146,8 +144,11 @@ const sendToggleConnect = () => {
             password: connectionInfo.value.connectPassword,
             command: "",
         };
-        socket.send(JSON.stringify(datas));
+        if (isFirstConnection.value){
+            terminal.write(`\r\n`)
+        }
         terminal.write(`Connecting to ${datas.host} on port ${datas.port}...\n\r`);
+        socket.send(JSON.stringify(datas));
     }, 100);
 };
 
@@ -179,9 +180,6 @@ watch(
         connectionInfo.value.connectPort = newVal.port;
         connectionInfo.value.connectUsername = newVal.username;
         connectionInfo.value.connectPassword = newVal.password;
-        if (!isFirstConnection.value || isError.value) {
-            terminal.write("\n\r");
-        }
         // 调用切换连接的函数
         sendToggleConnect();
     },

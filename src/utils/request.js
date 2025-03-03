@@ -32,10 +32,10 @@ serviceAxios.interceptors.request.use(
         }
         if (!config.headers["content-type"]) { // 如果没有设置请求头
             if (config.method === 'post' || config.method === 'put') {
-                if (config.data && config.data.password && (config.url === '/auth/login' || config.url === '/auth/register' || config.url === '/auth/verifyUserPassword')) {
-                    // 对有密码字段的请求进行 md5 加密
-                    config.data.password = md5(config.data.password);
-                }
+                // if (config.data && config.data.password && (config.url === '/auth/login' || config.url === '/auth/register' || config.url === '/auth/verifyUserPassword')) {
+                //     // 对有密码字段的请求进行 md5 加密
+                //     config.data.password = md5(config.data.password);
+                // }
                 config.headers["content-type"] = "application/json"; // 默认类型
                 config.data = JSON.stringify(config.data); // 序列化,比如表单数据
             }
