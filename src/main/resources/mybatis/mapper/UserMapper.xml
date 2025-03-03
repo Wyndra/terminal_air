@@ -4,6 +4,7 @@
     <resultMap id="BaseResultMap" type="top.srcandy.candyterminal.model.User">
         <id column="uid" property="uid" jdbcType="INTEGER"/>
         <result column="username" property="username" jdbcType="VARCHAR"/>
+        <result column="password_hash" property="password_hash" jdbcType="VARCHAR"/>
         <result column="password" property="password" jdbcType="VARCHAR"/>
         <result column="phone" property="phone" jdbcType="VARCHAR"/>
         <result column="email" property="email" jdbcType="VARCHAR"/>
@@ -35,6 +36,7 @@
         update User
         set username = #{username},
             password = #{password},
+            password_hash = #{password_hash},
             salt     = #{salt},
             nickname = #{nickname},
             email    = #{email},

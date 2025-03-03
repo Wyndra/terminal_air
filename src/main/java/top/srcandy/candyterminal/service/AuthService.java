@@ -12,6 +12,8 @@ import java.security.GeneralSecurityException;
 public interface AuthService {
     ResponseResult<LoginResultVO> login(LoginRequest request);
 
+    ResponseResult<LoginResultVO> loginChangePassword(LoginRequest request);
+
     ResponseResult<String> loginRequireTwoFactorAuth(String twoFactorAuthToken,VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
     ResponseResult<String> loginBySmsCode(LoginBySmsCodeRequest request);

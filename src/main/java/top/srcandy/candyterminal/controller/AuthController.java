@@ -30,7 +30,8 @@ public class AuthController {
     @PostMapping("/login")
     @AuthAccess
     public ResponseResult<LoginResultVO> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
-        return authService.login(request);
+//        return authService.login(request);
+        return authService.loginChangePassword(request);
     }
 
     @PostMapping("/loginBySmsCode")

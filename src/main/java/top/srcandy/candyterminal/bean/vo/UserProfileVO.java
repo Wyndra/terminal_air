@@ -24,7 +24,7 @@ public class UserProfileVO {
     @Sensitive(strategy = SensitiveStrategy.PASSWORD)
     private String salt;
     private String isTwoFactorAuth;
-    @Sensitive(strategy = SensitiveStrategy.PASSWORD)
-    private String twoFactorAuthSecret;
+//    @Sensitive(strategy = SensitiveStrategy.PASSWORD)
+//    private String twoFactorAuthSecret;
     private Timestamp createTime;
 }

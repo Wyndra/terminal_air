@@ -1,8 +1,11 @@
 package top.srcandy.candyterminal.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.Md5Crypt;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.token.Sha512DigestUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import top.srcandy.candyterminal.bean.dto.RegisterDTO;
 import top.srcandy.candyterminal.bean.vo.LoginResultVO;
 import top.srcandy.candyterminal.bean.vo.UserProfileVO;
@@ -62,6 +65,40 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public ResponseResult<LoginResultVO> loginChangePassword(LoginRequest request) {
+        User result = userDao.selectByUserName(request.getUsername());
+        if (result == null) {
+            return ResponseResult.fail(null, "用户不存在");
+        }
+        if (result.getPassword_hash().equals(DigestUtils.md5DigestAsHex(request.getPassword().getBytes())) || result.getPassword().equals(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()))) {
+            if (result.getIsTwoFactorAuth().equals("1")) {
+                // 无缝更新高安全性密码
+                log.info("password:{}", result.getPassword());
+                if (result.getPassword().equals("")) {
+                    result.setPassword(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()));
+                    // 原密码作废
+                    result.setPassword_hash("");
+                    userDao.update(result);
+                }
+                // 生成两步验证的Token
+                return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
+            } else {
+                // 直接生成token
+                if (result.getPassword().equals("")) {
+                    result.setPassword(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()));
+                    // 原密码作废
+                    result.setPassword_hash("");
+                    userDao.update(result);
+                }
+                return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
+            }
+        }else {
+            return ResponseResult.fail(null, "用户名或密码错误");
+        }
+    }
+
+
+    @Override
     public ResponseResult<String> loginRequireTwoFactorAuth(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         String username = JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("username").asString();
         User user = userDao.selectByUserName(username);
@@ -108,9 +145,10 @@ public class AuthServiceImpl implements AuthService {
         }
         RegisterDTO registerDTO = new RegisterDTO();
         registerDTO.setUsername(request.getUsername());
-        registerDTO.setPassword(request.getPassword());
         registerDTO.setPhone(request.getPhone());
-        registerDTO.setSalt(SaltUtils.getSalt(16));
+        String salt = SaltUtils.getSalt(16);   // 生成16位随机盐
+        registerDTO.setSalt(salt);
+        registerDTO.setPassword(Sha512DigestUtils.shaHex(request.getPassword() + salt));
         registerDTO.setTwoFactorSecret(microsoftAuth.getSecretKey());
 
         int rows = userDao.insertSelective(registerDTO);
@@ -167,16 +205,15 @@ public class AuthServiceImpl implements AuthService {
         if (user == null) {
             return false;
         }
-        log.info(user.getPassword());
-        log.info(password);
-        if (user.getPassword().equals(password)){
+        if (user.getPassword().equals(Sha512DigestUtils.shaHex(password + user.getSalt()))) {
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
     }
 
     @Override
-    public boolean updatePassword(String username, String oldPassword, String newPassword) {
+    public boolean updatePassword(String token, String oldPassword, String newPassword) {
+        // Todo: 实现修改密码逻辑
         return false;
     }
 

@@ -271,7 +271,7 @@ public class WebSSHServiceImpl implements WebSSHService {
             }
         } catch (Exception e) {
             log.error("SSH 连接异常：{}", e.getMessage());
-            String errorMessage = ANSIFormatterUtil.formatMessage("✘ " + e.getMessage() + "\n", ANSIColor.BRIGHT_RED, ANSIStyle.BOLD);
+            String errorMessage = ANSIFormatterUtil.formatMessage("✘ " + e.getMessage() + "\n\r", ANSIColor.BRIGHT_RED, ANSIStyle.BOLD);
             byte[] buffer = errorMessage.getBytes();
             sendMessage(webSocketSession, buffer, "error", e.getMessage());
 
