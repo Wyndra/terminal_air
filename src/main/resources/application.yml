@@ -14,6 +14,11 @@ spring:
     redis:
       host: localhost
       port: 6379
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 mail:
     host: smtp.qq.com
     username: candysly@qq.com
