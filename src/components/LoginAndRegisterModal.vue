@@ -176,6 +176,10 @@ const refreshTurnstile = () => {
     });
 }
 
+const clearTurnstile = () => {
+    document.getElementById("turnstile-widget").innerHTML = "";
+}
+
 onMounted(() => {
     // 获取turnstileToken
     refreshTurnstile();
@@ -434,20 +438,42 @@ const handleSubmit = () => {
         if (useCodeLogin.value) {
             // 验证码登录
             codeLoginFormRef.value.validate((valid) => {
-                if (!valid) {
-                    async_loginWithCode();
-                } else {
-                    message.error('请填写完整的登录信息');
-                }
+                async_verifyTurnstile().then((res) => {
+                    let response = res;
+                    if (response.data.success) {
+                        if (!valid) {
+                            async_loginWithCode();
+                            // 清除人机验证
+                            clearTurnstile();
+                        } else {
+                            message.error('请填写完整的登录信息');
+                        }
+                    } else {
+                        message.error('请完成人机验证');
+                    }
+                }).catch((error) => {
+                    message.error('人机验证未通过');
+                });
             });
         } else if (isTwoFactor.value) {
-            // 二次验证
-            twoFactorFormRef.value.validate((valid) => {
-                if (!valid) {
-                    async_twoFactor();
+            async_verifyTurnstile().then((res) => {
+                let response = res;
+                if (response.data.success) {
+                    // 二次验证
+                    twoFactorFormRef.value.validate((valid) => {
+                        if (!valid) {
+                            async_twoFactor();
+                            // 清除人机验证
+                            clearTurnstile();
+                        } else {
+                            message.error('请填写完整的一次性验证码');
+                        }
+                    });
                 } else {
-                    message.error('请填写完整的一次性验证码');
+                    message.error('请完成人机验证');
                 }
+            }).catch((error) => {
+                message.error('人机验证未通过');
             });
         } else {
             // 普通登录
@@ -458,6 +484,8 @@ const handleSubmit = () => {
                     if (response.data.success) {
                         if (!valid) {
                             async_login();
+                            // 清除人机验证
+                            clearTurnstile();
                         } else {
                             message.error('请填写完整的登录信息');
                         }
@@ -465,7 +493,7 @@ const handleSubmit = () => {
                         message.error('请完成人机验证');
                     }
                 }).catch((error) => {
-                    message.error('人机验证未');
+                    message.error('人机验证未通过');
                 });
 
             });
@@ -474,11 +502,22 @@ const handleSubmit = () => {
     } else {
         // 注册
         registerFormRef.value.validate((valid) => {
-            if (!valid) {
-                async_register()
-            } else {
-                message.error('请填写完整的注册信息');
-            }
+            async_verifyTurnstile().then((res) => {
+                let response = res;
+                if (response.data.success) {
+                    if (!valid) {
+                        async_register();
+                        // 清除人机验证
+                        clearTurnstile();
+                    } else {
+                        message.error('请填写完整的注册信息');
+                    }
+                } else {
+                    message.error('请完成人机验证');
+                }
+            }).catch((error) => {
+                message.error('人机验证未通过');
+            });
         });
     }
 };
