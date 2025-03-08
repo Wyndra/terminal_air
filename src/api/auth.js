@@ -99,3 +99,11 @@ export const getUserAvatar = () => {
     });
 }
 
+export const verifyTurnstile = (data) => {
+    return serviceAxios({
+        url: "/auth/verifyTurnstile",
+        method: "post",
+        data,
+    });
+}
+

@@ -83,8 +83,8 @@
                 </n-form-item>
                 <n-form-item label="验证码" path="verificationCode" style="flex: 1;">
                     <div style="display: flex; gap: 8px;">
-                        <n-input :allow-input="onlyDigitsInput" :maxlength="6" v-model:value="registerForm.verificationCode"
-                            placeholder="请输入验证码" />
+                        <n-input :allow-input="onlyDigitsInput" :maxlength="6"
+                            v-model:value="registerForm.verificationCode" placeholder="请输入验证码" />
                         <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
                             style="background-color: #319154; color: white;">
                             {{ codeButtonText }}
@@ -93,6 +93,7 @@
                 </n-form-item>
             </div>
         </n-form>
+        <div id="turnstile-widget"></div>
 
         <div style="display: flex; justify-content: space-between; margin-top: 16px;"
             v-if="currentServiceType === '登录' && !isTwoFactor">
@@ -113,13 +114,17 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits, nextTick } from 'vue';
+import { ref, computed, defineEmits, nextTick, onMounted, watch } from 'vue';
 import { useMessage } from 'naive-ui';
-import { login, register, loginBySmsCode,loginRequireTwoFactorAuth,getUserAvatar } from '../api/auth';  // 确保你的 API 路径正确
+import { login, register, loginBySmsCode, loginRequireTwoFactorAuth, getUserAvatar, verifyTurnstile } from '../api/auth';  // 确保你的 API 路径正确
 import { sendVerificationCode } from '../api/sms';
 import { useStore } from 'vuex';
-import { Close,LockClosed } from '@vicons/ionicons5';
+import { Close, LockClosed } from '@vicons/ionicons5';
 import VerifationCodeInput from './VerifationCodeInput.vue';
+import serverConfig from "@/utils/config";
+
+
+const turnstileToken = ref("");
 
 // 获取 Vuex store
 const store = useStore();
@@ -151,6 +156,31 @@ const registerForm = ref({
     verificationCode: ''
 });
 
+const twoFactorForm = ref({
+    code: '',
+});
+
+const refreshTurnstile = () => {
+    nextTick(() => {
+        document.getElementById("turnstile-widget").innerHTML = "";
+        turnstile.render("#turnstile-widget", {
+            sitekey: serverConfig.turnstile_siteKey,
+            callback: (token) => {
+                turnstileToken.value = token;
+                console.log(token);
+            },
+            "error-callback": () => {
+                message.error('人机验证未通过');
+            },
+        });
+    });
+}
+
+onMounted(() => {
+    // 获取turnstileToken
+    refreshTurnstile();
+});
+
 /*
     * 限制只能输入数字
     * @param {String} value 输入值
@@ -160,15 +190,12 @@ const onlyDigitsInput = (value) => {
     return /^\d*$/.test(value);
 };
 
-const twoFactorForm = ref({
-    code: '',
-});
-
 // 当前服务类型（登录/注册）
 const currentServiceType = ref('登录');
 
 // 是否使用验证码登录
 const useCodeLogin = ref(false);
+// 是否需要二次验证
 const isTwoFactor = ref(false);
 
 // 表单引用
@@ -261,7 +288,7 @@ async function async_login() {
             userAvatar.value = await getUserAvatar().then(res => res.data || '');
             message.warning("账户已启用双重认证，请输入一次性验证码")
             return;
-        }else{
+        } else {
             localStorage.setItem('token', res.data.token);
             message.success('登录成功');
         }
@@ -335,6 +362,14 @@ async function async_register() {
     }
 }
 
+async function async_verifyTurnstile() {
+    const res = await verifyTurnstile({
+        token: turnstileToken.value
+    });
+    console.log(res);
+    return res;
+}
+
 // 获取验证码
 const handleGetVerificationCode = async () => {
     try {
@@ -397,6 +432,7 @@ const closeModal = () => {
 const handleSubmit = () => {
     if (currentServiceType.value === '登录') {
         if (useCodeLogin.value) {
+            // 验证码登录
             codeLoginFormRef.value.validate((valid) => {
                 if (!valid) {
                     async_loginWithCode();
@@ -405,6 +441,7 @@ const handleSubmit = () => {
                 }
             });
         } else if (isTwoFactor.value) {
+            // 二次验证
             twoFactorFormRef.value.validate((valid) => {
                 if (!valid) {
                     async_twoFactor();
@@ -413,26 +450,46 @@ const handleSubmit = () => {
                 }
             });
         } else {
+            // 普通登录
             loginFormRef.value.validate((valid) => {
                 console.log(valid);
-                if (!valid) {
-                    async_login();
-                } else {
-                    message.error('请填写完整的登录信息');
-                }
+                async_verifyTurnstile().then((res) => {
+                    let response = res;
+                    if (response.data.success) {
+                        if (!valid) {
+                            async_login();
+                        } else {
+                            message.error('请填写完整的登录信息');
+                        }
+                    } else {
+                        message.error('请完成人机验证');
+                    }
+                }).catch((error) => {
+                    message.error('人机验证未');
+                });
+
             });
         }
 
     } else {
+        // 注册
         registerFormRef.value.validate((valid) => {
             if (!valid) {
-                async_register();
+                async_register()
             } else {
                 message.error('请填写完整的注册信息');
             }
         });
     }
 };
+
+watch(
+    () => [currentServiceType.value, useCodeLogin.value],
+    () => {
+        refreshTurnstile();
+    },
+    { deep: true }  // 深度监听（对象需要，数组可省略）
+);
 </script>
 
 <style scoped lang="less">

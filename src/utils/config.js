@@ -7,6 +7,9 @@ const serverConfig = {
         : "ws://localhost:8089/webssh", // 开发环境 WebSocket
     updateURL: 'http://static.srcandy.top/upload', // 更新地址
     useTokenAuthorization: true, // 是否开启 token 认证
+    turnstile_siteKey: process.env.NODE_ENV === 'production'
+        ? "0x4AAAAAAA_53OVbQQBXcr4E"
+        : "1x00000000000000000000AA",
 };
 
 export default serverConfig;
