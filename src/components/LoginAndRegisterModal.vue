@@ -162,7 +162,7 @@ const twoFactorForm = ref({
 
 const refreshTurnstile = () => {
     nextTick(() => {
-        document.getElementById("turnstile-widget").innerHTML = "";
+        clearTurnstile()
         turnstile.render("#turnstile-widget", {
             sitekey: serverConfig.turnstile_siteKey,
             callback: (token) => {
@@ -370,7 +370,7 @@ async function async_verifyTurnstile() {
     const res = await verifyTurnstile({
         token: turnstileToken.value
     });
-    console.log(res);
+    // console.log(res);
     return res;
 }
 
@@ -456,24 +456,14 @@ const handleSubmit = () => {
                 });
             });
         } else if (isTwoFactor.value) {
-            async_verifyTurnstile().then((res) => {
-                let response = res;
-                if (response.data.success) {
-                    // 二次验证
-                    twoFactorFormRef.value.validate((valid) => {
-                        if (!valid) {
-                            async_twoFactor();
-                            // 清除人机验证
-                            clearTurnstile();
-                        } else {
-                            message.error('请填写完整的一次性验证码');
-                        }
-                    });
+            twoFactorFormRef.value.validate((valid) => {
+                if (!valid) {
+                    async_twoFactor();
+                    // 清除人机验证
+                    clearTurnstile();
                 } else {
-                    message.error('请完成人机验证');
+                    message.error('请填写完整的一次性验证码');
                 }
-            }).catch((error) => {
-                message.error('人机验证未通过');
             });
         } else {
             // 普通登录
