@@ -855,6 +855,9 @@ onMounted(() => {
 </script>
 
 <style scoped lang="less">
+span {
+  font-family: ui-sans-serif, -apple-system, system-ui;
+}
 .header {
   position: fixed;
   top: 0;
