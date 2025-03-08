@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.srcandy.candyterminal.bean.vo.LoginResultVO;
@@ -17,6 +18,8 @@ import top.srcandy.candyterminal.utils.JWTUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @Slf4j
@@ -31,7 +34,18 @@ public class AuthController {
     @AuthAccess
     public ResponseResult<LoginResultVO> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
 //        return authService.login(request);
+        // 请求转到新的登录方法，实现无感切换密码强度。
         return authService.loginChangePassword(request);
+    }
+
+    @PostMapping("/verifyTurnstile")
+    @AuthAccess
+    public ResponseResult<Map<String, Objects>> verifyTurnstile(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        if (token == null) {
+            return ResponseResult.fail(null,"Token is required");
+        }
+        return authService.verifyTurnstile(token);
     }
 
     @PostMapping("/loginBySmsCode")

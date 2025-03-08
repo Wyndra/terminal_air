@@ -19,6 +19,8 @@ spring:
     port: 5672
     username: guest
     password: guest
+    publisher-confirm-type: correlated
+    publisher-returns: true
 mail:
     host: smtp.qq.com
     username: candysly@qq.com

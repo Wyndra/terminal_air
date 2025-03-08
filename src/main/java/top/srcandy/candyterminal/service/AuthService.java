@@ -8,9 +8,13 @@ import top.srcandy.candyterminal.request.*;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
+import java.util.Map;
+import java.util.Objects;
 
 public interface AuthService {
     ResponseResult<LoginResultVO> login(LoginRequest request);
+
+    ResponseResult<Map<String, Objects>> verifyTurnstile(String token);
 
     ResponseResult<LoginResultVO> loginChangePassword(LoginRequest request);
 
