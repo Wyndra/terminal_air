@@ -31,6 +31,7 @@ import java.security.GeneralSecurityException;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -101,30 +102,39 @@ public class AuthServiceImpl implements AuthService {
         if (result == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
-        if (result.getPassword_hash().equals(DigestUtils.md5DigestAsHex(request.getPassword().getBytes())) || result.getPassword().equals(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()))) {
-            if (result.getIsTwoFactorAuth().equals("1")) {
-                // 无缝更新高安全性密码
-                log.info("password:{}", result.getPassword());
-                if (result.getPassword().equals("")) {
-                    result.setPassword(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()));
-                    // 原密码作废
-                    result.setPassword_hash("");
-                    userDao.update(result);
+        // 如果Password_hash为null
+        Optional<Object> optional = Optional.ofNullable(result.getPassword_hash());
+        if (optional.isEmpty() || result.getPassword_hash().equals("")) {
+            // 说明已经是高安全性密码
+            if (result.getPassword().equals(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()))) {
+                if (result.getIsTwoFactorAuth().equals("1")) {
+                    // 生成两步验证的Token
+                    return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
+                } else {
+                    // 直接生成token
+                    return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
                 }
-                // 生成两步验证的Token
-                return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
             } else {
-                // 直接生成token
-                if (result.getPassword().equals("")) {
-                    result.setPassword(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()));
-                    // 原密码作废
-                    result.setPassword_hash("");
-                    userDao.update(result);
-                }
-                return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
+                return ResponseResult.fail(null, "用户名或密码错误");
             }
         }else {
-            return ResponseResult.fail(null, "用户名或密码错误");
+            // 如果Password_hash不为null
+            if (result.getPassword_hash().equals(DigestUtils.md5DigestAsHex(request.getPassword().getBytes()))) {
+                // 说明是低安全性密码
+                result.setPassword(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()));
+                // 原密码作废
+                result.setPassword_hash("");
+                userDao.update(result);
+                if (result.getIsTwoFactorAuth().equals("1")) {
+                    // 生成两步验证的Token
+                    return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
+                } else {
+                    // 直接生成token
+                    return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
+                }
+            } else {
+                return ResponseResult.fail(null, "用户名或密码错误");
+            }
         }
     }
 
