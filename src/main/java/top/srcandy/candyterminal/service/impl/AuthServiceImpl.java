@@ -104,7 +104,7 @@ public class AuthServiceImpl implements AuthService {
         }
         // 如果Password_hash为null
         Optional<Object> optional = Optional.ofNullable(result.getPassword_hash());
-        if (optional.isEmpty() || result.getPassword_hash().equals("")) {
+        if (optional.isEmpty()) {
             // 说明已经是高安全性密码
             if (result.getPassword().equals(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()))) {
                 if (result.getIsTwoFactorAuth().equals("1")) {
@@ -123,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
                 // 说明是低安全性密码
                 result.setPassword(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()));
                 // 原密码作废
-                result.setPassword_hash("");
+                result.setPassword_hash(null);
                 userDao.update(result);
                 if (result.getIsTwoFactorAuth().equals("1")) {
                     // 生成两步验证的Token
