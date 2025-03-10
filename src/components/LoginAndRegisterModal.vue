@@ -1,5 +1,5 @@
 <template>
-    <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 30%;">
+    <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 600px;">
         <template #header-extra>
             <n-button text @click="closeModal">
                 <n-icon size="20">
@@ -42,7 +42,7 @@
         <!-- 验证码登录表单 -->
         <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules"
             v-if="currentServiceType === '登录' && useCodeLogin">
-            <n-form-item label="手机号" path="phone">
+            <n-form-item ref="loginByCodeRef" label="手机号" path="phone">
                 <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="codeLoginForm.phone"
                     placeholder="请输入中国大陆手机号" />
             </n-form-item>
@@ -63,7 +63,8 @@
             v-if="currentServiceType === '注册'">
             <div style="display: flex; gap: 16px;">
                 <n-form-item label="用户名" path="username" style="flex: 1;">
-                    <n-input :allow-input="onlyEnglishWordsInput" v-model:value="registerForm.username" placeholder="请输入用户名" />
+                    <n-input :allow-input="onlyEnglishWordsInput" v-model:value="registerForm.username"
+                        placeholder="请输入用户名" />
                 </n-form-item>
             </div>
             <div style="display: flex; gap: 16px;">
@@ -100,16 +101,21 @@
 
             <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
                 @click="handleClickRegister">立即注册</n-text>
+
             <n-text style="cursor: pointer; color:#319154; font-weight: bold;" @click="toggleLoginMethod">
                 {{ useCodeLogin ? '密码登录' : '验证码登录' }}
             </n-text>
-        </div>
 
-        <template #footer>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 16px;" v-if="currentServiceType === '注册'">
+            <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
+                @click="currentServiceType = '登录'">返回登录</n-text>
+            
+        </div>
+         <template #footer>
             <n-button type="primary" style="width: 100%;" @click="handleSubmit">{{ currentServiceType === '登录' ?
-                isTwoFactor ? '继续' : '登录' :
-                '注册' }}</n-button>
-        </template>
+                isTwoFactor ? '继续' : '登录' : '注册' }}</n-button>
+</template>
     </n-card>
 </template>
 
@@ -170,8 +176,9 @@ const refreshTurnstile = () => {
                 turnstileToken.value = token;
                 console.log(token);
             },
-            "error-callback": () => {
+            "error-callback": (error) => {
                 message.error('人机验证未通过');
+
             },
         });
     });
@@ -187,7 +194,6 @@ onMounted(() => {
     clearTurnstile()
     refreshTurnstile();
 });
-// 被关闭了
 
 /*
     * 限制只能输入数字
@@ -220,7 +226,8 @@ const loginFormRef = ref(null);
 const codeLoginFormRef = ref(null);
 const registerFormRef = ref(null);
 const twoFactorFormRef = ref(null);
-const registerPhoneRef = ref(null)
+const registerPhoneRef = ref(null);
+const loginByCodeRef = ref(null);
 
 // 获取验证码按钮状态
 const isCodeButtonDisabled = ref(false);
@@ -392,8 +399,21 @@ async function async_verifyTurnstile() {
 const handleGetVerificationCode = async () => {
     // 手动触发verifyPhoneNumber
     try {
-        
-        await registerPhoneRef.value.validate();
+        if (currentServiceType.value === "登录" && useCodeLogin.value) {
+            await loginByCodeRef.value.validate((valid) => {
+                if (!valid) {
+                    message.error('请填写完整的登录信息');
+                    throw new Error('Validation failed');
+                }
+            });
+        } else if (currentServiceType.value === "注册") {
+            await registerPhoneRef.value.validate((valid) => {
+                if (!valid) {
+                    message.error('请填写完整的注册信息');
+                    throw new Error('Validation failed');
+                }
+            });
+        }
 
         const channel = currentServiceType.value === '登录' ? '1008' : '1021';
         const phone = codeLoginForm.value.phone || registerForm.value.phone;
@@ -406,7 +426,9 @@ const handleGetVerificationCode = async () => {
             message.error(res.message || '获取验证码失败');
         }
     } catch (error) {
-        message.error('获取验证码时出错');
+        if (error.message !== 'Validation failed') {
+            message.error('获取验证码时出错');
+        }
     }
 };
 

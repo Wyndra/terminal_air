@@ -1372,6 +1372,11 @@
   dependencies:
     "@types/node" "*"
 
+"@vicons/fluent@^0.13.0":
+  "integrity" "sha512-bYGZsOE3qzvm3Cm43e7tybgGlr5ZUpYqtRZq0g0Tfupe8jIzLolpvQLNUt1zS8Mgt6goTbUk5YH7Fkv16jkykg=="
+  "resolved" "https://registry.npmmirror.com/@vicons/fluent/-/fluent-0.13.0.tgz"
+  "version" "0.13.0"
+
 "@vicons/ionicons5@^0.12.0":
   "integrity" "sha512-Iy1EUVRpX0WWxeu1VIReR1zsZLMc4fqpt223czR+Rpnrwu7pt46nbnC2ycO7ItI/uqDLJxnbcMC7FujKs9IfFA=="
   "resolved" "https://registry.npmmirror.com/@vicons/ionicons5/-/ionicons5-0.12.0.tgz"

@@ -86,7 +86,7 @@
 
                     <!-- 编辑弹窗 -->
                     <n-modal v-model:show="showEditModal" preset="card" :title="`修改${currentField?.label || ''}`"
-                      style="width:35%" :bordered="false" transform-origin="center">
+                      style="width:500px" :bordered="false" transform-origin="center">
 
                       <n-form :model="editForm" ref="editFormRef" :rules="getFieldRules" label-placement="left">
                         <n-form-item :path="currentField?.key || ''" :label="currentField?.label">
@@ -107,9 +107,9 @@
                 <n-form label-placement="left" label-width="120px" label-align="left">
                   <n-form-item label="登录密码">
                     <div class="two-factor-wrapper">
-                      <n-button @click="handleTwoFactorChange">即刻修改</n-button>
+                      <n-button @click="showChangePasswordModal = true">更改密码</n-button>
                       <!-- <n-switch v-model:value="userInfo.isTwoFactorAuth" @update:value="handleTwoFactorChange" /> -->
-                      <span class="description-text">修改登录密码，保证帐号安全</span>
+                      <span class="description-text">当发现自己密码泄露，应立即更改密码。</span>
                     </div>
                   </n-form-item>
                 </n-form>
@@ -161,8 +161,12 @@
     <UseLockByPasswordModal v-model:show="showTwoFactorAuthLockByPasswordModal"
       @unlockByPasswordEvent="handleTwoFactorAuthVerifyResult" />
 
+    <!-- 双重认证管理弹出框 -->
     <TwoFactorAuthManageModal v-model:show="showTwoFactorAuthManageModal" @close="showTwoFactorAuthManageModal = false"
       @twoFactorAuthResultEvent="handleTwoFactorAuthResult" />
+
+    <!-- 密码修改弹出框 -->
+    <ChangePasswordModal v-model:show="showChangePasswordModal" @close="showChangePasswordModal = false" />
 
     <!-- TOTP 解锁弹出框 -->
     <UseLockByTotpModal v-model:show="showLockByTotpModal" @unlockByTotpEvent="handleVerifyUserTotpResult" />
@@ -260,7 +264,7 @@ import axios from 'axios';
 import router from '@/router';
 import { userInfoRules } from '@/constant/rules';
 import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
-
+import ChangePasswordModal from '@/components/ChangePasswordModal.vue';
 import UseLockByPasswordModal from '@/components/UseLockByPasswordModal.vue';
 import UseLockByTotpModal from '@/components/UseLockByTOTPModal.vue';
 import TwoFactorAuthManageModal from '@/components/TwoFactorAuthManageModal.vue';
@@ -295,6 +299,9 @@ const showLockByTotpModal = ref(false);
 // 双重验证相关
 const showTwoFactorAuthLockByPasswordModal = ref(false);
 const showTwoFactorAuthManageModal = ref(false);
+
+// 密码修改相关
+const showChangePasswordModal = ref(false);
 
 const handleTwoFactorAuthVerifyResult = (isUnlocked) => {
   if (isUnlocked) {

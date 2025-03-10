@@ -1,6 +1,6 @@
 <template>
     <n-modal v-model:show="props.lockByPasswordModalVisible" class="custom-card" preset="card" title="身份验证"
-        style="width:30%" :bordered="false" transform-origin="center">
+        style="width:500px" :bordered="false" transform-origin="center">
         <n-form :model="passwordForm" :rules="formRules">
             <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
                 <div style="position: relative;">

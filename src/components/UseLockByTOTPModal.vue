@@ -1,6 +1,6 @@
 <template>
     <n-modal v-model:show="props.lockByTotpModalVisible" class="custom-card" preset="card" title="身份验证"
-        style="width:30%" :bordered="false" transform-origin="center">
+        style="width:500px" :bordered="false" transform-origin="center">
         <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
             <div style="position: relative;">
                 <n-avatar round :size="48" :src="userAvatar" />
