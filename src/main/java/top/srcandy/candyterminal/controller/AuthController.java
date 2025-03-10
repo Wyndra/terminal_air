@@ -118,8 +118,7 @@ public class AuthController {
     }
 
     @PostMapping("/updatePassword")
-    @AllowTwoFactorAuth
     public ResponseResult<String> updatePassword(@RequestHeader("Authorization") String token, @Valid @RequestBody(required = false) @NonNull UpdatePasswordRequest request) {
-        return authService.updatePassword(JWTUtil.getTokenClaimMap(token.substring(7)).get("username").asString(), request);
+        return authService.updatePassword(token.substring(7), request);
     }
 }

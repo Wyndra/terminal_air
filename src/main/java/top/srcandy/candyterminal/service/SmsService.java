@@ -15,6 +15,4 @@ public interface SmsService {
     // Verify the SMS code
     boolean verifySmsCode(String phone, String serial ,String code);
 
-
-
 }

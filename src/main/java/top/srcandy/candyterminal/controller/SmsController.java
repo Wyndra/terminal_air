@@ -22,7 +22,6 @@ public class SmsController {
     @PostMapping ("/sendVerificationCode")
     @AuthAccess
     public ResponseResult<SmsCodeVO> sendVerifyCode(@Valid @RequestBody(required = false) @NotNull SendVerificationCodeRequest request) {
-
         try {
             return smsService.sendSmsCode(request);
         } catch (Exception e) {

@@ -273,6 +273,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseResult<String> updatePassword(String token, UpdatePasswordRequest request) {
+
         String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
         User user = userDao.selectByUserName(username);
         Optional<User> userOptional = Optional.ofNullable(user);
@@ -286,9 +287,9 @@ public class AuthServiceImpl implements AuthService {
             if (user.getPassword().equals(Sha512DigestUtils.shaHex(request.getOldPassword() + user.getSalt()))) {
                 user.setPassword(Sha512DigestUtils.shaHex(request.getNewPassword() + user.getSalt()));
                 userDao.update(user);
-                return ResponseResult.success("修改密码成功");
+                return ResponseResult.success(null);
             } else {
-                return ResponseResult.fail(null, "原密码错误");
+                return ResponseResult.fail(null, "修改失败");
             }
         }else {
             // 如果Password_hash不为null
@@ -298,9 +299,9 @@ public class AuthServiceImpl implements AuthService {
                 // 原密码作废
                 user.setPassword_hash(null);
                 userDao.update(user);
-                return ResponseResult.success("修改密码成功");
+                return ResponseResult.success(null);
             } else {
-                return ResponseResult.fail(null, "原密码错误");
+                return ResponseResult.fail(null, "修改失败");
             }
         }
     }

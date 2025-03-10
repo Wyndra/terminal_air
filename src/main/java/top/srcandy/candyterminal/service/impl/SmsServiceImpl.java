@@ -15,6 +15,7 @@ import top.srcandy.candyterminal.utils.JWTUtil;
 import top.srcandy.candyterminal.utils.SMSUtils;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -41,7 +42,8 @@ public class SmsServiceImpl implements SmsService {
         // 1021 is the channel for registration
         if (Objects.equals(request.getChannel(), "1021")) {
             User existingUser = userDao.selectByUserPhone(phone);
-            if (existingUser != null) {
+            Optional<User> userOptional = Optional.ofNullable(existingUser);
+            if (userOptional.isPresent()) {
                 // Return failure response if phone is already registered
                 return ResponseResult.fail(null, "该手机号已注册，请尝试登录");
             }
@@ -49,8 +51,9 @@ public class SmsServiceImpl implements SmsService {
 
         if (Objects.equals(request.getChannel(), "1008")) {
             User existingUser = userDao.selectByUserPhone(phone);
-            if (existingUser == null) {
-                // Return failure response if phone is not registered
+            Optional<User> userOptional = Optional.ofNullable(existingUser);
+            if (userOptional.isEmpty()) {
+                // Return failure response if phone is already registered
                 return ResponseResult.fail(null, "该手机号未注册，请先注册");
             }
         }
