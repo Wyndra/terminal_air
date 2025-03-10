@@ -1,16 +1,16 @@
 <template>
     <div class="verify-code-container">
         <input v-for="(item, index) in inputs" :key="index" type="text" v-model="inputs[index]" maxlength="1"
-            @input="onInput(index, $event)" @keydown="onKeydown(index, $event)" class="verify-code-input" />
+            @input="onInput(index, $event)" @keydown="onKeydown(index, $event)" class="verify-code-input" :style="{ height: height }" />
     </div>
 </template>
 
 <script setup>
 import { ref, watch, defineProps, defineEmits,onMounted } from "vue";
-import { on } from "ws";
 
 const props = defineProps({
-    modelValue: String
+    modelValue: String,
+    height: String
 });
 const emit = defineEmits(['update:modelValue']);
 

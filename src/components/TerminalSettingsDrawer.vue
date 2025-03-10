@@ -132,7 +132,7 @@ if (getDeviceType() === 'mobile') {
 }else if (getDeviceType() === 'tablet') {
   settings.value.fontSize = 14;
 }else {
-  settings.value.fontSize = 15;
+  settings.value.fontSize = 16;
 }
 store.commit('updateTerminalSettings', settings.value);
 const currentTheme = ref('dark');

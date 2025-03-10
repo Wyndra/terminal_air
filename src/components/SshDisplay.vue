@@ -219,4 +219,9 @@ watch(() => store.state.terminalSettings, (newSettings) => {
     padding: 0;
     /* 确保没有内边距 */
 }
+
+/* 修复终端底部空白的样式 */
+.xterm {
+    height: inherit;
+}
 </style>

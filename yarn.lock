@@ -1377,6 +1377,11 @@
   "resolved" "https://registry.npmmirror.com/@vicons/ionicons5/-/ionicons5-0.12.0.tgz"
   "version" "0.12.0"
 
+"@vicons/tabler@^0.13.0":
+  "integrity" "sha512-AykuhiqjszkIoAL/7knIFm6RDOBS1ZmQdJfQ+RNLEah0fVsxykUFCfMBSNZh8lOzC85EtdD1k5g/sv5GYk0Ohg=="
+  "resolved" "https://registry.npmmirror.com/@vicons/tabler/-/tabler-0.13.0.tgz"
+  "version" "0.13.0"
+
 "@vue/babel-helper-vue-jsx-merge-props@^1.4.0":
   "integrity" "sha512-JkqXfCkUDp4PIlFdDQ0TdXoIejMtTHP67/pvxlgeY+u5k3LEdKuWZ3LK6xkxo52uDoABIVyRwqVkfLQJhk7VBA=="
   "resolved" "https://registry.npmmirror.com/@vue/babel-helper-vue-jsx-merge-props/-/babel-helper-vue-jsx-merge-props-1.4.0.tgz"

@@ -45,7 +45,6 @@ const getTwoFactorToken = async () => {
     try {
         const result = await getTwoFactorAuthTokenByCurrentUser();
         // 因为当前用户已经登录，因此可以直接获取到当前用户的两步验证密钥
-        // console.log('当前用户的两步验证密钥:', result.data);
         localStorage.setItem('twoFactorAuthToken', result.data);
         return result;  // 返回验证结果
     } catch (error) {

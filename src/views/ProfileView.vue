@@ -18,8 +18,7 @@
           <n-popover v-else trigger="hover" v-if="!isLoading">
             <template #trigger>
               <div class="username_avatar" v-if="userInfo && userInfo.username">
-                <n-avatar id="user-avatar" round size="large"
-                  :src="userInfo.avatar || ''" />
+                <n-avatar id="user-avatar" round size="large" :src="userInfo.avatar || ''" />
                 <span v-if="userInfo.username" style="margin-right: 24px; margin-left: 10px !important;">
                   {{ userInfo.nickname || userInfo.username }}
                 </span>
@@ -43,8 +42,8 @@
     <n-layout class="main-content">
       <n-layout style="height: 100%;">
         <n-layout-content content-style="padding: 24px;">
-          <n-card title="个人信息" style="max-width: 800px;">
-            <n-tabs type="line" animated>
+          <n-card :title="cardName" style="max-width: 800px;">
+            <n-tabs type="line" animated @before-leave="handleBeforeLeave">
               <!-- 个人信息标签页 -->
               <n-tab-pane name="个人信息" tab="个人信息">
                 <div class="profile-container">
@@ -52,9 +51,7 @@
                   <div class="profile-header">
                     <div class="avatar-section"
                       style="display: flex;justify-content: center !important;align-items: center;">
-                      <n-avatar round :size="120"
-                        :src="userInfo.avatar || ''"
-                        class="main-avatar" />
+                      <n-avatar round :size="120" :src="userInfo.avatar || ''" class="main-avatar" />
                       <n-upload :action="uploadUrl" :max-size="2097152" accept="image/*"
                         @before-upload="handleBeforeUpload" @finish="handleUploadFinish" @error="handleUploadError"
                         :custom-request="customUpload">
@@ -79,7 +76,9 @@
                         <div class="value-wrapper">
                           <n-text>{{ userInfo[field.key] }}</n-text>
                           <n-button v-if="field.editable" secondary size="tiny" text @click="openEditDialog(field)">
-                            <n-text style="color: cornflowerblue;">编辑</n-text>
+                            <n-text style="color: cornflowerblue;">
+                              编辑
+                            </n-text>
                           </n-button>
                         </div>
                       </n-descriptions-item>
@@ -104,8 +103,26 @@
                   </div>
                 </div>
               </n-tab-pane>
-
-              <!-- 安全设置标签页 -->
+              <n-tab-pane name="帐号安全" tab="帐号安全">
+                <n-form label-placement="left" label-width="120px" label-align="left">
+                  <n-form-item label="登录密码">
+                    <div class="two-factor-wrapper">
+                      <n-button @click="handleTwoFactorChange">即刻修改</n-button>
+                      <!-- <n-switch v-model:value="userInfo.isTwoFactorAuth" @update:value="handleTwoFactorChange" /> -->
+                      <span class="description-text">修改登录密码，保证帐号安全</span>
+                    </div>
+                  </n-form-item>
+                </n-form>
+                <n-form :model="userInfo" label-placement="left" label-width="120px" label-align="left">
+                  <n-form-item label="双重认证">
+                    <div class="two-factor-wrapper">
+                      <n-button @click="showTwoFactorAuthLockByPasswordModal = true">{{ userInfo.isTwoFactorAuth ?
+                        "更改验证方法" : "添加验证方法" }}</n-button>
+                      <span class="description-text">使用一次性代码验证你的身份，以确保你的帐号安全。</span>
+                    </div>
+                  </n-form-item>
+                </n-form>
+              </n-tab-pane>
               <n-tab-pane name="安全设置" tab="安全设置">
                 <n-descriptions :column="1" label-align="left" label-style="width: 120px; padding-right: 16px;">
                   <n-descriptions-item label="加密密钥">
@@ -123,29 +140,6 @@
                   </n-descriptions-item>
                 </n-descriptions>
               </n-tab-pane>
-              <n-tab-pane name="双重认证" tab="双重认证">
-                <n-form :model="userInfo" label-placement="left" label-width="120px" label-align="left">
-                  <n-form-item label="双重认证">
-                    <div class="two-factor-wrapper">
-                      <n-button @click="handleTwoFactorChange">添加验证方法</n-button>
-                      <!-- <n-switch v-model:value="userInfo.isTwoFactorAuth" @update:value="handleTwoFactorChange" /> -->
-                      <span class="description-text">使用一次性代码验证你的身份，以确保你的帐号安全。</span>
-                    </div>
-                  </n-form-item>
-                  <n-form-item style="display: flex;align-items: center;" label="凭证二维码" v-if="userInfo.isTwoFactorAuth">
-                    <div class="qrcode-section">
-                      <div class="qrcode-wrapper">
-                        <img v-if="qrcodeImage" :src="qrcodeImage" alt="二维码" style="width: 200px; height: 200px;" />
-                        <n-skeleton v-else text :repeat="1" />
-                        <div class="qrcode-tips">
-                          <n-text depth="3">使用 Microsoft Authenticator</n-text>
-                          <n-text depth="3">扫描二维码</n-text>
-                        </div>
-                      </div>
-                    </div>
-                  </n-form-item>
-                </n-form>
-              </n-tab-pane>
             </n-tabs>
           </n-card>
         </n-layout-content>
@@ -162,6 +156,13 @@
     <!-- 密钥 密码解锁弹出框 -->
     <UseLockByPasswordModal v-model:show="showLockByPasswordModal"
       @unlockByPasswordEvent="handleVerifyUserPasswordResult" />
+
+    <!-- 双重认证密码解锁弹出框 -->
+    <UseLockByPasswordModal v-model:show="showTwoFactorAuthLockByPasswordModal"
+      @unlockByPasswordEvent="handleTwoFactorAuthVerifyResult" />
+
+    <TwoFactorAuthManageModal v-model:show="showTwoFactorAuthManageModal" @close="showTwoFactorAuthManageModal = false"
+      @twoFactorAuthResultEvent="handleTwoFactorAuthResult" />
 
     <!-- TOTP 解锁弹出框 -->
     <UseLockByTotpModal v-model:show="showLockByTotpModal" @unlockByTotpEvent="handleVerifyUserTotpResult" />
@@ -243,6 +244,8 @@
         </n-space>
       </template>
     </n-modal>
+
+    
   </n-layout>
 </template>
 
@@ -260,13 +263,14 @@ import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
 
 import UseLockByPasswordModal from '@/components/UseLockByPasswordModal.vue';
 import UseLockByTotpModal from '@/components/UseLockByTOTPModal.vue';
+import TwoFactorAuthManageModal from '@/components/TwoFactorAuthManageModal.vue';
 
 const gitCommitHash = process.env.VUE_APP_GIT_COMMIT_HASH;
 
 const store = useStore();
 const message = useMessage();
 const userInfoForm = ref(null);  // 添加表单引用
-
+const cardName = ref("个人中心");
 const showLoginOrRegisterModal = ref(false);
 
 // 定义表单初始值
@@ -287,6 +291,22 @@ const safeSettingForm = ref({
 const saltLockStatus = ref(false);
 const showLockByPasswordModal = ref(false);
 const showLockByTotpModal = ref(false);
+
+// 双重验证相关
+const showTwoFactorAuthLockByPasswordModal = ref(false);
+const showTwoFactorAuthManageModal = ref(false);
+
+const handleTwoFactorAuthVerifyResult = (isUnlocked) => {
+  if (isUnlocked) {
+    // 解锁成功，并关闭弹窗
+    showTwoFactorAuthLockByPasswordModal.value = false;
+    // 打开双重认证弹窗
+    showTwoFactorAuthManageModal.value = true;
+  } else {
+    saltLockStatus.value = false;
+  }
+};
+
 const isShaking = ref(false);
 
 const InLogin = ref(!!localStorage.getItem('token'));
@@ -302,6 +322,14 @@ const safeSettingRules = {
   salt: [
     { required: true, message: '加密密钥不能为空', trigger: ['input', 'blur'] }
   ]
+};
+
+const handleBeforeLeave = (tabName) => {
+  if (tabName === '安全设置') {
+    saltLockStatus.value = false;
+  }
+  cardName.value = tabName;
+  return true;
 };
 
 async function fetchUserInfo() {
@@ -369,6 +397,16 @@ const handleVerifyUserTotpResult = (isUnlocked) => {
     // 解锁成功，并关闭弹窗
     saltLockStatus.value = true;
     showLockByTotpModal.value = false;
+  } else {
+    saltLockStatus.value = false;  // 解锁失败，继续显示弹窗
+  }
+};
+
+const handleTwoFactorAuthResult = (isVerify) => {
+  if (isVerify) {
+    // 解锁成功，并关闭弹窗
+    showTwoFactorAuthManageModal.value = false;
+    handleTwoFactorChange();
   } else {
     saltLockStatus.value = false;  // 解锁失败，继续显示弹窗
   }

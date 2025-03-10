@@ -107,3 +107,11 @@ export const verifyTurnstile = (data) => {
     });
 }
 
+export const updatePassword = (data) => {
+    return serviceAxios({
+        url: "/auth//updatePassword",
+        method: "post",
+        data,
+    });
+}
+

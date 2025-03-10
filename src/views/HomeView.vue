@@ -259,10 +259,6 @@ const openTerminalSettings = () => {
 onMounted(() => {
   fetchConnectionList();
   fetchUserInfo();
-  // 注释掉打字机效果的调用
-  // if (!InLogin.value) {
-  //   startTypingEffect();
-  // }
 });
 </script>
 

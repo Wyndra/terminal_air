@@ -63,7 +63,7 @@
             v-if="currentServiceType === '注册'">
             <div style="display: flex; gap: 16px;">
                 <n-form-item label="用户名" path="username" style="flex: 1;">
-                    <n-input v-model:value="registerForm.username" placeholder="请输入用户名" />
+                    <n-input :allow-input="onlyEnglishWordsInput" v-model:value="registerForm.username" placeholder="请输入用户名" />
                 </n-form-item>
             </div>
             <div style="display: flex; gap: 16px;">
@@ -77,7 +77,7 @@
                 </n-form-item>
             </div>
             <div style="display: flex; gap: 16px;">
-                <n-form-item label="手机号" path="phone" style="flex: 1;">
+                <n-form-item ref="registerPhoneRef" first label="手机号" path="phone" style="flex: 1;">
                     <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="registerForm.phone"
                         placeholder="请输入中国大陆手机号" />
                 </n-form-item>
@@ -161,8 +161,9 @@ const twoFactorForm = ref({
 });
 
 const refreshTurnstile = () => {
+    clearTurnstile()
     nextTick(() => {
-        clearTurnstile()
+        // clearTurnstile()
         turnstile.render("#turnstile-widget", {
             sitekey: serverConfig.turnstile_siteKey,
             callback: (token) => {
@@ -177,13 +178,16 @@ const refreshTurnstile = () => {
 }
 
 const clearTurnstile = () => {
+    turnstileToken.value = "";
     document.getElementById("turnstile-widget").innerHTML = "";
 }
 
 onMounted(() => {
     // 获取turnstileToken
+    clearTurnstile()
     refreshTurnstile();
 });
+// 被关闭了
 
 /*
     * 限制只能输入数字
@@ -192,6 +196,15 @@ onMounted(() => {
 */
 const onlyDigitsInput = (value) => {
     return /^\d*$/.test(value);
+};
+
+/*
+    * 限制输入不包括中文字符的英文字符
+    * @param {String} value 输入值
+    * @returns {Boolean} 是否只包含英文字符（不包括中文字符）
+*/
+const onlyEnglishWordsInput = (value) => {
+    return /^[^\u4e00-\u9fa5]*$/.test(value);
 };
 
 // 当前服务类型（登录/注册）
@@ -207,6 +220,7 @@ const loginFormRef = ref(null);
 const codeLoginFormRef = ref(null);
 const registerFormRef = ref(null);
 const twoFactorFormRef = ref(null);
+const registerPhoneRef = ref(null)
 
 // 获取验证码按钮状态
 const isCodeButtonDisabled = ref(false);
@@ -264,7 +278,7 @@ const registerRules = {
     ],
     phone: [
         { required: true, message: '请输入中国大陆手机号', trigger: 'blur' },
-        { pattern: /^[1][3-9][0-9]{9}$/, message: '请输入有效的手机号码', trigger: 'blur' }
+        { pattern: /^[1][3-9][0-9]{9}$/, message: '请输入有效的手机号码', trigger: ['blur','verify-phone'] }
     ],
     verificationCode: [
         { required: true, message: '请输入验证码', trigger: 'blur' }
@@ -376,7 +390,11 @@ async function async_verifyTurnstile() {
 
 // 获取验证码
 const handleGetVerificationCode = async () => {
+    // 手动触发verifyPhoneNumber
     try {
+        
+        await registerPhoneRef.value.validate();
+
         const channel = currentServiceType.value === '登录' ? '1008' : '1021';
         const phone = codeLoginForm.value.phone || registerForm.value.phone;
         const res = await sendVerificationCode({ phone, channel });
@@ -515,9 +533,10 @@ const handleSubmit = () => {
 watch(
     () => [currentServiceType.value, useCodeLogin.value],
     () => {
+        clearTurnstile();
         refreshTurnstile();
     },
-    { deep: true }  // 深度监听（对象需要，数组可省略）
+    { deep: true }
 );
 </script>
 
