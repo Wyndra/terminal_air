@@ -31,7 +31,6 @@ public class WebSSHServiceAspect {
             String username = (String) webSocketSession.getAttributes().get("username");
             String salt = authService.getSaltByUsername(username);
             String decryptedPassword = AESUtils.decryptFromHex(webSSHData.getPassword(), salt);
-
             args[3] = decryptedPassword;
         }
 

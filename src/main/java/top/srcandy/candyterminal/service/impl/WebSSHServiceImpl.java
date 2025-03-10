@@ -45,8 +45,6 @@ public class WebSSHServiceImpl implements WebSSHService {
     // 线程池，处理异步任务（如 SSH 连接和命令执行）
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
-    @Autowired
-    private AuthService authService;  // 用于验证用户身份及获取加密密码的服务
 
     /**
      * 初始化 WebSocket 会话的 SSH 连接信息。
@@ -90,8 +88,6 @@ public class WebSSHServiceImpl implements WebSSHService {
             webSSHData = objectMapper.readValue(buffer, WebSSHData.class);
         } catch (IOException e) {
             if (buffer.contains("pong")) {
-//                log.info("接收到 pong 消息");
-                // 心跳消息，不做处理
                 return;
             }
             log.error("数据转换成对象失败");
@@ -100,13 +96,9 @@ public class WebSSHServiceImpl implements WebSSHService {
         }
 
         String userId = (String) session.getAttributes().get("username");
-
-//        log.info("接收到用户 {} 的请求", userId);
-
         SSHConnectInfo sshConnectInfo = sshMap.get(session);
         if (sshConnectInfo == null) {
             log.error("未找到用户 {} 的连接信息", userId);
-            // 重新初始化连接信息
             initConnection(session);
             return;
         }
@@ -117,8 +109,6 @@ public class WebSSHServiceImpl implements WebSSHService {
             WebSSHServiceImpl proxy = (WebSSHServiceImpl) AopContext.currentProxy();
             executorService.execute(() -> {
                 try {
-                    // 尝试连接 SSH
-//                    connectToSSH(sshConnectInfo, finalWebSSHData, session)
                     proxy.connectToSSH(sshConnectInfo, finalWebSSHData, session,"");
                 } catch (IOException | JSchException e) {
                     log.error("连接失败");
@@ -129,7 +119,6 @@ public class WebSSHServiceImpl implements WebSSHService {
         } else if ("command".equals(webSSHData.getOperate())) {
             String command = webSSHData.getCommand();
             try {
-                // 执行 SSH 命令
                 transToSSH(sshConnectInfo.getChannel(), command);
             } catch (IOException e) {
                 log.error("发送命令失败");
@@ -222,14 +211,7 @@ public class WebSSHServiceImpl implements WebSSHService {
         log.info("尝试连接 SSH 主机: {}:{}", webSSHData.getHost(), webSSHData.getPort());
 
         try {
-            // 获取盐值并解密密码
-            // TODO: 实现切面
-//            String salt = authService.getSaltByUsername(uuid);
-//            log.info("获取到 {} 的盐值为：{}", uuid, salt);
-//            String decryptedPassword = AESUtils.decryptFromHex(webSSHData.getPassword(), salt);
-//            log.info("解密后的密码为：{}", decryptedPassword);
-
-            // 创建 SSH 会话
+            // 已实现切面，此处不再需要解密密码，decryptPassword 会被自动注入
             session = jSch.getSession(webSSHData.getUsername(), webSSHData.getHost(), webSSHData.getPort());
             session.setConfig(config);
             session.setPassword(decryptedPassword);

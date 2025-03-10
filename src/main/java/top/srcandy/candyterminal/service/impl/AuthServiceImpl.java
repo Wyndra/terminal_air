@@ -99,12 +99,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseResult<LoginResultVO> loginChangePassword(LoginRequest request) {
         User result = userDao.selectByUserName(request.getUsername());
-        if (result == null) {
+        Optional<User> userOptional = Optional.ofNullable(result);
+        if (userOptional.isEmpty()) {
             return ResponseResult.fail(null, "用户不存在");
         }
         // 如果Password_hash为null
-        Optional<Object> optional = Optional.ofNullable(result.getPassword_hash());
-        if (optional.isEmpty()) {
+        Optional<String> passwordHashOptional = Optional.ofNullable(result.getPassword_hash());
+        if (passwordHashOptional.isEmpty()) {
             // 说明已经是高安全性密码
             if (result.getPassword().equals(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()))) {
                 if (result.getIsTwoFactorAuth().equals("1")) {
@@ -241,21 +242,67 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public boolean verifyUserPassword(String token, String password) {
         String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
-        log.info("username:{}", username);
         User user = userDao.selectByUserName(username);
-        if (user == null) {
+        Optional<User> userOptional = Optional.ofNullable(user);
+        if (userOptional.isEmpty()) {
             return false;
         }
-        if (user.getPassword().equals(Sha512DigestUtils.shaHex(password + user.getSalt()))) {
-            return Boolean.TRUE;
+        // 如果Password_hash为null
+        Optional<String> passwordHashOptional = Optional.ofNullable(user.getPassword_hash());
+        if (passwordHashOptional.isEmpty()) {
+            // 说明已经是高安全性密码
+            if (user.getPassword().equals(Sha512DigestUtils.shaHex(password + user.getSalt()))) {
+                return Boolean.TRUE;
+            } else {
+                return Boolean.FALSE;
+            }
+        }else {
+            // 如果Password_hash不为null
+            if (user.getPassword_hash().equals(DigestUtils.md5DigestAsHex(password.getBytes()))) {
+                // 说明是低安全性密码
+                user.setPassword(Sha512DigestUtils.shaHex(password + user.getSalt()));
+                // 原密码作废
+                user.setPassword_hash(null);
+                userDao.update(user);
+                return Boolean.TRUE;
+            } else {
+                return Boolean.FALSE;
+            }
         }
-        return Boolean.FALSE;
     }
 
     @Override
-    public boolean updatePassword(String token, String oldPassword, String newPassword) {
-        // Todo: 实现修改密码逻辑
-        return false;
+    public ResponseResult<String> updatePassword(String token, UpdatePasswordRequest request) {
+        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
+        User user = userDao.selectByUserName(username);
+        Optional<User> userOptional = Optional.ofNullable(user);
+        if (userOptional.isEmpty()) {
+            return ResponseResult.fail(null, "用户不存在");
+        }
+        // 如果Password_hash为null
+        Optional<String> passwordHashOptional = Optional.ofNullable(user.getPassword_hash());
+        if (passwordHashOptional.isEmpty()) {
+            // 说明已经是高安全性密码
+            if (user.getPassword().equals(Sha512DigestUtils.shaHex(request.getOldPassword() + user.getSalt()))) {
+                user.setPassword(Sha512DigestUtils.shaHex(request.getNewPassword() + user.getSalt()));
+                userDao.update(user);
+                return ResponseResult.success("修改密码成功");
+            } else {
+                return ResponseResult.fail(null, "原密码错误");
+            }
+        }else {
+            // 如果Password_hash不为null
+            if (user.getPassword_hash().equals(DigestUtils.md5DigestAsHex(request.getOldPassword().getBytes()))) {
+                // 说明是低安全性密码
+                user.setPassword(Sha512DigestUtils.shaHex(request.getNewPassword() + user.getSalt()));
+                // 原密码作废
+                user.setPassword_hash(null);
+                userDao.update(user);
+                return ResponseResult.success("修改密码成功");
+            } else {
+                return ResponseResult.fail(null, "原密码错误");
+            }
+        }
     }
 
     @Override

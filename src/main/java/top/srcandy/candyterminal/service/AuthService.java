@@ -36,7 +36,7 @@ public interface AuthService {
 
     boolean verifyUserPassword(String token, String password);
 
-    boolean updatePassword(String username, String oldPassword, String newPassword);
+    ResponseResult<String> updatePassword(String username, UpdatePasswordRequest request);
 
     ResponseResult<UserProfileVO> updateProfile(String token, UpdateProfileRequest request);
 
