@@ -350,6 +350,7 @@ async function fetchUserInfo() {
       safeSettingForm.value = {
         salt: res.data.salt || ''
       };
+      localStorage.removeItem('userAvatar');
       localStorage.setItem('userAvatar', userInfo.value.avatar);
       // 如果开启了双重认证，获取二维码
       if (userData.isTwoFactorAuth) {

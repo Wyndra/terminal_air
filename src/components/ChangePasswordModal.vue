@@ -6,8 +6,8 @@
                 <Password16Regular />
             </n-icon>
             <n-text style="font-weight: bold; font-size: 18px;">更改密码</n-text>
-            <span style="width=200px" class="description-text">密码长度需介于 8 至 20 位之间，并且必须同时包含数字、字母及特殊字符，以确保安全性。</span> 
-            <n-form ref="passwordFormRef" :model="passwordForm" label-placement="top" style="width: 100%; !important;margin-top:20px" :rules="changePasswordRules">
+            <span style="width:200px" class="description-text">密码长度需介于 8 至 20 位之间，并且必须同时包含数字、字母及特殊字符，以确保安全性。</span> 
+            <n-form ref="passwordFormRef" :model="passwordForm" label-placement="top" style="width: 100% !important;margin-top: 20px" :rules="changePasswordRules">
                 <n-form-item label="输入你的当前密码" path="oldPassword">
                     <n-input v-model:value="passwordForm.oldPassword" type="password" placeholder="当前密码" />
                 </n-form-item>
