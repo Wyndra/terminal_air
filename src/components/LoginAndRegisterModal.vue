@@ -94,8 +94,7 @@
                 </n-form-item>
             </div>
         </n-form>
-        <div id="turnstile-widget"></div>
-
+        <div data-size="flexible" id="turnstile-widget"></div>
         <div style="display: flex; justify-content: space-between; margin-top: 16px;"
             v-if="currentServiceType === '登录' && !isTwoFactor">
 
@@ -107,15 +106,16 @@
             </n-text>
 
         </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 16px;" v-if="currentServiceType === '注册'">
+        <div style="display: flex; justify-content: space-between; margin-top: 16px;"
+            v-if="currentServiceType === '注册'">
             <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
                 @click="currentServiceType = '登录'">返回登录</n-text>
-            
+
         </div>
-         <template #footer>
+        <template #footer>
             <n-button type="primary" style="width: 100%;" @click="handleSubmit">{{ currentServiceType === '登录' ?
                 isTwoFactor ? '继续' : '登录' : '注册' }}</n-button>
-</template>
+        </template>
     </n-card>
 </template>
 
@@ -166,23 +166,24 @@ const twoFactorForm = ref({
     code: '',
 });
 
+
 const refreshTurnstile = () => {
-    clearTurnstile()
+    clearTurnstile();
     nextTick(() => {
-        // clearTurnstile()
         turnstile.render("#turnstile-widget", {
             sitekey: serverConfig.turnstile_siteKey,
             callback: (token) => {
                 turnstileToken.value = token;
-                console.log(token);
+            },
+            "expired-callback": () => {
+                message.error('人机验证已过期，请刷新页面重试');
             },
             "error-callback": (error) => {
                 message.error('人机验证未通过');
-
             },
         });
     });
-}
+};
 
 const clearTurnstile = () => {
     turnstileToken.value = "";

@@ -232,7 +232,7 @@
         <n-form-item label="验证码" path="verifyCode">
           <n-input-group>
             <n-input v-model:value="oldPhoneForm.verifyCode" placeholder="请输入验证码" />
-            <n-button :disabled="!canSendOldPhoneCode" type="primary" ghost @click="handleSendOldPhoneCode">
+            <n-button :disabled="oldPhoneForm.oldPhone == undefined" type="primary" ghost @click="handleSendOldPhoneCode">
               {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
             </n-button>
           </n-input-group>
