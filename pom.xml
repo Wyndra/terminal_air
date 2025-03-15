@@ -187,6 +187,13 @@
             <artifactId>spring-boot-starter-amqp</artifactId>
             <version>3.4.3</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.minio/minio -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.5.10</version>
+        </dependency>
+
 
     </dependencies>
 

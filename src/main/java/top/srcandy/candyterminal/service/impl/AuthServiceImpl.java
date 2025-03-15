@@ -20,6 +20,7 @@ import top.srcandy.candyterminal.bean.dto.LoginDTO;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.*;
 import top.srcandy.candyterminal.service.AuthService;
+import top.srcandy.candyterminal.service.MinioService;
 import top.srcandy.candyterminal.service.SmsService;
 import top.srcandy.candyterminal.utils.AESUtils;
 import top.srcandy.candyterminal.utils.JWTUtil;
@@ -45,6 +46,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private SmsService smsService;
+
+    @Autowired
+    private MinioService minioService;
 
     @Autowired
     private MicrosoftAuth microsoftAuth;
@@ -211,6 +215,7 @@ public class AuthServiceImpl implements AuthService {
             return ResponseResult.fail(null, "用户不存在");
         }
         UserProfileVO userProfileVO = userProfileConverter.userToUserProfileVO(user);
+        userProfileVO.setAvatar(minioService.generateDisplaySignedUrl(user.getAvatar()));
 //        UserProfileVO userProfileVO = UserProfileVO.builder().uid(user.getUid()).username(user.getUsername()).email(user.getEmail()).nickname(user.getNickname()).salt(user.getSalt()).phone(user.getPhone()).build();
         return ResponseResult.success(userProfileVO);
     }
@@ -220,7 +225,7 @@ public class AuthServiceImpl implements AuthService {
         String username = JWTUtil.getTokenClaimMap(no_bearer_token).get("username").asString();
         User user = userDao.selectByUserName(username);
         if (user != null) {
-            return ResponseResult.success(user.getAvatar());
+            return ResponseResult.success(minioService.generateDisplaySignedUrl(user.getAvatar()));
         }
         return ResponseResult.fail(null, "用户不存在");
     }

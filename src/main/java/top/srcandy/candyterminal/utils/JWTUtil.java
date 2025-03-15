@@ -25,10 +25,13 @@ public class JWTUtil {
 
     private static final JWTVerifier verifier = JWT.require(algorithm).withIssuer("Terminal Air").acceptExpiresAt(1800).build();
 
+    private static final JWTVerifier publicAccessVerifier = JWT.require(algorithm)
+            .withIssuer("Terminal Air", "Terminal Air TwoFactorAuth") // 允许多个 Issuer
+            .acceptExpiresAt(1800)
+            .build();
     private static final JWTVerifier twoFactorAuthSecretVerifier = JWT.require(algorithm).withIssuer("Terminal Air TwoFactorAuth").acceptExpiresAt(300).build();
     private static final long EXPIRATION = 86400L; //单位为秒
-    // 测试过期时间
-//    private static final long EXPIRATION = 60L; //单位为秒
+
     public static String generateToken(User user){
         Date expireDate = new Date(System.currentTimeMillis() + EXPIRATION * 1000);
         try{
@@ -87,12 +90,31 @@ public class JWTUtil {
             log.info("TwoFactorAuthSecret JWT validation passed");
         } catch (InvalidClaimException e) {
             if (e.getMessage().contains("issuer")){
+                log.error("Invalid issuer", e);
                 throw new ServiceException("非法登录");
             }
         } catch (TokenExpiredException e){
+            log.error("Token expired", e);
             throw new ServiceException("登录已过期，请重新登录");
         }
     }
+
+    public static void validateBothToken(String token) {
+        try {
+            DecodedJWT jwt = publicAccessVerifier.verify(token);
+            log.info("Both JWT validation passed");
+        } catch (InvalidClaimException e) {
+            if (e.getMessage().contains("issuer")){
+                log.error("Invalid issuer", e);
+                throw new ServiceException("非法登录");
+            }
+        } catch (TokenExpiredException e){
+            log.error("Token expired", e);
+            throw new ServiceException("登录已过期，请重新登录");
+        }
+    }
+
+
 
     public static Map<String, Claim> getTokenClaimMap(String token){
         return JWT.decode(token).getClaims();

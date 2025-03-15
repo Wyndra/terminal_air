@@ -4,15 +4,15 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import top.srcandy.candyterminal.aspectj.lang.annoations.PublicAccessValidate;
+import top.srcandy.candyterminal.aspectj.lang.annoations.TwoFactorAuthRequired;
 import top.srcandy.candyterminal.bean.vo.LoginResultVO;
 import top.srcandy.candyterminal.bean.vo.UserProfileVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.request.*;
 import top.srcandy.candyterminal.service.AuthService;
-import top.srcandy.candyterminal.aspectj.lang.annoations.AllowTwoFactorAuth;
 import top.srcandy.candyterminal.aspectj.lang.annoations.AuthAccess;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
@@ -94,7 +94,7 @@ public class AuthController {
     }
 
     @PostMapping("/verifyTwoFactorAuthCode")
-    @AllowTwoFactorAuth
+    @TwoFactorAuthRequired
     public ResponseResult<Boolean> verifyTwoFactorAuthCode(@RequestHeader("Authorization") String twoFactorAuthToken, @Valid @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return ResponseResult.success(authService.verifyTwoFactorAuthCode(twoFactorAuthToken.substring(7), request));
     }
@@ -106,13 +106,14 @@ public class AuthController {
 
 
     @PostMapping("/loginRequireTwoFactorAuth")
-    @AllowTwoFactorAuth
+    @TwoFactorAuthRequired
     public ResponseResult<String> loginRequireTwoFactorAuth(@Valid @RequestHeader("Authorization") String twoFactorAuthToken, @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return authService.loginRequireTwoFactorAuth(twoFactorAuthToken.substring(7),request);
     }
 
     @GetMapping("/getUserAvatar")
-    @AllowTwoFactorAuth
+    @TwoFactorAuthRequired
+    @PublicAccessValidate
     public ResponseResult<String> getUserAvatar(@RequestHeader("Authorization") String token) {
         return authService.getUserAvatar(token.substring(7));
     }
