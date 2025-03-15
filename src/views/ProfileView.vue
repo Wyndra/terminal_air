@@ -53,8 +53,9 @@
                       style="display: flex;justify-content: center !important;align-items: center;">
                       <n-avatar round :size="120" :src="userInfo.avatar || ''" class="main-avatar" />
                       <n-upload :action="uploadUrl" :max-size="2097152" accept="image/*"
-                        @before-upload="handleBeforeUpload" @finish="handleUploadFinish" @error="handleUploadError"
+                        @before-upload="handleBeforeUpload" @error="handleUploadError"
                         :custom-request="customUpload">
+
                         <n-button type="text" size="small" class="change-avatar-btn">创建你的头像</n-button>
                       </n-upload>
                     </div>
@@ -232,7 +233,8 @@
         <n-form-item label="验证码" path="verifyCode">
           <n-input-group>
             <n-input v-model:value="oldPhoneForm.verifyCode" placeholder="请输入验证码" />
-            <n-button :disabled="oldPhoneForm.oldPhone == undefined" type="primary" ghost @click="handleSendOldPhoneCode">
+            <n-button :disabled="oldPhoneForm.oldPhone == undefined" type="primary" ghost
+              @click="handleSendOldPhoneCode">
               {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
             </n-button>
           </n-input-group>
@@ -249,7 +251,7 @@
       </template>
     </n-modal>
 
-    
+
   </n-layout>
 </template>
 
@@ -257,8 +259,9 @@
 import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
-import { getUserInfo, updateUserInfo, switchTwoFactorAuth, getTwoFactorAuthSecretQRCode } from '@/api/auth';
+import { getUserInfo, updateUserInfo, switchTwoFactorAuth, getTwoFactorAuthSecretQRCode,getUserAvatar } from '@/api/auth';
 import { sendSmsCodeByToken, sendVerificationCode, verifyCode } from '@/api/sms';
+import { generatePresignUrl } from "@/api/avatar"
 import { LockClosed, LockOpen } from '@vicons/ionicons5';
 import axios from 'axios';
 import router from '@/router';
@@ -465,24 +468,30 @@ const gotoHomeView = () => {
   router.push('/')
 };
 
-// 上传头像相关配置
-const uploadUrl = 'http://static.srcandy.top/upload';
-
-// 自定义上传函数
+// 上传头像
 const customUpload = async ({ file, onProgress, onError }) => {
   if (!file || !file.file) { // 添加文件存在性检查
     message.error('未选择文件');
     onError(new Error('未选择文件'));
     return;
   }
+  let uploadUrl = '';
+  let filePath = ""
+  // 先向服务器请求一个预签名的上传地址
+  const res = await generatePresignUrl().then(res => {
+    uploadUrl = res.data.url;
+    filePath = res.data.filePath
+  }).catch(err => {
+    console.error(err)
+  });
 
-  const formData = new FormData();
-  formData.append('file', file.file, file.file.name); // 修改为 'file.file' 和 'file.file.name'
+  console.log(file.file)
+
 
   try {
-    const response = await axios.post(uploadUrl, formData, {
+    const response = await axios.put(uploadUrl, file.file, {
       headers: {
-        'Content-Type': 'multipart/form-data'
+        'Content-Type': file.file.type  // 确保 Content-Type 正确
       },
       onUploadProgress: (event) => {
         if (event.lengthComputable) {
@@ -490,33 +499,30 @@ const customUpload = async ({ file, onProgress, onError }) => {
           onProgress({ percent });
         }
       }
-    });
-
-    if (response.status === 200) {
-      console.log('上传成功:', response.data);
-      userInfo.value.avatar = response.data.data.url;
-
-      // 更新到服务器
-      const updateRes = await updateUserInfo({
-        uid: userInfo.value.uid,
-        avatar: response.data.data.url
-      });
-
-      if (updateRes.status === '200') {
-        message.success('头像更新成功');
-      } else {
-        message.error('头像更新失败');
+    }).then(async res => {
+      if (res.status == 200) {
+        await updateUserInfo({
+          uid: userInfo.value.uid,
+          avatar: filePath
+        }).then(async res => {
+          if (res.status == 200) {
+            message.success('头像更新成功');
+            await getUserAvatar().then(res => {
+              userInfo.value.avatar = res.data
+              localStorage.setItem('userAvatar', res.data)
+            })
+          } else {
+            message.error('头像更新失败');
+          }
+        })
       }
-    } else {
-      message.error('头像上传失败');
-      onError(new Error('头像上传失败'));
-    }
+    })
+    // 开始处理服务器数据。
   } catch (error) {
-    console.error('上传错误:', error);
-    message.error('头像上传失败');
-    onError(error);
+    console.error("Upload failed:", error);
   }
 };
+
 
 // 上传前校验
 const handleBeforeUpload = (data) => {
@@ -525,51 +531,6 @@ const handleBeforeUpload = (data) => {
     return false;
   }
   return true;
-};
-
-// 上传完成处理
-const handleUploadFinish = async ({ file }) => {
-  try {
-    console.log('完整的 file 对象:', file); // 新增调试信息
-
-    const response = file.response;
-    console.log('上传响应:', response); // 调试信息
-
-    if (!response) {
-      console.error('响应为空');
-      message.error('响应为空');
-      return;
-    }
-
-    if (response.status === 200) {  // 确认 status 是数字
-      // 使用 file.uid 代替 file.id
-      if (!file.uid) {
-        console.error('文件 UID 不存在');
-        message.error('文件 UID 不存在');
-        return;
-      }
-
-      // 更新头像URL
-      userInfo.value.avatar = response.data.url;
-
-      // 更新到服务器
-      const updateRes = await updateUserInfo({
-        uid: userInfo.value.uid,
-        avatar: response.data.url
-      });
-
-      if (updateRes.status === 200) {  // 修改为数字
-        message.success('头像更新成功');
-      } else {
-        message.error('头像更新失败');
-      }
-    } else {
-      message.error('头像上传失败');
-    }
-  } catch (error) {
-    message.error('头像处理失败: ' + error.message);
-    console.error('Upload error:', error);
-  }
 };
 
 // 上传错误处理
@@ -763,22 +724,6 @@ const handlePhoneUpdate = async () => {
   }
 };
 
-const handleAvatarUpdate = async () => {
-  try {
-    const res = await updateUserInfo({
-      avatar: userInfo.value.avatar,
-      uid: userInfo.value.uid
-    });
-    if (res.status === '200') {
-      message.success('头像更新成功');
-    } else {
-      message.error(res.message || '头像更新失败');
-    }
-  } catch (error) {
-    message.error('头像更新失败');
-  }
-};
-
 // 处理双重认证开关
 const handleTwoFactorChange = async (value) => {
   try {
@@ -904,6 +849,7 @@ onMounted(() => {
 span {
   font-family: ui-sans-serif, -apple-system, system-ui;
 }
+
 .header {
   position: fixed;
   top: 0;
