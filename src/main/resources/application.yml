@@ -1,5 +1,8 @@
 server:
   port: 8089
+logging:
+  level:
+    root: info
 minio:
   endpoint: http://minio.srcandy.top
   accessKey: oHllD9UzI00MP33eF3S4

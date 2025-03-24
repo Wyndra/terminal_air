@@ -16,7 +16,7 @@ public class SpringDocConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .info(new Info().title("Community Manage API").version("1.0"))
+                .info(new Info().title("Terminal Air API").version("1.0"))
                 .components(new Components().addSecuritySchemes(HttpHeaders.AUTHORIZATION,
                         new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT").in(SecurityScheme.In.HEADER).name(HttpHeaders.AUTHORIZATION)))
                 .addSecurityItem(new SecurityRequirement().addList(HttpHeaders.AUTHORIZATION));

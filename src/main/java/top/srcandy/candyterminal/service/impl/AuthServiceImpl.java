@@ -82,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
         if (secretKey == null || secretKey.isEmpty()) {
             return null;
         }
-        log.info("secretKey:{}", secretKey);
+        log.info("CLOUDFLARE_SECRET_KEY:{}", secretKey);
         if (token == null || token.isEmpty()) {
             return ResponseResult.fail(null, "缺少 Token");
         }
@@ -216,7 +216,6 @@ public class AuthServiceImpl implements AuthService {
         }
         UserProfileVO userProfileVO = userProfileConverter.userToUserProfileVO(user);
         userProfileVO.setAvatar(minioService.generateDisplaySignedUrl(user.getAvatar()));
-//        UserProfileVO userProfileVO = UserProfileVO.builder().uid(user.getUid()).username(user.getUsername()).email(user.getEmail()).nickname(user.getNickname()).salt(user.getSalt()).phone(user.getPhone()).build();
         return ResponseResult.success(userProfileVO);
     }
 

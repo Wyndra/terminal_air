@@ -12,6 +12,8 @@ import top.srcandy.candyterminal.exception.ServiceException;
 import top.srcandy.candyterminal.aspectj.lang.annoations.AuthAccess;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
+import java.util.Optional;
+
 @Component
 @Slf4j
 public class JWTIntercept implements HandlerInterceptor {
@@ -26,10 +28,9 @@ public class JWTIntercept implements HandlerInterceptor {
                 return true;
             }
         }
-        String authorization = request.getHeader("Authorization");
-        if (authorization == null) {
-            throw new ServiceException("未登录,请先登录");
-        }
+        // 获取请求头的 如果没有则抛出异常
+        String authorization = Optional.ofNullable(request.getHeader("Authorization"))
+                .orElseThrow(() -> new ServiceException("未登录,请先登录"));
 
         if (handler instanceof HandlerMethod) {
             PublicAccessValidate publicAccessValidate = ((HandlerMethod) handler).getMethodAnnotation(PublicAccessValidate.class);
@@ -39,6 +40,7 @@ public class JWTIntercept implements HandlerInterceptor {
             }
             TwoFactorAuthRequired usingTwoFactorAuth = ((HandlerMethod) handler).getMethodAnnotation(TwoFactorAuthRequired.class);
             // 如果该接口为双重认证接口，则验证双重认证token
+
             if (usingTwoFactorAuth != null) {
                 JWTUtil.validateTwoFactorAuthSecretToken(authorization.substring(PREFIX.length()));
             } else {
