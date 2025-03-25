@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface ConnectManageService {
 
-    ResponseResult<List<ConnectInfo>> getUserConnects(String token);
+    ResponseResult<List<ConnectInfo>> list(String token);
 
     ResponseResult<List<ConnectInfo>> selectByConnectCreaterUid(Long connectCreaterUid);
 

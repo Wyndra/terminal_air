@@ -1,5 +1,6 @@
 package top.srcandy.candyterminal.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,21 +17,22 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/connect")
+@RequestMapping("/api/connect")
 public class ConnectManageController {
     @Autowired
     private ConnectManageService connectManageService;
-    @GetMapping("/getConnect")
+    @GetMapping("/list")
+    @Operation(summary = "获取用户的连接列表")
     public ResponseResult<List<ConnectInfo>> selectByConnectCreaterUid(@RequestHeader("Authorization") String token) {
-        return connectManageService.getUserConnects(token);
+        return connectManageService.list(token);
     }
 
-    @PostMapping("/addConnect")
+    @PostMapping("/add")
     public ResponseResult<ConnectInfo> insertConnect(@RequestHeader("Authorization") String token, @RequestBody AddConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return connectManageService.insertConnect(token, request);
     }
 
-    @PostMapping("/updateConnect")
+    @PostMapping("/update")
     public ResponseResult<ConnectInfo> updateConnect(@RequestHeader("Authorization") String token, @RequestBody UpdateConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return connectManageService.updateConnect(token, request);
     }

@@ -20,6 +20,7 @@ import java.io.Console;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -34,7 +35,7 @@ public class ConnectManageServiceImpl implements ConnectManageService {
     private ConnectConverter connectConverter;
 
 
-    public ResponseResult<List<ConnectInfo>> getUserConnects(String token) {
+    public ResponseResult<List<ConnectInfo>> list(String token) {
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
         User user = authService.getUserByUsername(username);
@@ -102,25 +103,41 @@ public class ConnectManageServiceImpl implements ConnectManageService {
             return ResponseResult.fail(null, "用户不存在");
         }
 
-        // 获取用户的连接信息
-        ConnectInfo connect = connectManageMapper
+        Optional<ConnectInfo> optionalConnect = connectManageMapper
                 .selectByConnectCreaterUid(user.getUid())
                 .stream()
                 .filter(connectInfo -> connectInfo.getCid().equals(request.getCid()))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
 
-        if (connect == null) {
-            return ResponseResult.fail(null, "连接不存在");
-        }
-
-        // 更新连接
-        connectConverter.updateConnectRequestToConnectInfo(request, connect);
-        // 密钥加密
-        String user_salt = user.getSalt();
-        connect.setConnectPwd(AESUtils.encryptToHex(request.getPassword(), user_salt));
-        connectManageMapper.updateConnect(connect);
-        return ResponseResult.success(connect);
+        return optionalConnect.map(connect -> {
+            String userSalt = user.getSalt();
+            String requestPassword = request.getPassword();
+            String storedPassword = connect.getConnectPwd();
+            // 先解密数据库中的密码
+            String decryptedStoredPassword;
+            try {
+                decryptedStoredPassword = AESUtils.decryptFromHex(storedPassword, userSalt);
+            } catch (Exception e) {
+                throw new RuntimeException("密码解密失败", e);
+            }
+            // 明文密码与数据库中的密码不一致，说明密码有更新
+            if (!requestPassword.equals(decryptedStoredPassword)) {
+                try {
+                    connect.setConnectPwd(AESUtils.encryptToHex(requestPassword, userSalt));
+                } catch (Exception e) {
+                    throw new RuntimeException("密码加密失败", e);
+                }
+            }
+            // 更新其他字段，但保留可能更新的密码
+            ConnectInfo updatedConnect = connectConverter.request2connectInfo(request);
+            if (requestPassword.equals(storedPassword)) {
+                updatedConnect.setConnectPwd(storedPassword);
+            }else {
+                updatedConnect.setConnectPwd(connect.getConnectPwd());
+            }
+            connectManageMapper.updateConnect(updatedConnect);
+            return ResponseResult.success(updatedConnect);
+        }).orElseGet(() -> ResponseResult.fail(null, "连接不存在"));
     }
 
     @Override
@@ -130,28 +147,23 @@ public class ConnectManageServiceImpl implements ConnectManageService {
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
 
         // 验证用户是否存在
-        User user = authService.getUserByUsername(username);
-        if (user == null) {
+        Optional<User> optionalUser = Optional.ofNullable(authService.getUserByUsername(username));
+        if (optionalUser.isEmpty()) {
             return ResponseResult.fail(null, "用户不存在");
         }
 
-        // 获取用户的连接信息
-        ConnectInfo connectInfo = connectManageMapper
-                .selectByConnectCreaterUid(user.getUid())
+        Optional<ConnectInfo> optionalConnectInfo = connectManageMapper
+                .selectByConnectCreaterUid(optionalUser.get().getUid())
                 .stream()
                 .filter(connect -> connect.getCid().equals(cid))
-                .findFirst()
-                .orElse(null);
-
-        if (connectInfo == null) {
-            return ResponseResult.fail(null, "连接不存在");
-        }
-
-        // 删除连接
-        connectManageMapper.deleteConnect(cid);
-        return ResponseResult.success(null);
+                .findFirst();
+        return optionalConnectInfo
+                .map(connectInfo -> {
+                    connectManageMapper.deleteConnect(cid);
+                    return ResponseResult.success(connectInfo);
+                })
+                .orElseGet(() -> ResponseResult.fail(null, "连接不存在"));
     }
-
 
 
 }
