@@ -1,7 +1,7 @@
 import serviceAxios from "@/utils/request";
 export const add = (data) => {
     return serviceAxios({
-        url: "/connect/addConnect",
+        url: "/api/connect/add",
         method: "post",
         data,
     });
@@ -9,7 +9,7 @@ export const add = (data) => {
 
 export const edit = (data) => {
     return serviceAxios({
-        url: "/connect/updateConnect",
+        url: "/api/connect/update",
         method: "post",
         data,
     });
@@ -17,14 +17,14 @@ export const edit = (data) => {
 
 export const list = () => {
     return serviceAxios({
-        url: "/connect/getConnect",
+        url: "/api/connect/list",
         method: "get",
     });
 }
 
 export const del = (data) => {
     return serviceAxios({
-        url: "/connect/deleteConnect",
+        url: "/api/connect/deleteConnect",
         method: "post",
         data,
     });

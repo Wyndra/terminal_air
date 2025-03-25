@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import store from '../store'
 
 const routes = [
   {
@@ -25,19 +26,8 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const isLoggedIn = localStorage.getItem('token') !== null; // 检查本地存储中的登录状态
+  const isLoggedIn = store.getters.isLoggedIn; // 获取登录状态
   // TODO 判断token是否过期
-  
-
-  // if (to.matched.some(record => record.meta.requiresAuth) && !isLoggedIn) {
-  //   // next({
-  //   //   path: '/',
-  //   //   query: { redirect: to.fullPath } // 将当前路由全路径作为redirect参数传递
-  //   // })
-  //   next()
-  // } else {
-  //   next()
-  // }
   if (!isLoggedIn) {
     next()
   }else{

@@ -13,7 +13,7 @@
           <n-icon size="24" style="cursor: pointer; margin-right: 8px;" @click="openTerminalSettings">
             <Terminal />
           </n-icon>
-          
+
         </div>
         <div style="height: 100%; display: flex; align-items: center">
           <n-button v-if="!InLogin" style="margin-right: 24px;" @click="openLoginModal">
@@ -22,8 +22,7 @@
           <n-popover v-else trigger="hover">
             <template #trigger>
               <div class="username_avatar">
-                <n-avatar id="user-avatar" round size="large"
-                  :src="userInfo.avatar || ''" />
+                <n-avatar id="user-avatar" round size="large" :src="userInfo.avatar || ''" />
                 <span style="margin-right: 24px; margin-left: 10px !important;">
                   {{ userInfo.nickname || userInfo.username }}
                 </span>
@@ -68,7 +67,7 @@
 
             <!-- 有连接时显示连接列表 -->
             <div v-else>
-              <div v-for="(item, index) in connect_list" :key="index">
+              <div v-for="(item, index) in connect_list" :key="item">
                 <ConnectionItem @taggle_connect="handleTaggleConnectionEvent"
                   @refresh_connection_list="fetchConnectionList()" :connectInfoValue="item" />
               </div>
@@ -79,26 +78,17 @@
         <!-- 主内容 -->
         <n-layout-content
           content-style="padding: 0px; padding-left: 24px; padding-right: 12px; padding-top: 12px; padding-bottom: 12px; height: 100%; overflow: hidden;">
-
           <!-- 判断是否未登录 -->
           <div v-if="!InLogin"
             style="background: #000000; height: 100%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative;">
-            <!-- 添加 SVG 动画 -->
             <img
               src="https://jrenc.azurewebsites.net/api/signature?code=zHZRCCItO-yB8t7d2KyitELFDwADnXIotkeeIQL3juyNAzFucnyrWA%3D%3D&name=Terminal%20Air&animate=true&speed=1&color=%23ffffff"
               alt="Terminal Air" style="margin-bottom: 2rem; max-width: 80%; height: auto;" />
-
-            <!-- 注释掉打字机效果的文字 -->
-            <!-- <p id="typed-output"
-              style="font-size: 24px; text-align: center; font-family: 'Courier New', Courier, monospace; position: relative;">
-            </p> -->
           </div>
-
           <!-- 已登录状态，显示正常内容 -->
           <div style="height: 100%;" v-else>
             <SshDisplay ref="sshDisplay" />
           </div>
-
         </n-layout-content>
       </n-layout>
     </n-layout>
@@ -122,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted,watch } from 'vue';
+import { ref, reactive,onMounted,watch, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage, useNotification } from 'naive-ui';
 import { useRouter } from 'vue-router';
@@ -141,11 +131,7 @@ const store = useStore();
 const message = useMessage();
 const notification = useNotification();
 
-
-const watermark_show = ref(false)
-
 const router = useRouter(); 
-import Typed from 'typed.js';
 import { Terminal } from '@vicons/ionicons5';
 
 watch(() => store.getters.isLoggedIn, (value) => {
@@ -166,7 +152,8 @@ async function fetchConnectionList() {
   try {
     const res = await list();
     if (res.status === '200') {
-      connect_list.value = res.data;
+      connect_list.value = [...res.data];
+      await nextTick();
       if (res.data.length > 0) {
         store.state.host = res.data[0].connectHost;
         store.state.port = res.data[0].connectPort;
