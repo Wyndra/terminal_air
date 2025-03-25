@@ -45,15 +45,6 @@
               <n-form-item label="预设主题">
                 <n-select v-model:value="currentTheme" :options="themeOptions" />
               </n-form-item>
-              <!-- 暂时取消自定义主题功能 -->
-              <!-- <n-divider>自定义主题</n-divider>
-              <n-grid x-gap="12" y-gap="8" :cols="2">
-                <n-grid-item v-for="color in Object.keys(settings.theme)" :key="color">
-                  <n-form-item label-placement="top" :label="colorToChineseName[color]">
-                    <n-color-picker v-model:value="settings.theme[color]" />
-                  </n-form-item>
-                </n-grid-item>
-              </n-grid> -->
             </n-form>
           </n-tab-pane>
 

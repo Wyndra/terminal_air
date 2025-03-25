@@ -30,7 +30,6 @@
             <template #footer>
               <div style="display: flex;justify-content: center;">
                 <span @click="logout">退出登录</span>
-
               </div>
             </template>
           </n-popover>
@@ -53,9 +52,7 @@
                       style="display: flex;justify-content: center !important;align-items: center;">
                       <n-avatar round :size="120" :src="userInfo.avatar || ''" class="main-avatar" />
                       <n-upload :action="uploadUrl" :max-size="2097152" accept="image/*"
-                        @before-upload="handleBeforeUpload" @error="handleUploadError"
-                        :custom-request="customUpload">
-
+                        @before-upload="handleBeforeUpload" @error="handleUploadError" :custom-request="customUpload">
                         <n-button type="text" size="small" class="change-avatar-btn">创建你的头像</n-button>
                       </n-upload>
                     </div>
@@ -292,6 +289,7 @@ const userInfo = ref({
   avatar: '',
   isTwoFactorAuth: '',
 });
+
 const safeSettingForm = ref({
   salt: ''
 });
@@ -318,20 +316,13 @@ const handleTwoFactorAuthVerifyResult = (isUnlocked) => {
 };
 
 const isShaking = ref(false);
-
-const InLogin = ref(!!localStorage.getItem('token'));
+const InLogin = ref(store.getters.isLoggedIn);
 const hasShownError = ref(store.getters.hasShownError);
 const isLoading = ref(true);  // 添加一个加载状态
 
 // 打开登录模态框
 const openLoginModal = () => {
   showLoginOrRegisterModal.value = true;
-};
-
-const safeSettingRules = {
-  salt: [
-    { required: true, message: '加密密钥不能为空', trigger: ['input', 'blur'] }
-  ]
 };
 
 const handleBeforeLeave = (tabName) => {
@@ -478,7 +469,7 @@ const customUpload = async ({ file, onProgress, onError }) => {
   let uploadUrl = '';
   let filePath = ""
   // 先向服务器请求一个预签名的上传地址
-  const res = await generatePresignUrl().then(res => {
+  await generatePresignUrl().then(res => {
     uploadUrl = res.data.url;
     filePath = res.data.filePath
   }).catch(err => {
@@ -540,18 +531,6 @@ const handleUploadError = () => {
 
 const isEditing = ref(false);
 const tempUserInfo = ref(null);
-
-// 开始编辑
-const startEditing = () => {
-  tempUserInfo.value = { ...userInfo.value };
-  isEditing.value = true;
-};
-
-// 取消编辑
-const cancelEditing = () => {
-  userInfo.value = { ...tempUserInfo.value };
-  isEditing.value = false;
-};
 
 const editableFields = [
   { key: 'username', label: '用户名', editable: false },

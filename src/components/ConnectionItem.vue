@@ -1,19 +1,14 @@
 <template>
     <div class="add_border" @click="handleTaggleConnect">
-        <n-h4 style="margin: 0px;cursor: pointer;">{{ connectInfoValue.connectName }}</n-h4>
+        <n-ellipsis style="max-width: 160px">
+            <n-h5 style="margin: 0px;cursor: pointer;">{{ connectInfoValue.connectName }}</n-h5>
+        </n-ellipsis>
+
         <div style="flex: 1;"></div>
         <n-popover :overlap="overlap" placement="right-start" trigger="hover">
             <template #trigger>
-                <n-icon size="26">
-                    <svg t="1714908494826" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                        xmlns="http://www.w3.org/2000/svg" p-id="19075" width="200" height="200">
-                        <path d="M288 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" fill="#272636" p-id="19076">
-                        </path>
-                        <path d="M512 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" fill="#272636" p-id="19077">
-                        </path>
-                        <path d="M736 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" fill="#272636" p-id="19078">
-                        </path>
-                    </svg>
+                <n-icon size="20">
+                    <Dots></Dots>
                 </n-icon>
             </template>
             <div>
@@ -30,6 +25,7 @@
 import { defineEmits, ref, defineProps } from 'vue';
 import { del } from '@/api/connect';
 import { useStore } from 'vuex';
+import { Dots } from '@vicons/tabler';
 import { useMessage,useDialog } from 'naive-ui';
 
 const store = useStore();
@@ -114,6 +110,7 @@ const connectInfoValue = ref(props.connectInfoValue);
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 5px;
+    align-items: center;
 }
 
 .add_border:hover {
@@ -122,7 +119,7 @@ const connectInfoValue = ref(props.connectInfoValue);
 }
 
 .line {
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid #414141;
 }
 .warn_button {
     color: #ff4d4f;

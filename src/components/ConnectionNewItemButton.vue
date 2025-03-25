@@ -1,14 +1,15 @@
 <template>
     <div class="add_border" @click="handleNewConnect">
-        <n-h4 style="margin: 0px;">开启一个新连接</n-h4>
+        <n-h4 style="margin: 0px;">开启新连接</n-h4>
         <div style="flex: 1;"></div>
         <n-icon size="20" style="align-self: center;">
-            <img src="@/assets/svg/server.svg" alt="SVG Image" width="20" height="20">
+            <Server></Server>
         </n-icon>
     </div>
     <div class="line"></div>
 </template>
 <script setup>
+import { Server } from '@vicons/fa';
 import { defineEmits } from 'vue';
 const emit = defineEmits(["new-connection"]); //声明 emits
 const handleNewConnect = () => {
@@ -23,7 +24,7 @@ const handleNewConnect = () => {
     background-color: #ebebeb;
     padding: 10px;
     border-radius: 8px;
-    border: 0.3px solid rgb(52, 53, 54);
+    border: 0.8px solid rgb(52, 53, 54);
 }
 
 .add_border:hover {

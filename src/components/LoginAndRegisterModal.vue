@@ -8,19 +8,39 @@
             </n-button>
         </template>
 
-        <!-- 登录表单 -->
-        <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules"
-            v-if="currentServiceType === '登录' && !useCodeLogin && !isTwoFactor">
-            <n-form-item label="用户名" path="username">
-                <n-input v-model:value="loginForm.username" placeholder="请输入用户名" @keydown.enter.prevent />
-            </n-form-item>
-            <n-form-item label="密码" path="password">
-                <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
-                    show-password-on="mousedown" @keydown.enter.prevent />
-            </n-form-item>
-        </n-form>
+        <n-tabs type="line" animated @before-leave="handleBeforeLeave" v-if="currentServiceType === '登录' && !isTwoFactor">
+            <n-tab-pane name="usernameLogin" tab="账密登录">
+                <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules">
+                    <n-form-item label="用户名" path="username">
+                        <n-input v-model:value="loginForm.username" placeholder="请输入用户名" @keydown.enter.prevent />
+                    </n-form-item>
+                    <n-form-item label="密码" path="password">
+                        <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
+                            show-password-on="mousedown" @keydown.enter.prevent />
+                    </n-form-item>
+                </n-form>
+            </n-tab-pane>
+            <n-tab-pane name="phoneLogin" tab="手机号登录">
+                <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules">
+                    <n-form-item ref="loginByCodeRef" label="手机号" path="phone">
+                        <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="codeLoginForm.phone"
+                            placeholder="请输入中国大陆手机号" />
+                    </n-form-item>
+                    <n-form-item label="验证码" path="verificationCode">
+                        <div style="display: flex; gap: 8px;">
+                            <n-input :allow-input="onlyDigitsInput" :maxlength="6"
+                                v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
+                            <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
+                                style="background-color: #319154; color: white;">
+                                {{ codeButtonText }}
+                            </n-button>
+                        </div>
+                    </n-form-item>
+                </n-form>
+            </n-tab-pane>
+        </n-tabs>
 
-        <!-- 二次验证表单 -->
+
         <n-form ref="twoFactorFormRef" label-position="top" :model="twoFactorForm" :rules="twoFactorAuthRules"
             v-if="isTwoFactor">
             <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
@@ -40,23 +60,7 @@
         </n-form>
 
         <!-- 验证码登录表单 -->
-        <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules"
-            v-if="currentServiceType === '登录' && useCodeLogin">
-            <n-form-item ref="loginByCodeRef" label="手机号" path="phone">
-                <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="codeLoginForm.phone"
-                    placeholder="请输入中国大陆手机号" />
-            </n-form-item>
-            <n-form-item label="验证码" path="verificationCode">
-                <div style="display: flex; gap: 8px;">
-                    <n-input :allow-input="onlyDigitsInput" :maxlength="6"
-                        v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
-                    <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
-                        style="background-color: #319154; color: white;">
-                        {{ codeButtonText }}
-                    </n-button>
-                </div>
-            </n-form-item>
-        </n-form>
+
 
         <!-- 注册表单 -->
         <n-form ref="registerFormRef" label-position="top" :model="registerForm" :rules="registerRules"
@@ -94,17 +98,12 @@
                 </n-form-item>
             </div>
         </n-form>
-        <div data-size="flexible" id="turnstile-widget"></div>
+        <!-- 人机验证组件 -->
+        <div data-size="flexible" id="turnstile-widget" />
         <div style="display: flex; justify-content: space-between; margin-top: 16px;"
             v-if="currentServiceType === '登录' && !isTwoFactor">
-
             <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
                 @click="handleClickRegister">立即注册</n-text>
-
-            <n-text style="cursor: pointer; color:#319154; font-weight: bold;" @click="toggleLoginMethod">
-                {{ useCodeLogin ? '密码登录' : '验证码登录' }}
-            </n-text>
-
         </div>
         <div style="display: flex; justify-content: space-between; margin-top: 16px;"
             v-if="currentServiceType === '注册'">
@@ -140,6 +139,15 @@ const serial = ref("");
 
 // 定义emit方法
 const emit = defineEmits(['close']);
+
+const handleBeforeLeave = (tabName) => {
+    if (tabName === 'phoneLogin') {
+        useCodeLogin.value = true;
+    } else {
+        useCodeLogin.value = false;
+    }
+    return true;
+};
 
 // 登录表单数据
 const loginForm = ref({
@@ -177,9 +185,10 @@ const refreshTurnstile = () => {
             },
             "expired-callback": () => {
                 message.error('人机验证已过期，请刷新页面重试');
+                window.location.reload();
             },
             "error-callback": (error) => {
-                message.error('人机验证未通过');
+                message.error('人机验证检查中...');
             },
         });
     });
@@ -286,7 +295,7 @@ const registerRules = {
     ],
     phone: [
         { required: true, message: '请输入中国大陆手机号', trigger: 'blur' },
-        { pattern: /^[1][3-9][0-9]{9}$/, message: '请输入有效的手机号码', trigger: ['blur','verify-phone'] }
+        { pattern: /^[1][3-9][0-9]{9}$/, message: '请输入有效的手机号码', trigger: ['blur', 'verify-phone'] }
     ],
     verificationCode: [
         { required: true, message: '请输入验证码', trigger: 'blur' }
@@ -299,7 +308,6 @@ const twoFactorAuthRules = {
         { length: 6, message: '请输入正确的一次性验证码', trigger: 'blur' }
     ]
 }
-
 
 // 登录提交
 async function async_login() {
@@ -336,17 +344,20 @@ async function async_twoFactor() {
     });
 
     if (res.status === '200') {
-        message.success('登录成功');
+        store.dispatch("resetHasShownError");
         localStorage.setItem('token', res.data);
         // 移除twoFactorAuthToken
         localStorage.removeItem("twoFactorAuthToken")
         // 重置错误显示状态
         store.dispatch("resetHasShownError");
-        emit('close'); // 关闭模态框
+        emit('close');
+        message.success('登录成功');
+        await nextTick();
         location.reload();
     } else {
         message.error(res.message || '登录失败');
         twoFactorFormRef.value.code = '';
+
     }
 }
 
@@ -354,19 +365,21 @@ async function async_twoFactor() {
 async function async_loginWithCode() {
     const res = await loginBySmsCode({
         phone: codeLoginForm.value.phone,
-        serial: serial.value,
+        serial: serial.value || localStorage.getItem('serial'),
         verificationCode: codeLoginForm.value.verificationCode
     });
 
     if (res.status === '200') {
         localStorage.setItem('token', res.data);
         message.success('登录成功');
+        localStorage.removeItem('serial');
         // 重置错误显示状态
         store.dispatch("resetHasShownError");
         emit('close'); // 关闭模态框
         location.reload();
     } else {
         message.error(res.message || '登录失败');
+
     }
 }
 
@@ -422,6 +435,8 @@ const handleGetVerificationCode = async () => {
         if (res.status === '200') {
             message.success('验证码已发送');
             serial.value = res.data.serial;
+            // 存储到localStorage
+            localStorage.setItem('serial', res.data.serial);
             startCodeButtonCountdown();
         } else {
             message.error(res.message || '获取验证码失败');
@@ -438,7 +453,6 @@ const startCodeButtonCountdown = () => {
     let countdown = 60;
     isCodeButtonDisabled.value = true;
     codeButtonText.value = `${countdown}s后重新获取`;
-
     const interval = setInterval(() => {
         countdown--;
         if (countdown > 0) {
@@ -538,7 +552,6 @@ const handleSubmit = () => {
                 if (response.data.success) {
                     if (!valid) {
                         async_register();
-                        // 清除人机验证
                         clearTurnstile();
                     } else {
                         message.error('请填写完整的注册信息');

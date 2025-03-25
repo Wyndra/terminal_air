@@ -215,10 +215,12 @@ const openLoginModal = () => {
   showLoginOrRegisterModal.value = true;
 };
 
-const logout = () => {
+const logout = async () => {
   localStorage.removeItem('token');
   localStorage.removeItem("twoFactorAuthToken")
   InLogin.value = false;
+  message.success('退出登录');
+  await nextTick();
   store.dispatch('logout');
   router.push('/');
 };
