@@ -54,7 +54,7 @@
 <script setup>
 import { ref, defineEmits } from 'vue';
 import { useMessage } from 'naive-ui';
-import { add } from '@/api/connect';
+import { add } from '@/api/connection';
 import { useStore } from 'vuex';
 
 const store = useStore();

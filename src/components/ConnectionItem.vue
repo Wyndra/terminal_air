@@ -23,7 +23,7 @@
 </template>
 <script setup>
 import { defineEmits, ref, defineProps } from 'vue';
-import { del } from '@/api/connect';
+import { del } from '@/api/connection';
 import { useStore } from 'vuex';
 import { Dots } from '@vicons/tabler';
 import { useMessage,useDialog } from 'naive-ui';

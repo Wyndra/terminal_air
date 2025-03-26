@@ -118,7 +118,7 @@ import { useMessage, useNotification } from 'naive-ui';
 import { useRouter } from 'vue-router';
 
 import { getUserInfo } from '@/api/auth';
-import { list } from '@/api/connect';
+import { list } from '@/api/connection';
 
 import ConnectionNewItemButton from '@/components/ConnectionNewItemButton.vue';
 import ConnectionItem from '@/components/ConnectionItem.vue';

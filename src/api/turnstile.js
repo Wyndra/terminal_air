@@ -1,7 +1,7 @@
 import serviceAxios from "@/utils/request";
-export const generatePresignUrl = (data) => {
+export const verifyTurnstile = (data) => {
     return serviceAxios({
-        url: "/api/avatar/presigned-url",
+        url: "/api/turnstile/verify",
         method: "post",
         data,
     });

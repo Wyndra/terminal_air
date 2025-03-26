@@ -1,7 +1,7 @@
 import serviceAxios from "@/utils/request";
 export const login = (data) => {
     return serviceAxios({
-        url: "/auth/login",
+        url: "/api/auth/login",
         method: "post",
         data,
     });
@@ -9,7 +9,7 @@ export const login = (data) => {
 
 export const loginBySmsCode = (data) => {
     return serviceAxios({
-        url: "/auth/loginBySmsCode",
+        url: "/api/auth/loginBySmsCode",
         method: "post",
         data,
     });
@@ -17,7 +17,7 @@ export const loginBySmsCode = (data) => {
 
 export const register = (data) => {
     return serviceAxios({
-        url: "/auth/register",
+        url: "/api/auth/register",
         method: "post",
         data,
     });
@@ -25,7 +25,7 @@ export const register = (data) => {
 
 export const verifyUserPassword = (data) => {
     return serviceAxios({
-        url: "/auth/verifyUserPassword",
+        url: "/api/auth/verifyUserPassword",
         method: "post",
         data,
     });
@@ -33,14 +33,14 @@ export const verifyUserPassword = (data) => {
 
 export const getUserInfo = () => {
     return serviceAxios({
-        url: "/auth/getProfile",
+        url: "/api/auth/getProfile",
         method: "get",
     });
 }
 
 export const updateUserInfo = (data) => {
     return serviceAxios({
-        url: "/auth/updateProfile",
+        url: "/api/auth/updateProfile",
         method: "post",
         data,
     });
@@ -48,21 +48,21 @@ export const updateUserInfo = (data) => {
 
 export const switchTwoFactorAuth = () => {
     return serviceAxios({
-        url: "/auth/switchTwoFactorAuth",
+        url: "/api/auth/switchTwoFactorAuth",
         method: "get",
     });
 }
 
 export const getTwoFactorAuthSecretQRCode = () => {
     return serviceAxios({
-        url: "/auth/getTwoFactorAuthSecretQRCode",
+        url: "/api/auth/getTwoFactorAuthSecretQRCode",
         method: "get",
     });
 }
 
 export const verifyTwoFactorAuthCode = (data) => {
     return serviceAxios({
-        url: "/auth/verifyTwoFactorAuthCode",
+        url: "/api/auth/verifyTwoFactorAuthCode",
         method: "post",
         data,
         headers: {
@@ -73,7 +73,7 @@ export const verifyTwoFactorAuthCode = (data) => {
 
 export const loginRequireTwoFactorAuth = (data) => {
     return serviceAxios({
-        url: "/auth/loginRequireTwoFactorAuth",
+        url: "/api/auth/loginRequireTwoFactorAuth",
         method: "post",
         data,
         headers: {
@@ -84,14 +84,14 @@ export const loginRequireTwoFactorAuth = (data) => {
 // 通过用户当前的token获取二次验证的token
 export const getTwoFactorAuthTokenByCurrentUser = () => {
     return serviceAxios({
-        url: "/auth/getTwoFactorAuthTokenByCurrentUser",
+        url: "/api/auth/getTwoFactorAuthTokenByCurrentUser",
         method: "get",
     });
 }
 
 export const getUserAvatar = () => {
     return serviceAxios({
-        url: "/auth/getUserAvatar",
+        url: "/api/auth/getUserAvatar",
         method: "get",
         headers: {
             "Authorization": "Bearer " + localStorage.getItem("twoFactorAuthToken"),
@@ -99,17 +99,9 @@ export const getUserAvatar = () => {
     });
 }
 
-export const verifyTurnstile = (data) => {
-    return serviceAxios({
-        url: "/auth/verifyTurnstile",
-        method: "post",
-        data,
-    });
-}
-
 export const updatePassword = (data) => {
     return serviceAxios({
-        url: "/auth/updatePassword",
+        url: "/api/auth/updatePassword",
         method: "post",
         data,
     });

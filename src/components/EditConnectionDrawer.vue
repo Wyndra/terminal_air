@@ -54,7 +54,7 @@
 <script setup>
 import { ref, defineEmits, onMounted, nextTick, watch } from 'vue';
 import { useMessage } from 'naive-ui';
-import { edit } from '@/api/connect';
+import { edit } from '@/api/connection';
 import { useStore } from 'vuex';
 
 const store = useStore();

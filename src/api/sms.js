@@ -1,7 +1,7 @@
 import serviceAxios from "@/utils/request";
 export const sendVerificationCode = (data) => {
     return serviceAxios({
-        url: "/sms/sendVerificationCode",
+        url: "/api/sms/sendVerificationCode",
         method: "post",
         data,
     });
@@ -9,7 +9,7 @@ export const sendVerificationCode = (data) => {
 
 export const verifyCode = (data) => {
     return serviceAxios({
-        url: "/sms/verifyCode",
+        url: "/api/sms/verifyCode",
         method: "post",
         data,
     });
@@ -17,7 +17,7 @@ export const verifyCode = (data) => {
 
 export const sendSmsCodeByToken = () => {
     return serviceAxios({
-        url: "/sms/sendSmsCodeByToken",
+        url: "/api/sms/sendSmsCodeByToken",
         method: "get",
     });
 }
