@@ -28,9 +28,9 @@
               <n-text @click="gotoHomeView()" depth="1">回到工作区</n-text>
             </template>
             <template #footer>
-              <div style="display: flex;justify-content: center;">
+              <!-- <div style="display: flex;justify-content: center;"> -->
                 <span @click="logout">退出登录</span>
-              </div>
+              <!-- </div> -->
             </template>
           </n-popover>
         </div>
