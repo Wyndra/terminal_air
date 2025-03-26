@@ -8,7 +8,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
 public class AESUtils {
-    // 保留默认密钥，支持调用时不指定密钥
     private static final String DEFAULT_AESKEY = "c2h0ZC4yMDE3LmFlc2tleQ==";
 
     public AESUtils() {}
@@ -56,25 +55,52 @@ public class AESUtils {
         return out;
     }
 
-    // 支持传入自定义密钥的加密方法
+    /**
+     * 传入自定义密钥的加密方法
+     * @param content 待加密内容
+     * @param base64Key 密钥
+     * @return 加密后的内容
+     * @throws GeneralSecurityException
+     * @throws UnsupportedEncodingException
+     */
     public static String encryptToHex(String content, String base64Key) throws GeneralSecurityException, UnsupportedEncodingException {
         return byteToHex(encrypt(content, new String(Base64.getDecoder().decode(base64Key)), 16));
     }
 
-    // 支持传入自定义密钥的解密方法
+    /**
+     * 传入自定义密钥的解密方法
+     * @param content 待解密内容
+     * @param base64Key 密钥
+     * @return 解密后的内容
+     * @throws GeneralSecurityException
+     * @throws UnsupportedEncodingException
+     */
     public static String decryptFromHex(String content, String base64Key) throws GeneralSecurityException, UnsupportedEncodingException {
         return new String(decrypt(hexToByte(content), new String(Base64.getDecoder().decode(base64Key)), 16), "UTF-8");
     }
 
-    // 使用默认密钥进行加密
+    /**
+     * 使用默认密钥进行加密
+     * @param content 待加密内容
+     * @return 加密后的内容
+     * @throws GeneralSecurityException
+     * @throws UnsupportedEncodingException
+     */
     public static String encryptWithDefaultKey(String content) throws GeneralSecurityException, UnsupportedEncodingException {
         return encryptToHex(content, DEFAULT_AESKEY);
     }
 
-    // 使用默认密钥进行解密
+    /**
+     * 使用默认密钥进行解密
+     * @param content 待解密内容
+     * @return 解密后的内容
+     * @throws GeneralSecurityException
+     * @throws UnsupportedEncodingException
+     */
     public static String decryptWithDefaultKey(String content) throws GeneralSecurityException, UnsupportedEncodingException {
         return decryptFromHex(content, DEFAULT_AESKEY);
     }
+
 
     public static void main(String[] args) throws GeneralSecurityException, UnsupportedEncodingException {
         // 示例：使用自定义密钥加解密

@@ -27,7 +27,6 @@ public class WebSSHServiceAspect {
 
         // 确保参数数量和类型正确
         if (args.length >= 4 && args[1] instanceof WebSSHData webSSHData && args[2] instanceof WebSocketSession webSocketSession) {
-
             String username = (String) webSocketSession.getAttributes().get("username");
             String salt = authService.getSaltByUsername(username);
             String decryptedPassword = AESUtils.decryptFromHex(webSSHData.getPassword(), salt);

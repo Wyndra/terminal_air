@@ -3,13 +3,12 @@ package top.srcandy.candyterminal.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Data
 @Builder
-public class ConnectInfo implements Serializable {
+public class Connection implements Serializable {
     private static final long serialVersionUID = 5L;
     @Schema(description = "连接id")
     private Long cid;

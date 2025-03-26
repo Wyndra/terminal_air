@@ -1,7 +1,13 @@
 package top.srcandy.candyterminal.utils;
 
 public class SaltUtils {
-    public static String getSalt(int n){
+
+    /**
+     * 生成随机盐
+     * @param n 盐的长度
+     * @return 盐
+     */
+    public static String generateSalt(int n){
         char[] chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < n; i++) {

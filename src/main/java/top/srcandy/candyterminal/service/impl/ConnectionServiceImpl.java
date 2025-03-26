@@ -1,22 +1,20 @@
 package top.srcandy.candyterminal.service.impl;
 
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.converter.ConnectConverter;
-import top.srcandy.candyterminal.mapper.ConnectManageMapper;
-import top.srcandy.candyterminal.model.ConnectInfo;
+import top.srcandy.candyterminal.mapper.ConnectionMapper;
+import top.srcandy.candyterminal.model.Connection;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.AddConnectRequest;
 import top.srcandy.candyterminal.request.UpdateConnectRequest;
 import top.srcandy.candyterminal.service.AuthService;
-import top.srcandy.candyterminal.service.ConnectManageService;
+import top.srcandy.candyterminal.service.ConnectionService;
 import top.srcandy.candyterminal.utils.AESUtils;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
-import java.io.Console;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -24,9 +22,9 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class ConnectManageServiceImpl implements ConnectManageService {
+public class ConnectionServiceImpl implements ConnectionService {
     @Autowired
-    private ConnectManageMapper connectManageMapper;
+    private ConnectionMapper connectionMapper;
 
     @Autowired
     private AuthService authService;
@@ -35,7 +33,7 @@ public class ConnectManageServiceImpl implements ConnectManageService {
     private ConnectConverter connectConverter;
 
 
-    public ResponseResult<List<ConnectInfo>> list(String token) {
+    public ResponseResult<List<Connection>> list(String token) {
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
         User user = authService.getUserByUsername(username);
@@ -43,17 +41,17 @@ public class ConnectManageServiceImpl implements ConnectManageService {
             return ResponseResult.fail(null, "用户不存在");
         }
         log.info("user:{}", user);
-        return ResponseResult.success(connectManageMapper.selectByConnectCreaterUid(user.getUid()));
+        return ResponseResult.success(connectionMapper.selectByConnectCreaterUid(user.getUid()));
     }
 
 
     @Override
-    public ResponseResult<List<ConnectInfo>> selectByConnectCreaterUid(Long connectCreaterUid) {
-        return ResponseResult.success(connectManageMapper.selectByConnectCreaterUid(connectCreaterUid));
+    public ResponseResult<List<Connection>> selectByConnectCreaterUid(Long connectCreaterUid) {
+        return ResponseResult.success(connectionMapper.selectByConnectCreaterUid(connectCreaterUid));
     }
 
     @Override
-    public ResponseResult<ConnectInfo> insertConnect(String token, AddConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<Connection> insertConnect(String token, AddConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         // 提取 token 并解析用户名
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
@@ -65,34 +63,33 @@ public class ConnectManageServiceImpl implements ConnectManageService {
         }
 
         // 获取用户的连接信息
-        List<ConnectInfo> userConnects = connectManageMapper.selectByConnectCreaterUid(user.getUid());
+        List<Connection> userConnects = connectionMapper.selectByConnectCreaterUid(user.getUid());
         log.info("userConnects:{}", userConnects);
 
         // 判断新增的连接是否已经存在
-        for (ConnectInfo userConnect : userConnects) {
+        for (Connection userConnect : userConnects) {
             if (userConnect.getConnectHost().equals(request.getHost())) {
                 return ResponseResult.fail(null, "连接已存在");
             }
         }
 
-        String user_salt = user.getSalt();
-
+        String userSalt = user.getSalt();
         // 插入连接
-        ConnectInfo connect = ConnectInfo.builder()
+        Connection connect = Connection.builder()
                 .connect_creater_uid(user.getUid())
                 .connectHost(request.getHost())
                 .connectPort(request.getPort())
                 .connectUsername(request.getUsername())
-                .connectPwd(AESUtils.encryptToHex(request.getPassword(), user_salt))
+                .connectPwd(AESUtils.encryptToHex(request.getPassword(), userSalt))
                 .connectName(request.getName())
                 .connectMethod(request.getMethod())
                 .build();
-        connectManageMapper.insertConnect(connect);
+        connectionMapper.insertConnect(connect);
         return ResponseResult.success(connect);
     }
 
     @Override
-    public ResponseResult<ConnectInfo> updateConnect(String token, UpdateConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<Connection> updateConnect(String token, UpdateConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         // 提取 token 并解析用户名
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
@@ -103,7 +100,7 @@ public class ConnectManageServiceImpl implements ConnectManageService {
             return ResponseResult.fail(null, "用户不存在");
         }
 
-        Optional<ConnectInfo> optionalConnect = connectManageMapper
+        Optional<Connection> optionalConnect = connectionMapper
                 .selectByConnectCreaterUid(user.getUid())
                 .stream()
                 .filter(connectInfo -> connectInfo.getCid().equals(request.getCid()))
@@ -129,19 +126,19 @@ public class ConnectManageServiceImpl implements ConnectManageService {
                 }
             }
             // 更新其他字段，但保留可能更新的密码
-            ConnectInfo updatedConnect = connectConverter.request2connectInfo(request);
+            Connection updatedConnect = connectConverter.request2connectInfo(request);
             if (requestPassword.equals(storedPassword)) {
                 updatedConnect.setConnectPwd(storedPassword);
             }else {
                 updatedConnect.setConnectPwd(connect.getConnectPwd());
             }
-            connectManageMapper.updateConnect(updatedConnect);
+            connectionMapper.updateConnect(updatedConnect);
             return ResponseResult.success(updatedConnect);
         }).orElseGet(() -> ResponseResult.fail(null, "连接不存在"));
     }
 
     @Override
-    public ResponseResult<ConnectInfo> deleteConnect(String token, Long cid) {
+    public ResponseResult<Connection> deleteConnect(String token, Long cid) {
         // 提取 token 并解析用户名
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
@@ -152,14 +149,14 @@ public class ConnectManageServiceImpl implements ConnectManageService {
             return ResponseResult.fail(null, "用户不存在");
         }
 
-        Optional<ConnectInfo> optionalConnectInfo = connectManageMapper
+        Optional<Connection> optionalConnectInfo = connectionMapper
                 .selectByConnectCreaterUid(optionalUser.get().getUid())
                 .stream()
                 .filter(connect -> connect.getCid().equals(cid))
                 .findFirst();
         return optionalConnectInfo
                 .map(connectInfo -> {
-                    connectManageMapper.deleteConnect(cid);
+                    connectionMapper.deleteConnect(cid);
                     return ResponseResult.success(connectInfo);
                 })
                 .orElseGet(() -> ResponseResult.fail(null, "连接不存在"));

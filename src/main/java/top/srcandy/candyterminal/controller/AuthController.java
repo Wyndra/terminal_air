@@ -1,5 +1,7 @@
 package top.srcandy.candyterminal.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +26,8 @@ import java.util.Objects;
 @RestController
 @Slf4j
 @Validated
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
+@Tag(name = "Auth Service", description = "用户认证接口")
 public class AuthController {
 
     @Autowired
@@ -32,21 +35,11 @@ public class AuthController {
 
     @PostMapping("/login")
     @AuthAccess
+    @Operation(summary = "用户登录请求")
     public ResponseResult<LoginResultVO> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
 //        return authService.login(request);
         // 请求转到新的登录方法，实现无感切换密码强度。
         return authService.loginChangePassword(request);
-    }
-
-    // 人机验证接口
-    @PostMapping("/verifyTurnstile")
-    @AuthAccess
-    public ResponseResult<Map<String, Objects>> verifyTurnstile(@RequestBody Map<String, String> request) {
-        String token = request.get("token");
-        if (token == null) {
-            return ResponseResult.fail(null,"Token is required");
-        }
-        return authService.verifyTurnstile(token);
     }
 
     @PostMapping("/loginBySmsCode")

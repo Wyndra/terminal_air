@@ -10,8 +10,6 @@ public interface SmsService {
     ResponseResult<SmsCodeVO> sendSmsCode(SendVerificationCodeRequest request) throws Exception;
 
     ResponseResult<SmsCodeVO> sendSmsCodeByToken(String token_no_bearer) throws Exception;
-
-
     // Verify the SMS code
     boolean verifySmsCode(String phone, String serial ,String code);
 

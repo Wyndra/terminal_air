@@ -77,31 +77,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseResult<Map<String, Objects>> verifyTurnstile(String token) {
-        String secretKey = System.getenv("CLOUDFLARE_SECRET_KEY");
-        if (secretKey == null || secretKey.isEmpty()) {
-            return null;
-        }
-        log.info("CLOUDFLARE_SECRET_KEY:{}", secretKey);
-        if (token == null || token.isEmpty()) {
-            return ResponseResult.fail(null, "缺少 Token");
-        }
-
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
-
-        // 构建请求参数
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("secret", secretKey);
-        params.add("response", token);
-
-        // 发送请求
-        Map<String, Objects> response = restTemplate.postForObject(url, params, Map.class);
-
-        return ResponseResult.success(response);
-    }
-
-    @Override
     public ResponseResult<LoginResultVO> loginChangePassword(LoginRequest request) {
         User result = userDao.selectByUserName(request.getUsername());
         Optional<User> userOptional = Optional.ofNullable(result);
@@ -190,10 +165,11 @@ public class AuthServiceImpl implements AuthService {
         if (userDao.selectByUserPhone(request.getPhone()) != null) {
             return ResponseResult.fail(null, "手机号已注册");
         }
+        String salt = SaltUtils.generateSalt(16);   // 生成16位随机盐
+
         RegisterDTO registerDTO = new RegisterDTO();
         registerDTO.setUsername(request.getUsername());
         registerDTO.setPhone(request.getPhone());
-        String salt = SaltUtils.getSalt(16);   // 生成16位随机盐
         registerDTO.setSalt(salt);
         registerDTO.setPassword(Sha512DigestUtils.shaHex(request.getPassword() + salt));
         registerDTO.setTwoFactorSecret(microsoftAuth.getSecretKey());
@@ -214,7 +190,7 @@ public class AuthServiceImpl implements AuthService {
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
-        UserProfileVO userProfileVO = userProfileConverter.userToUserProfileVO(user);
+        UserProfileVO userProfileVO = userProfileConverter.user2UserProfileVO(user);
         userProfileVO.setAvatar(minioService.generateDisplaySignedUrl(user.getAvatar()));
         return ResponseResult.success(userProfileVO);
     }
@@ -359,7 +335,6 @@ public class AuthServiceImpl implements AuthService {
                 .nickname(user.getNickname())
                 .salt(user.getSalt())
                 .isTwoFactorAuth(user.getIsTwoFactorAuth())
-//                .twoFactorAuthSecret(user.getTwoFactorAuthSecret())
                 .build();
 
         return ResponseResult.success(profileVO);

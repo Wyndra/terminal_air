@@ -53,8 +53,10 @@ public class TwoFactorAuthUtil {
     }
 
     /**
-     * description:
-     * @author 获取二维码
+     * 生成二维码
+     * @param loginName 登录名
+     * @param newSecretKey 新的密钥
+     * @return 生成的二维码
      */
     public String getQrCode(String loginName, String newSecretKey) {
         String base64Image = null;

@@ -1,14 +1,11 @@
 package top.srcandy.candyterminal.converter;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import org.mapstruct.*;
-import top.srcandy.candyterminal.model.ConnectInfo;
+import top.srcandy.candyterminal.model.Connection;
 import top.srcandy.candyterminal.request.UpdateConnectRequest;
 
 @Mapper(componentModel = "spring")
 public interface ConnectConverter {
-
-
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "cid", source = "cid")
@@ -18,6 +15,6 @@ public interface ConnectConverter {
     @Mapping(target = "connectPwd", source = "password")
     @Mapping(target = "connectName", source = "name")
     @Mapping(target = "connectMethod", source = "method")
-    ConnectInfo request2connectInfo(UpdateConnectRequest request);
+    Connection request2connectInfo(UpdateConnectRequest request);
 
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import top.srcandy.candyterminal.bean.vo.SmsCodeVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.dao.UserDao;
+import top.srcandy.candyterminal.enums.SMSChannel;
 import top.srcandy.candyterminal.exception.ServiceException;
 import top.srcandy.candyterminal.exception.TooManyRequestsException;
 import top.srcandy.candyterminal.model.User;
@@ -40,7 +41,7 @@ public class SmsServiceImpl implements SmsService {
 
         // Check if the phone number is already registered (for registration flow)
         // 1021 is the channel for registration
-        if (Objects.equals(request.getChannel(), "1021")) {
+        if (Objects.equals(request.getChannel(), SMSChannel.REGISTER.getServiceCode())) {
             User existingUser = userDao.selectByUserPhone(phone);
             Optional<User> userOptional = Optional.ofNullable(existingUser);
             if (userOptional.isPresent()) {
@@ -49,7 +50,7 @@ public class SmsServiceImpl implements SmsService {
             }
         }
 
-        if (Objects.equals(request.getChannel(), "1008")) {
+        if (Objects.equals(request.getChannel(), SMSChannel.LOGIN.getServiceCode())) {
             User existingUser = userDao.selectByUserPhone(phone);
             Optional<User> userOptional = Optional.ofNullable(existingUser);
             if (userOptional.isEmpty()) {

@@ -14,8 +14,6 @@ import java.util.Objects;
 public interface AuthService {
     ResponseResult<LoginResultVO> login(LoginRequest request);
 
-    ResponseResult<Map<String, Objects>> verifyTurnstile(String token);
-
     ResponseResult<LoginResultVO> loginChangePassword(LoginRequest request);
 
     ResponseResult<String> loginRequireTwoFactorAuth(String twoFactorAuthToken,VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException;

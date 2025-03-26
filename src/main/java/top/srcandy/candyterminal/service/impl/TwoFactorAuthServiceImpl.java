@@ -1,2 +1,4 @@
-package top.srcandy.candyterminal.service.impl;public class TwoFactorAuthServiceImpl {
+package top.srcandy.candyterminal.service.impl;
+
+public class TwoFactorAuthServiceImpl {
 }

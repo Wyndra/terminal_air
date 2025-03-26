@@ -30,7 +30,6 @@ public interface UserProfileConverter {
     @Mapping(target = "phone", source = "phone")
     @Mapping(target = "avatar", source = "avatar")
     @Mapping(target = "isTwoFactorAuth", source = "isTwoFactorAuth")
-//    @Mapping(target = "twoFactorAuthSecret", source = "twoFactorAuthSecret")
     @Mapping(target = "createTime", source = "createTime")
-    UserProfileVO userToUserProfileVO(User user);
+    UserProfileVO user2UserProfileVO(User user);
 }

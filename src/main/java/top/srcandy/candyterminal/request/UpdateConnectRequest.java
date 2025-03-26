@@ -1,15 +1,23 @@
 package top.srcandy.candyterminal.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 
 public class UpdateConnectRequest {
+    @Schema(description = "连接ID")
     private Long cid;
+    @Schema(description = "主机")
     private String host;
+    @Schema(description = "端口")
     private String port;
+    @Schema(description = "用户名")
     private String username;
+    @Schema(description = "密码")
     private String password;
+    @Schema(description = "连接名称")
     private String name;
+    @Schema(description = "连接方式")
     private String method;
 
     public Long getCid() {
