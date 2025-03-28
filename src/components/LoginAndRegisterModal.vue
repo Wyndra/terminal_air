@@ -329,8 +329,8 @@ async function async_login() {
         }
         // 重置错误显示状态
         store.dispatch("resetHasShownError");
+        store.dispatch("login");
         emit('close'); // 关闭模态框
-        location.reload();
     } else {
         message.error(res.message || '登录失败');
     }
@@ -354,7 +354,8 @@ async function async_twoFactor() {
         emit('close');
         message.success('登录成功');
         await nextTick();
-        location.reload();
+        store.dispatch("login");
+        // location.reload();
     } else {
         message.error(res.message || '登录失败');
         twoFactorFormRef.value.code = '';
@@ -377,7 +378,8 @@ async function async_loginWithCode() {
         // 重置错误显示状态
         store.dispatch("resetHasShownError");
         emit('close'); // 关闭模态框
-        location.reload();
+        // location.reload();
+        store.dispatch("login");
     } else {
         message.error(res.message || '登录失败');
 
