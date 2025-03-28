@@ -22,7 +22,8 @@
 </template>
 <script setup>
 import { ref, defineProps, defineEmits,watch } from 'vue';
-import { getTwoFactorAuthTokenByCurrentUser, verifyTwoFactorAuthCode,getUserAvatar } from '@/api/auth';
+import { getUserAvatar } from '@/api/auth';
+import { getTwoFactorAuthTokenByCurrentUser, verifyTwoFactorAuthCode } from '@/api/mfa';
 import VerifationCodeInput from './VerifationCodeInput.vue';
 import { LockClosed } from '@vicons/ionicons5';
 import { useMessage } from 'naive-ui';

@@ -256,7 +256,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
-import { getUserInfo, updateUserInfo, switchTwoFactorAuth, getTwoFactorAuthSecretQRCode,getUserAvatar } from '@/api/auth';
+import { getUserInfo, updateUserInfo, getUserAvatar } from '@/api/auth';
+import { switchTwoFactorAuth, getTwoFactorAuthSecretQRCode } from '@/api/mfa';
 import { sendSmsCodeByToken, sendVerificationCode, verifyCode } from '@/api/sms';
 import { generatePresignUrl } from "@/api/avatar"
 import { LockClosed, LockOpen } from '@vicons/ionicons5';
