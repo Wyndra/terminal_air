@@ -7,7 +7,7 @@
         <div style="flex: 1;"></div>
         <n-popover :overlap="overlap" placement="right-start" trigger="hover">
             <template #trigger>
-                <n-icon size="20">
+                <n-icon size="20" style="cursor: pointer;">
                     <Dots></Dots>
                 </n-icon>
             </template>
