@@ -14,7 +14,7 @@ import java.util.Objects;
 public interface AuthService {
     ResponseResult<LoginResultVO> login(LoginRequest request);
 
-    ResponseResult<LoginResultVO> loginChangePassword(LoginRequest request);
+    ResponseResult<LoginResultVO> loginAndChangePassword(LoginRequest request);
 
     ResponseResult<String> loginRequireTwoFactorAuth(String twoFactorAuthToken,VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
@@ -37,11 +37,5 @@ public interface AuthService {
     ResponseResult<String> updatePassword(String username, UpdatePasswordRequest request);
 
     ResponseResult<UserProfileVO> updateProfile(String token, UpdateProfileRequest request);
-
-    String switchTwoFactorAuth(String token);
-
-    String getTwoFactorAuthSecretQRCode(String token);
-
-    boolean verifyTwoFactorAuthCode(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
 }

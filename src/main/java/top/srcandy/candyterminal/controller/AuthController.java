@@ -39,17 +39,19 @@ public class AuthController {
     public ResponseResult<LoginResultVO> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
 //        return authService.login(request);
         // 请求转到新的登录方法，实现无感切换密码强度。
-        return authService.loginChangePassword(request);
+        return authService.loginAndChangePassword(request);
     }
 
     @PostMapping("/loginBySmsCode")
     @AuthAccess
+    @Operation(summary = "用户短信验证码登录请求")
     public ResponseResult<String> loginByPhoneAndSmsCode(@Valid @RequestBody(required = false) @NonNull LoginBySmsCodeRequest request) {
         return authService.loginBySmsCode(request);
     }
 
     @PostMapping("/register")
     @AuthAccess
+    @Operation(summary = "用户注册请求")
     public ResponseResult<String> register(@Valid @RequestBody(required = false) @NonNull RegisterRequest request) {
         log.info("register user:{}", request);
         return authService.register(request);
@@ -74,27 +76,6 @@ public class AuthController {
     @PostMapping("/updateProfile")
     public ResponseResult<UserProfileVO> updateProfile(@RequestHeader("Authorization") String token, @Valid @RequestBody(required = false) @NonNull UpdateProfileRequest request) {
         return authService.updateProfile(token.substring(7), request);
-    }
-
-    @GetMapping("/switchTwoFactorAuth")
-    public ResponseResult<String> switchTwoFactorAuth(@RequestHeader("Authorization") String token) {
-        return ResponseResult.success(authService.switchTwoFactorAuth(token.substring(7)));
-    }
-
-    @GetMapping("/getTwoFactorAuthSecretQRCode")
-    public ResponseResult<String> getTwoFactorAuthSecretQRCode(@RequestHeader("Authorization") String token) {
-        return ResponseResult.success(authService.getTwoFactorAuthSecretQRCode(token.substring(7)));
-    }
-
-    @PostMapping("/verifyTwoFactorAuthCode")
-    @TwoFactorAuthRequired
-    public ResponseResult<Boolean> verifyTwoFactorAuthCode(@RequestHeader("Authorization") String twoFactorAuthToken, @Valid @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
-        return ResponseResult.success(authService.verifyTwoFactorAuthCode(twoFactorAuthToken.substring(7), request));
-    }
-
-    @GetMapping("/getTwoFactorAuthTokenByCurrentUser")
-    public ResponseResult<String> getTwoFactorAuthTokenByCurrentUser(@RequestHeader("Authorization") String token) {
-        return ResponseResult.success(JWTUtil.generateTwoFactorAuthSecretToken(authService.getUserByUsername(JWTUtil.getTokenClaimMap(token.substring(7)).get("username").asString())));
     }
 
 

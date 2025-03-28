@@ -77,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseResult<LoginResultVO> loginChangePassword(LoginRequest request) {
+    public ResponseResult<LoginResultVO> loginAndChangePassword(LoginRequest request) {
         User result = userDao.selectByUserName(request.getUsername());
         Optional<User> userOptional = Optional.ofNullable(result);
         if (userOptional.isEmpty()) {
@@ -338,46 +338,6 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         return ResponseResult.success(profileVO);
-    }
-
-    @Override
-    public String switchTwoFactorAuth(String token) {
-        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
-        User user = userDao.selectByUserName(username);
-        if (user == null) {
-            return null;
-        }
-        if (user.getIsTwoFactorAuth().equals("0")) {
-            user.setIsTwoFactorAuth("1");
-        } else {
-            user.setIsTwoFactorAuth("0");
-        }
-        userDao.update(user);
-        return user.getIsTwoFactorAuth();
-    }
-
-    @Override
-    public String getTwoFactorAuthSecretQRCode(String token) {
-        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
-        User user = userDao.selectByUserName(username);
-        if (user == null) {
-            return null;
-        }
-        return new TwoFactorAuthUtil().getQrCode(username, user.getTwoFactorAuthSecret());
-    }
-
-    @Override
-    public boolean verifyTwoFactorAuthCode(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
-        String username = JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("username").asString();
-        User user = userDao.selectByUserName(username);
-        if (user == null) {
-            return false;
-        }
-        // 判断token中的twoFactorAuthSecret是否与用户的twoFactorAuthSecret一致
-        if (!AESUtils.decryptFromHex(JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("twoFactorAuthSecret").asString(),user.getSalt()).equals(user.getTwoFactorAuthSecret())) {
-            return false;
-        }
-        return microsoftAuth.checkCode(user.getTwoFactorAuthSecret(), request.getCode(), request.getTime());
     }
 
 
