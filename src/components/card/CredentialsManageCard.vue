@@ -5,7 +5,10 @@
                 <n-button type="primary" style="width: 120px;" @click="credentialsModalVisible = true">创建凭证</n-button>
             </div>
             <div class="other-area">
-                <n-button circle size="small" @click="fetchCredentials">
+                <n-button circle size="small" @click="() => {
+                    fetchCredentials();
+                    message.success('刷新成功');
+                }">
                     <n-icon>
                         <RefreshSharp />
                     </n-icon>
