@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import TerminalSettingsDrawer from '@/components/TerminalSettingsDrawer.vue';
+import TerminalSettingsDrawer from '@/components/drawer/TerminalSettingsDrawer.vue';
 // ... 其他代码保持不变
 </script>
 

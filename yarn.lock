@@ -1372,6 +1372,11 @@
   dependencies:
     "@types/node" "*"
 
+"@vicons/carbon@^0.13.0":
+  "integrity" "sha512-Z/jExyyS4gsXJc66oTqV/j98nsaiX2JlQ0IUwu9Ms3rztf8VOHEQRuX8Jey1/zbxJpFY/tU+bWvKPRFYGIvCWQ=="
+  "resolved" "https://registry.npmmirror.com/@vicons/carbon/-/carbon-0.13.0.tgz"
+  "version" "0.13.0"
+
 "@vicons/fa@^0.13.0":
   "integrity" "sha512-BFcDewcT78fSn4Y/fOgqlswbLUEW3+qJK2iJiNtgmkMzadBVpDXhNyVKsYM3V2uKPvDUrZT0JCWDWVRCiBXJZA=="
   "resolved" "https://registry.npmmirror.com/@vicons/fa/-/fa-0.13.0.tgz"

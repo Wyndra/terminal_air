@@ -38,7 +38,8 @@ import { ArrowBack } from "@vicons/ionicons5"
 import { LockAccess } from '@vicons/tabler';
 import { getTwoFactorAuthSecretQRCode, getTwoFactorAuthTokenByCurrentUser, verifyTwoFactorAuthCode } from '@/api/mfa';
 import { useMessage } from "naive-ui";
-import VerifationCodeInput from './VerifationCodeInput.vue';
+import VerifationCodeInput from '@/components/VerifationCodeInput.vue';
+
 
 
 const props = defineProps({

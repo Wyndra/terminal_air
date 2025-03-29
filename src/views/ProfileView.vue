@@ -40,7 +40,7 @@
     <!-- Main Content -->
     <n-layout class="main-content">
       <n-layout style="height: 100%;">
-        <n-layout-content content-style="padding: 24px;">
+        <n-layout-content content-style="padding: 24px;display: flex;gap:20px">
           <n-card :title="cardName" style="max-width: 800px;">
             <n-tabs type="line" animated @before-leave="handleBeforeLeave">
               <!-- 个人信息标签页 -->
@@ -140,6 +140,7 @@
               </n-tab-pane>
             </n-tabs>
           </n-card>
+          <CredentialsManage />
         </n-layout-content>
       </n-layout>
     </n-layout>
@@ -264,11 +265,12 @@ import { LockClosed, LockOpen } from '@vicons/ionicons5';
 import axios from 'axios';
 import router from '@/router';
 import { userInfoRules } from '@/constant/rules';
-import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
-import ChangePasswordModal from '@/components/ChangePasswordModal.vue';
-import UseLockByPasswordModal from '@/components/UseLockByPasswordModal.vue';
-import UseLockByTotpModal from '@/components/UseLockByTOTPModal.vue';
-import TwoFactorAuthManageModal from '@/components/TwoFactorAuthManageModal.vue';
+import LoginAndRegisterModal from '@/components/modal/LoginAndRegisterModal.vue';
+import ChangePasswordModal from '@/components/modal/ChangePasswordModal.vue';
+import UseLockByPasswordModal from '@/components/modal/UseLockByPasswordModal.vue';
+import UseLockByTotpModal from '@/components/modal/UseLockByTOTPModal.vue';
+import TwoFactorAuthManageModal from '@/components/modal/TwoFactorAuthManageModal.vue';
+import CredentialsManage from '@/components/card/CredentialsManageCard.vue';
 
 const gitCommitHash = process.env.VUE_APP_GIT_COMMIT_HASH;
 
@@ -334,6 +336,12 @@ const handleBeforeLeave = (tabName) => {
   return true;
 };
 
+function formatDate(input) {
+  const [year, month, dayTime] = input.split("/");
+  const [day, time] = dayTime.split(" ");
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
+}
+
 async function fetchUserInfo() {
   try {
     const res = await getUserInfo();
@@ -341,7 +349,7 @@ async function fetchUserInfo() {
       const userData = res.data;
       userData.isTwoFactorAuth = userData.isTwoFactorAuth === '1';
       userInfo.value = userData;
-      userInfo.value.createTime = userInfo.value.createTime.replace('T', ' ').split('.')[0];
+      userInfo.value.createTime = formatDate(new Date(userInfo.value.createTime).toLocaleString())
       safeSettingForm.value = {
         salt: res.data.salt || ''
       };

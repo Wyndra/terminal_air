@@ -24,7 +24,7 @@
 import { ref, defineProps, defineEmits,watch } from 'vue';
 import { getUserAvatar } from '@/api/auth';
 import { getTwoFactorAuthTokenByCurrentUser, verifyTwoFactorAuthCode } from '@/api/mfa';
-import VerifationCodeInput from './VerifationCodeInput.vue';
+import VerifationCodeInput from '@/components/VerifationCodeInput.vue';
 import { LockClosed } from '@vicons/ionicons5';
 import { useMessage } from 'naive-ui';
 

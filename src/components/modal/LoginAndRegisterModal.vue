@@ -121,12 +121,12 @@
 <script setup>
 import { ref, computed, defineEmits, nextTick, onMounted, watch } from 'vue';
 import { useMessage } from 'naive-ui';
-import { login, register, loginBySmsCode, loginRequireTwoFactorAuth, getUserAvatar } from '../api/auth';  // 确保你的 API 路径正确
-import { verifyTurnstile } from "../api/turnstile";
-import { sendVerificationCode } from '../api/sms';
+import { login, register, loginBySmsCode, loginRequireTwoFactorAuth, getUserAvatar } from '../../api/auth';  // 确保你的 API 路径正确
+import { verifyTurnstile } from "../../api/turnstile";
+import { sendVerificationCode } from '../../api/sms';
 import { useStore } from 'vuex';
 import { Close, LockClosed } from '@vicons/ionicons5';
-import VerifationCodeInput from './VerifationCodeInput.vue';
+import VerifationCodeInput from '@/components/VerifationCodeInput.vue';
 import serverConfig from "@/utils/config";
 
 

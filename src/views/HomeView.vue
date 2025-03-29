@@ -122,10 +122,10 @@ import { list } from '@/api/connection';
 
 import ConnectionNewItemButton from '@/components/ConnectionNewItemButton.vue';
 import ConnectionItem from '@/components/ConnectionItem.vue';
-import AddNewConnectionDrawer from '@/components/AddNewConnectionDrawer.vue';
-import EditConnectionDrawer from '@/components/EditConnectionDrawer.vue';
+import AddNewConnectionDrawer from '@/components/drawer/AddNewConnectionDrawer.vue';
+import EditConnectionDrawer from '@/components/drawer/EditConnectionDrawer.vue';
 import SshDisplay from '@/components/SshDisplay.vue';
-import LoginAndRegisterModal from '@/components/LoginAndRegisterModal.vue';
+import LoginAndRegisterModal from '@/components/modal/LoginAndRegisterModal.vue';
 
 const store = useStore();
 const message = useMessage();
