@@ -4,9 +4,6 @@ import lombok.Data;
 
 @Data
 public class GenerateKeyPairRequest {
-    private Long connectId;
-
     private String name;
-
-    private String passphrase;
+    private String tags;
 }

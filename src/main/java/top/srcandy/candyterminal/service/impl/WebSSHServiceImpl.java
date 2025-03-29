@@ -207,6 +207,7 @@ public class WebSSHServiceImpl implements WebSSHService {
         config.put("StrictHostKeyChecking", "no");  // 忽略 SSH 主机密钥检查
 
         JSch jSch = sshConnectInfo.getJSch();
+//        jSch.addIdentity("id_rsa", webSSHData.getPrivateKey().getBytes(), null, null);  // 添加私钥
         String uuid = (String) webSocketSession.getAttributes().get("username");  // 获取用户名作为 UUID
         log.info("尝试连接 SSH 主机: {}:{}", webSSHData.getHost(), webSSHData.getPort());
 
