@@ -1,5 +1,7 @@
 package top.srcandy.candyterminal.service.impl;
 
+import com.aliyun.sdk.service.dysmsapi20170525.models.SendSmsResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 public class SmsServiceImpl implements SmsService {
 
     @Autowired
@@ -69,7 +72,7 @@ public class SmsServiceImpl implements SmsService {
 
         // If more than 3 requests are made in 5 minutes, throw an exception for too many requests
         if (requestCount > 3) {
-            throw new TooManyRequestsException("请求验证码过于频繁，请稍后再试");
+            throw new TooManyRequestsException("请求验证码过于频繁，请稍后再试 " + phone);
         }
 
         // Send the SMS verification code
@@ -99,7 +102,7 @@ public class SmsServiceImpl implements SmsService {
 
         // If more than 3 requests are made in 5 minutes, throw an exception for too many requests
         if (requestCount > 3) {
-            throw new TooManyRequestsException("请求验证码过于频繁，请稍后再试");
+            throw new TooManyRequestsException("请求验证码过于频繁，请稍后再试 " + phone + " " + username);
         }
 
         // Send the SMS verification code
@@ -128,13 +131,13 @@ public class SmsServiceImpl implements SmsService {
 
         // Call the SMSUtils.sendSms method to send the verification code via SMS
         try {
-            String smsResponse = SMSUtils.sendSms(phone, code);
-            // Log the response for debugging or error handling
-            System.out.println("SMS Response: " + smsResponse);
-//            if (smsResponse.contains("触发天级流控")) {
-//                // If the response does not contain "OK", it means the SMS sending failed
-//                throw new ServiceException("短信发送失败，请稍后重试");
-//            }
+            SendSmsResponse smsResponse = SMSUtils.sendSms(phone, code);
+            log.info("SMS Response: " + smsResponse.getBody().getMessage());
+            if (smsResponse.getBody().getCode().equals("isv.BUSINESS_LIMIT_CONTROL")) {
+                // If the response contains "BUSINESS_LIMIT_CONTROL", it means the SMS sending limit has been reached
+                log.error(smsResponse.getBody().getMessage());
+                throw new ServiceException("短信发送失败，请稍后重试");
+            }
         } catch (Exception e) {
             // Handle SMS sending failure
             throw new ServiceException("短信发送失败，请稍后重试");

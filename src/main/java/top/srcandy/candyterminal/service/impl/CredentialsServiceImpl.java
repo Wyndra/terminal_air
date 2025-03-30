@@ -1,12 +1,16 @@
 package top.srcandy.candyterminal.service.impl;
 
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import top.srcandy.candyterminal.bean.vo.PageQueryResultVO;
 import top.srcandy.candyterminal.dao.UserDao;
+import top.srcandy.candyterminal.exception.ServiceException;
 import top.srcandy.candyterminal.mapper.CredentialsMapper;
 import top.srcandy.candyterminal.model.Credential;
 import top.srcandy.candyterminal.model.User;
+import top.srcandy.candyterminal.request.PageQueryRequest;
 import top.srcandy.candyterminal.service.CredentialsService;
 import top.srcandy.candyterminal.utils.JWTUtil;
 import top.srcandy.candyterminal.utils.KeyUtils;
@@ -30,9 +34,19 @@ public class CredentialsServiceImpl implements CredentialsService {
     private UserDao userDao;
 
     @Override
-    public Credential generateKeyPair(String token, String name,String tags) throws Exception {
+    public Credential generateKeyPair(String token, String name,String tags) throws ServiceException, Exception {
         User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
+
+        // 检查凭据名称是否已存在
+        if (credentialsMapper.countCredentialsByUserIdAndName(userId, name) > 0) {
+            throw new ServiceException("凭据名称已存在");
+        }
+        // 最大允许凭据数量
+        int MAX_CREDENTIALS = 10;
+        if (credentialsMapper.countCredentialsByUserId(userId) >= MAX_CREDENTIALS) {
+            throw new ServiceException("凭据数量已达上限");
+        }
 
         // 生成 3072 位 RSA 密钥对
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -45,17 +59,9 @@ public class CredentialsServiceImpl implements CredentialsService {
         String publicKeyPem = KeyUtils.encodePublicKeyToOpenSSH(privateKey, user.getUsername());
         String privateKeyPem = KeyUtils.encodePrivateKeyToPKCS1Pem(privateKey);
 
-        // 调试信息
-        log.info("Public Exponent (e): {}", privateKey.getPublicExponent().toString(16));
-        log.info("Modulus (n): {}", privateKey.getModulus().toString(16).substring(0, 20) + "...");
-        log.info("公钥已生成：{}", publicKeyPem);
-        log.info("私钥已生成，长度：{}", privateKeyPem.length());
-
         Credential credential = new Credential();
         credential.setUserId(userId);
-        // 计算uuid 得到唯一值
         credential.setUuid(KeyUtils.generateUUID());
-//        credential.setConnectId(connectId);
         credential.setName(name);
         credential.setFingerprint(KeyUtils.calculateFingerprint(keyPair.getPublic()));
         credential.setPublicKey(publicKeyPem);
@@ -76,10 +82,27 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public List<Credential> listCredentials(String token) throws Exception {
+    public List<Credential> listCredentials(String token) {
         User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
         return credentialsMapper.selectCredentialsByUserId(userId);
+    }
+
+    @Override
+    public int countCredentialsByUserId(String token) {
+        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        return credentialsMapper.countCredentialsByUserId(user.getUid());
+    }
+
+    @Override
+    public Credential selectCredentialById(String token, Long id) throws Exception {
+        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        Long userId = user.getUid();
+        Credential credential = credentialsMapper.selectCredentialByUidAndId(userId, id);
+        if (credential == null) {
+            throw new ServiceException("凭据不存在");
+        }
+        return credential;
     }
 
     @Override
@@ -87,7 +110,9 @@ public class CredentialsServiceImpl implements CredentialsService {
         User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
         Credential credential = credentialsMapper.selectCredentialsByUserId(userId).stream().filter(c -> c.getId().equals(id)).findFirst().orElse(null);
-        assert credential != null;
+        if (credential == null) {
+            throw new ServiceException("凭据不存在");
+        }
         credentialsMapper.deleteCredential(credential.getId());
     }
 }

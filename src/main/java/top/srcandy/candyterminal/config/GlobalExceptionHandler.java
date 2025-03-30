@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.exception.ServiceException;
+import top.srcandy.candyterminal.exception.TooManyRequestsException;
 
 import java.util.Objects;
 
@@ -16,6 +17,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ServiceException.class)
     public ResponseResult<String> handleServiceException(ServiceException e) {
         // 返回一个json格式的错误信息
+        log.error("ServiceException: {}", e.getMessage());
+        return ResponseResult.fail(null, e.getMessage());
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseResult<String> handleTooManyRequestsException(TooManyRequestsException e) {
+        log.error("验证码请求异常: 用户={}, 错误信息={}", e.getUser(), e.getMessage());
         return ResponseResult.fail(null, e.getMessage());
     }
 

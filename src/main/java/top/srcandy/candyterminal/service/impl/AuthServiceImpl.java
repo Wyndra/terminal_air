@@ -17,6 +17,7 @@ import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.converter.UserProfileConverter;
 import top.srcandy.candyterminal.dao.UserDao;
 import top.srcandy.candyterminal.bean.dto.LoginDTO;
+import top.srcandy.candyterminal.exception.ServiceException;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.*;
 import top.srcandy.candyterminal.service.AuthService;
@@ -159,11 +160,11 @@ public class AuthServiceImpl implements AuthService {
         User result = userDao.selectByUserName(request.getUsername());
         // 通过用户名校验是否存在用户
         if (result != null) {
-            return ResponseResult.fail(null, "用户已存在");
+            throw new ServiceException("用户名已存在");
         }
         // 通过手机号校验是否存在用户
         if (userDao.selectByUserPhone(request.getPhone()) != null) {
-            return ResponseResult.fail(null, "手机号已注册");
+            throw new ServiceException("手机号已注册");
         }
         String salt = SaltUtils.generateSalt(16);   // 生成16位随机盐
 

@@ -71,6 +71,7 @@ public class JWTUtil {
         try {
             DecodedJWT jwt = verifier.verify(token);
             log.info("JWT validation passed");
+
         } catch (InvalidClaimException e){
             if (e.getMessage().contains("issuer")){
                 throw new ServiceException("非法登录");
@@ -78,10 +79,6 @@ public class JWTUtil {
         }catch (TokenExpiredException e){
             throw new ServiceException("登录已过期，请重新登录");
         }
-//        catch (JWTVerificationException e) {
-//            log.error("JWT validation failed", e);
-//            throw new ServiceException("登录已过期，请重新登录");
-//        }
     }
 
     public static void validateTwoFactorAuthSecretToken(String token) {

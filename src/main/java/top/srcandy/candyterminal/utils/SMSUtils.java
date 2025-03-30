@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 public class SMSUtils {
 
     // 静态方法，发送短信
-    public static String sendSms(String phoneNumber, String code) throws Exception {
+    public static SendSmsResponse sendSms(String phoneNumber, String code) throws Exception {
         // 配置认证信息（请确保环境变量 ALIBABA_CLOUD_ACCESS_KEY_ID 和 ALIBABA_CLOUD_ACCESS_KEY_SECRET 已设置）
         StaticCredentialProvider provider = StaticCredentialProvider.create(Credential.builder()
                 .accessKeyId(System.getenv("ALIBABA_CLOUD_ACCESS_KEY_ID"))
@@ -48,6 +48,6 @@ public class SMSUtils {
         // 关闭客户端
         client.close();
 
-        return result; // 返回响应结果
+        return resp;
     }
 }

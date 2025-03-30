@@ -2,6 +2,7 @@ package top.srcandy.candyterminal.mapper;
 
 import com.lzhpo.sensitive.annocation.SensitiveKeepLength;
 import org.apache.ibatis.annotations.*;
+import org.springframework.stereotype.Service;
 import top.srcandy.candyterminal.model.Credential;
 
 import java.util.List;
@@ -23,6 +24,27 @@ public interface CredentialsMapper {
 
     })
     List<Credential> selectCredentialsByUserId(Long userId);
+
+    @Select("select id,uuid,name,uid,tags,fingerprint,public_key,private_key,cid,created_at,updated_at from Credentials where id = #{id} and uid = #{uid}")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "uuid", column = "uuid"),
+            @Result(property = "name", column = "name"),
+            @Result(property = "tags", column = "tags"),
+            @Result(property = "userId", column = "uid"),
+            @Result(property = "publicKey", column = "public_key"),
+            @Result(property = "privateKey", column = "private_key"),
+            @Result(property = "connectId", column = "cid"),
+            @Result(property = "createTime", column = "created_at"),
+            @Result(property = "updateTime", column = "updated_at")
+    })
+    Credential selectCredentialByUidAndId(Long uid,Long id);
+
+    @Select("SELECT COUNT(*) FROM Credentials WHERE uid = #{userId} AND name = #{name}")
+    int countCredentialsByUserIdAndName(Long userId, String name);
+
+    @Select("SELECT COUNT(*) FROM Credentials WHERE uid = #{userId}")
+    int countCredentialsByUserId(@Param("userId") Long userId);
 
     @Select("select id,uuid,name,uid,tags,fingerprint,public_key,private_key,cid,created_at,updated_at from Credentials where cid = #{connectId}")
     @Results({

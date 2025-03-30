@@ -53,3 +53,8 @@ mybatis:
     cache-enabled: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   mapper-locations: classpath:mybatis/mapper/*.xml
+
+pagehelper:
+  helperDialect: mysql
+  supportMethodsArguments: true
+  params: count=countSql
