@@ -1,5 +1,5 @@
 <template>
-    <n-modal v-model:show="bindCredentialsModalVisible" class="custom-card" preset="card" style="width:520px"
+    <n-modal v-model:show="props.bindCredentialsModalVisible" class="custom-card" preset="card" style="width:520px"
         :bordered="false" transform-origin="center" :mask-closable="false">
         <div class="card_main">
             <n-icon :size="48">
@@ -15,16 +15,12 @@
             <n-code :code="curlCode" language="bash" word-wrap></n-code>
         </div>
     </n-modal>
-
 </template>
 
 <script setup>
 import { computed } from "vue";
 import { IosLink } from "@vicons/ionicons4";
 import serverConfig from "@/utils/config";
-
-// 注册 bash 语言
-hljs.registerLanguage("bash", bash);
 
 const props = defineProps({
     bindCredentialsModalVisible: Boolean,
