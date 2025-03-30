@@ -19,12 +19,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from "vue";
+import { computed } from "vue";
 import { IosLink } from "@vicons/ionicons4";
 import serverConfig from "@/utils/config";
-import hljs from "highlight.js/lib/core";
-import bash from "highlight.js/lib/languages/bash";
-import "highlight.js/styles/github-dark.css"; // 确保路径正确
 
 // 注册 bash 语言
 hljs.registerLanguage("bash", bash);

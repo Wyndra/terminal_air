@@ -14,7 +14,6 @@
 <script setup>
 import TerminalSettingsDrawer from '@/components/drawer/TerminalSettingsDrawer.vue';
 import hljs from 'highlight.js';
-// ... 其他代码保持不变
 </script>
 
 <style lang="scss">
