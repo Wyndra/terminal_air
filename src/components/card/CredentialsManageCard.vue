@@ -7,8 +7,7 @@
             <div class="other-area">
                 <n-button circle size="small" @click="() => {
                     fetchCredentials();
-                    message.success('刷新成功');
-                }">
+                    message.success('刷新成功');}">
                     <n-icon>
                         <RefreshSharp />
                     </n-icon>
