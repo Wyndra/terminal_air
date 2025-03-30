@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme="theme" :hljs="hljs">
+  <n-config-provider :theme="theme">
     <n-dialog-provider>
       <n-notification-provider>
         <n-message-provider>
@@ -13,7 +13,6 @@
 
 <script setup>
 import TerminalSettingsDrawer from '@/components/drawer/TerminalSettingsDrawer.vue';
-import hljs from 'highlight.js';
 // ... 其他代码保持不变
 </script>
 
