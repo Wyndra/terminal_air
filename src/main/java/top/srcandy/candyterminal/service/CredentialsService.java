@@ -1,10 +1,10 @@
 package top.srcandy.candyterminal.service;
 
-import top.srcandy.candyterminal.bean.vo.PageQueryResultVO;
+import top.srcandy.candyterminal.model.Connection;
 import top.srcandy.candyterminal.model.Credential;
-import top.srcandy.candyterminal.request.PageQueryRequest;
+import top.srcandy.candyterminal.request.CredentialConnectionRequest;
+import top.srcandy.candyterminal.request.CredentialStatusRequest;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 public interface CredentialsService {
@@ -16,6 +16,14 @@ public interface CredentialsService {
     int countCredentialsByUserId(String token);
 
     Credential selectCredentialById(String token, Long id) throws Exception;
+
+    Credential selectCredentialByUuid(String token, String uuid) throws Exception;
+
+    void updateCredentialStatus(String token, CredentialStatusRequest request) throws Exception;
+
+    Credential updateCredentialConnectId(String token, CredentialConnectionRequest request) throws Exception;
+
+    String generateInstallShell(String token, String uuid,String endpoint) throws Exception;
 
     void deleteCredential(String token, Long id) throws Exception;
 

@@ -17,6 +17,8 @@ public class Credential {
     private String tags;
     @Schema(description = "用户ID")
     private Long userId;
+    @Schema(description = "状态")
+    private Integer status;
     @Schema(description = "密钥指纹")
     private String fingerprint;
     @Schema(description = "公钥")

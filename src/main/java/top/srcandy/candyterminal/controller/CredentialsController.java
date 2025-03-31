@@ -3,19 +3,17 @@ package top.srcandy.candyterminal.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import top.srcandy.candyterminal.bean.vo.CredentialsVO;
-import top.srcandy.candyterminal.bean.vo.PageQueryResultVO;
+import top.srcandy.candyterminal.aspectj.lang.annoations.AuthAccess;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.model.Credential;
+import top.srcandy.candyterminal.request.CredentialConnectionRequest;
 import top.srcandy.candyterminal.request.GenerateKeyPairRequest;
-import top.srcandy.candyterminal.request.PageQueryRequest;
+import top.srcandy.candyterminal.request.CredentialStatusRequest;
 import top.srcandy.candyterminal.service.CredentialsService;
-import top.srcandy.candyterminal.utils.JWTUtil;
 
 import java.util.List;
 
@@ -43,14 +41,36 @@ public class CredentialsController {
 
     @GetMapping("/delete/{id}")
     @Operation(summary = "删除凭据", description = "删除指定凭据")
-    public ResponseResult<List<Credential>> deleteCredential(@RequestHeader("Authorization") String token, @PathVariable Long id) {
-        try {
-            credentialsService.deleteCredential(token.substring(7), id);
-            return ResponseResult.success();
-        } catch (Exception e) {
-            log.error("delete credential error", e);
-            return ResponseResult.success();
-        }
+    public ResponseResult<List<Credential>> deleteCredential(@RequestHeader("Authorization") String token, @PathVariable Long id) throws Exception {
+        credentialsService.deleteCredential(token.substring(7), id);
+        return ResponseResult.success();
+    }
+
+    @PostMapping("/update/status")
+    @Operation(summary = "更新凭据状态", description = "更新凭据状态 curl请求更新凭据状态")
+    public ResponseResult<List<Credential>> updateCredentialStatus(@RequestHeader("Authorization") String token, @RequestBody CredentialStatusRequest request) throws Exception {
+        credentialsService.updateCredentialStatus(token.substring(7), request);
+        return ResponseResult.success(null);
+    }
+
+    @PostMapping("/get/status/{uuid}")
+    @Operation(summary = "获取凭据状态", description = "获取凭据状态")
+    public ResponseResult<Integer> selectCredentialByUuid(@RequestHeader("Authorization") String token, @PathVariable String uuid) throws Exception {
+        Integer status = credentialsService.selectCredentialByUuid(token.substring(7), uuid).getStatus();
+        return ResponseResult.success(status);
+    }
+
+    @PostMapping("/bind")
+    @Operation(summary = "绑定凭据", description = "绑定凭据")
+    public ResponseResult<Credential> updateCredentialConnectId(@RequestHeader("Authorization") String token, @RequestBody CredentialConnectionRequest request) throws Exception {
+        return ResponseResult.success(credentialsService.updateCredentialConnectId(token.substring(7), request));
+    }
+
+    @GetMapping(value ="/installation/{uuid}", produces = "text/plain;charset=UTF-8")
+    @Operation(summary = "安装脚本", description = "生成安装脚本")
+    @AuthAccess
+    public String generateInstallShell(@RequestParam String token, @RequestParam String endpoint,@PathVariable String uuid) throws Exception {
+        return credentialsService.generateInstallShell(token, uuid, endpoint);
     }
 
 }
