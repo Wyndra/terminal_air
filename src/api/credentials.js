@@ -18,3 +18,18 @@ export const deleteCredentials = (data) => {
         method: "get",
     });
 }
+
+export const getCredentialsStatus = (params) => {
+    return serviceAxios({
+        url: "/api/credentials/get/status/" + params,
+        method: "post",
+    });
+}
+
+export const bindCredentials = (data) => {
+    return serviceAxios({
+        url: "/api/credentials/bind",
+        method: "post",
+        data,
+    });
+}

@@ -75,8 +75,22 @@ const credentialsColumns = [
         className: 'columns',
     },
     {
+        title: '凭证状态',
+        key: 'status',
+        align: 'center',
+        className: 'columns',
+        render(row) {
+            const status = row.status;
+            return h(NTag, {
+                type: status === 0 ? 'info' : status === 1 ? 'warning' : 'success',
+                size: "small",
+            }, status === 0 ? '未绑定' : status === 1 ? '服务端绑定' : '绑定成功');
+        }
+    },
+    {
         title: '凭证标签',
         key: 'tags',
+        align: 'center',
         className: 'columns',
         // tags返回的是以逗号分隔的字符串，渲染成标签
         render(row) {

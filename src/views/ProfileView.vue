@@ -148,7 +148,7 @@
     <!-- Footer -->
     <n-layout-footer class="footer" bordered>
       <div>
-        <span>© 2025 Terminal Air 慕垂科技 - 浙ICP备2023031974号 - Commit ID: {{ gitCommitHash }}</span>
+        <span>© 2024 - 2025 Terminal Air 慕垂科技 - 浙ICP备2023031974号 - Commit ID: {{ gitCommitHash }}</span>
       </div>
     </n-layout-footer>
 
