@@ -194,7 +194,7 @@ const handleSaveAndConnect = () => {
             username: connectionForm.value.username,
             method: connectionForm.value.method === 'password' ? '0' : '1',
             password: connectionForm.value.password,
-            credentialUUID: credentialsList.value.find(item => item.name === connectionForm.value.credential).uuid
+            credentialUUID: credentialsList.value.find(item => item.name === connectionForm.value.credential)?.uuid
         };
 
         const res = await asyncEditConnect(requestData);
