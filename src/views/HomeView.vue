@@ -69,7 +69,7 @@
             <div v-else>
               <div v-for="(item, index) in connect_list" :key="item">
                 <ConnectionItem @taggle_connect="handleTaggleConnectionEvent"
-                  @refresh_connection_list="fetchConnectionList()" :connectInfoValue="item" />
+                  @refresh="fetchConnectionList()" :connectionValue="item" />
               </div>
             </div>
           </div>
@@ -102,7 +102,6 @@
 
     <!-- 新增连接面板 -->
     <AddNewConnectionDrawer @refresh_connection_list="fetchConnectionList()" />
-    <EditConnectionDrawer @refresh_connection_list="fetchConnectionList()" />
 
     <!-- 登录/注册模态框 -->
     <n-modal v-model:show="showLoginOrRegisterModal" :mask-closable="false">
@@ -112,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, reactive,onMounted,watch, nextTick } from 'vue';
+import { ref,onMounted,watch, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage, useNotification } from 'naive-ui';
 import { useRouter } from 'vue-router';
@@ -122,8 +121,7 @@ import { list } from '@/api/connection';
 
 import ConnectionNewItemButton from '@/components/ConnectionNewItemButton.vue';
 import ConnectionItem from '@/components/ConnectionItem.vue';
-import AddNewConnectionDrawer from '@/components/drawer/AddNewConnectionDrawer.vue';
-import EditConnectionDrawer from '@/components/drawer/EditConnectionDrawer.vue';
+import AddNewConnectionDrawer from '@/components/drawer/AddConnectionDrawer.vue';
 import SshDisplay from '@/components/SshDisplay.vue';
 import LoginAndRegisterModal from '@/components/modal/LoginAndRegisterModal.vue';
 
@@ -141,11 +139,9 @@ watch(() => store.getters.isLoggedIn, (value) => {
 const showLoginOrRegisterModal = ref(false);
 const connect_list = ref([]);
 const userInfo = ref({});
-// 绑定来自 store 的登录状态
 const InLogin = ref(store.getters.isLoggedIn);
 
 const current_connect = ref({});
-
 const hasShownError = ref(store.getters.hasShownError);
 
 async function fetchConnectionList() {
@@ -159,6 +155,8 @@ async function fetchConnectionList() {
         store.state.port = res.data[0].connectPort;
         store.state.username = res.data[0].connectUsername;
         store.state.password = res.data[0].connectPwd;
+        store.state.method = Number(res.data[0].connectMethod);
+        store.state.credentialId = res.data[0].credentialId;
       }
     } else {
       if (!hasShownError.value) {
@@ -230,7 +228,7 @@ const gotoProfileView = () => {
 };
 
 const handleNewConnection = () => {
-  store.state.showAddNewConnectionDrawer = true;
+  store.state.showAddConnectionDrawer = true;
 };
 
 const handleTaggleConnectionEvent = (connectInfo) => {
@@ -239,6 +237,8 @@ const handleTaggleConnectionEvent = (connectInfo) => {
   store.state.port = connectInfo.value.connectPort;
   store.state.username = connectInfo.value.connectUsername;
   store.state.password = connectInfo.value.connectPwd;
+  store.state.method = connectInfo.value.connectMethod;
+  store.state.credentialId = connectInfo.value.credentialUUID;
 };
 
 const openTerminalSettings = () => {

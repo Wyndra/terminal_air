@@ -1,7 +1,7 @@
 <template>
     <div class="add_border" @click="handleTaggleConnect">
         <n-ellipsis style="max-width: 160px">
-            <n-h5 style="margin: 0px;cursor: pointer;">{{ connectInfoValue.connectName }}</n-h5>
+            <n-h5 style="margin: 0px;cursor: pointer;">{{ connection.connectName }}</n-h5>
         </n-ellipsis>
 
         <div style="flex: 1;"></div>
@@ -20,28 +20,69 @@
             </div>
         </n-popover>
     </div>
+    <EditConnectionDrawer v-model:show="showEditConnectionDrawer" :editConnectionInfo="connection"
+        @refresh="fetchConnectionList()" @close="handleClose" />
+
 </template>
 <script setup>
-import { defineEmits, ref, defineProps } from 'vue';
+import { defineEmits, ref, defineProps,nextTick } from 'vue';
 import { del } from '@/api/connection';
 import { useStore } from 'vuex';
 import { Dots } from '@vicons/tabler';
-import { useMessage,useDialog } from 'naive-ui';
+import { useMessage, useDialog } from 'naive-ui';
+import { list } from '@/api/connection';
+import EditConnectionDrawer from '@/components/drawer/EditConnectionDrawer.vue';
+
+const props = defineProps({
+    connectionValue: Object,
+});
+
+const connection = ref(props.connectionValue);
+
 
 const store = useStore();
 const message = useMessage();
 const dialog = useDialog();
 const hasShownError = ref(store.getters.hasShownError);
+const connect_list = ref([])
 
-const emit = defineEmits(["taggle_connect","refresh_connection_list"]); //声明 emits
+async function fetchConnectionList() {
+    const res = await list();
+    if (res.status === '200') {
+        connect_list.value = [...res.data];
+        await nextTick();
+        if (res.data.length > 0) {
+            store.state.host = res.data[0].connectHost;
+            store.state.port = res.data[0].connectPort;
+            store.state.username = res.data[0].connectUsername;
+            store.state.password = res.data[0].connectPwd;
+            store.state.method = res.data[0].connectMethod;
+            store.state.credentialUUID = res.data[0].credentialId
+        }
+    } else {
+        if (!hasShownError.value) {
+            message.error(res.message || '获取连接列表失败');
+            store.commit('setHasShownError', true);
+            hasShownError.value = true;
+        }
+    }
+
+}
+
+const handleClose = () => {
+    showEditConnectionDrawer.value = false;
+};
+
+const showEditConnectionDrawer = ref(false);
+
+const emit = defineEmits(["taggle_connect", "refresh"]); //声明 emits
 
 const handleTaggleConnect = () => {
-    emit("taggle_connect", connectInfoValue);
+    emit("taggle_connect", connection);
 };
 
 const handleEditButton = () => {
-    store.state.showEditConnectionDrawer = true;
-    store.state.editConnectionInfo = connectInfoValue.value;
+    showEditConnectionDrawer.value = true;
 };
 
 const openDeleteWindows = () => {
@@ -63,7 +104,7 @@ const openDeleteWindows = () => {
 async function deleteConnection() {
     try {
         const tdata = {
-            cid: connectInfoValue.value.cid
+            cid: connection.value.cid
         };
         const res = await del(tdata);
         if (res.status === '200') {
@@ -71,7 +112,7 @@ async function deleteConnection() {
             store.commit('setHasShownError', false); // 更新 Vuex 状态，标记未显示错误
             hasShownError.value = false; // 本地更新，避免重复弹出
             // 删除成功后，重新获取连接列表
-            emit("refresh_connection_list");
+            emit("refresh");
         } else {
             // 只在还未显示错误的情况下弹出错误
             if (!hasShownError.value) {
@@ -95,12 +136,6 @@ const handleDelete = () => {
     deleteConnection();
 };
 
-const props = defineProps({
-    connectInfoValue: Object,
-});
-
-const connectInfoValue = ref(props.connectInfoValue);
-
 </script>
 <style scoped>
 .add_border {
@@ -121,6 +156,7 @@ const connectInfoValue = ref(props.connectInfoValue);
 .line {
     border-bottom: 1px solid #414141;
 }
+
 .warn_button {
     color: #ff4d4f;
 }

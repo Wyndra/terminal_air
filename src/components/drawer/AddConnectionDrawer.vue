@@ -1,5 +1,5 @@
 <template>
-    <n-drawer v-model:show="store.state.showAddNewConnectionDrawer" :width="502" placement="right"
+    <n-drawer v-model:show="store.state.showAddConnectionDrawer" :width="502" placement="right"
         content-style="background:#edf1f2">
         <n-drawer-content closable>
             <template #header>
@@ -25,7 +25,7 @@
                     <n-form-item label="连接方式">
                         <n-radio-group v-model:value="connectInfoForm.method">
                             <n-radio value="password">密码</n-radio>
-                            <n-radio value="key">密钥</n-radio>
+                            <n-radio value="key" :disabled="true">密钥</n-radio>
                         </n-radio-group>
                     </n-form-item>
                     <n-form-item label="密码" v-if="connectInfoForm.method === 'password'" path="password">
@@ -35,10 +35,9 @@
                                 show-password-on="mousedown" />
                             <!-- 说明文字 -->
                             <span style="font-size: 12px; color: #999; margin-top: 4px;">
-                                密码将会被加密存储，Terminal Air 遵守我们的 
+                                密码将会被加密存储，Terminal Air 遵守我们的
                                 <a href="/privacy-policy" target="_blank"
                                     style="color: #007bff; text-decoration: none;">隐私政策</a> 。
-
                             </span>
                         </div>
                     </n-form-item>
@@ -46,7 +45,12 @@
                 <n-button type="primary" style="width: 100%;" @click="handleSaveAndConnect">
                     保存
                 </n-button>
+                <span class="description-text">
+                    您无法在 <span class="info">新增连接</span> 窗口中使用 SSH 密钥进行连接。您可以先不填入密码，然后前往 <a href="/profile"
+                        style="color: #007bff; text-decoration: none;">凭证中心</a> 进行 SSH 密钥的绑定。
+                </span>
             </n-card>
+
         </n-drawer-content>
     </n-drawer>
 </template>
@@ -67,7 +71,7 @@ const connectInfoForm = ref({
     port: '',
     username: '',
     method: 'password',
-    password: ''
+    password: '',
 });
 
 // 表单校验规则
@@ -87,7 +91,7 @@ const formRules = {
     ],
     password: [
         {
-            required: true, message: '密码不能为空', trigger: ['input', 'blur'],
+            // required: true, message: '密码不能为空', trigger: ['input', 'blur'],
             validator: (rule, value) => connectInfoForm.value.method === 'password' && !value ? false : true
         },
     ]
@@ -135,9 +139,40 @@ const handleSaveAndConnect = () => {
 
         const res = await asyncAddConnect(data);
         if (res.status === '200') {
-            store.state.showAddNewConnectionDrawer = false;
+            store.state.showAddConnectionDrawer = false;
             clearConnectInfoForm();
         }
     });
 };
 </script>
+<style scoped>
+.description-text {
+    color: #A1A1A1;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.5;
+    font-family: ui-sans-serif,
+        -apple-system,
+        system-ui;
+
+    .important {
+        color: #A1A1A1;
+        font-size: 14px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .warning {
+        color: #e4a441;
+        font-size: 14px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .info {
+        color: #007bff;
+        font-size: 14px;
+        text-align: center;
+    }
+}
+</style>

@@ -22,10 +22,12 @@ const message = useMessage();
 const socketURI = serverConfig.wsURL + "?token=" + token;
 
 const connectionInfo = ref({
-    connectHost: store.state.host,
-    connectPort: store.state.port,
-    connectUsername: store.state.username,
-    connectPassword: store.state.password,
+    host: store.state.host,
+    port: store.state.port,
+    username: store.state.username,
+    password: store.state.password,
+    method: store.state.method,
+    credential: store.state.credentialId,
 });
 
 const isFirstConnection = ref(true);  // 标志是否是第一次连接
@@ -138,10 +140,12 @@ const sendToggleConnect = () => {
     setTimeout(() => {
         const datas = {
             operate: "connect",
-            host: connectionInfo.value.connectHost,
-            port: Number(connectionInfo.value.connectPort),
-            username: connectionInfo.value.connectUsername,
-            password: connectionInfo.value.connectPassword,
+            host: connectionInfo.value.host,
+            port: Number(connectionInfo.value.port),
+            username: connectionInfo.value.username,
+            password: connectionInfo.value.password,
+            method: connectionInfo.value.method,
+            credentialUUID: connectionInfo.value.credential,
             command: "",
         };
         if (isFirstConnection.value){
@@ -171,15 +175,19 @@ watch(
         host: store.state.host,
         port: store.state.port,
         username: store.state.username,
-        password: store.state.password
+        password: store.state.password,
+        method: store.state.method,
+        credential: store.state.credentialId,
     }),
     async (newVal) => {
         // 确保 Vuex 状态已经更新
         await nextTick();
-        connectionInfo.value.connectHost = newVal.host;
-        connectionInfo.value.connectPort = newVal.port;
-        connectionInfo.value.connectUsername = newVal.username;
-        connectionInfo.value.connectPassword = newVal.password;
+        connectionInfo.value.host = newVal.host;
+        connectionInfo.value.port = newVal.port;
+        connectionInfo.value.username = newVal.username;
+        connectionInfo.value.password = newVal.password;
+        connectionInfo.value.method = newVal.method;
+        connectionInfo.value.credential = newVal.credential;
         // 调用切换连接的函数
         sendToggleConnect();
     },
