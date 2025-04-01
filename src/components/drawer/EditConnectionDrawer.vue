@@ -109,7 +109,7 @@ const connectionFormRule = {
     ],
     credential: [
         {
-            required: true, message: '密钥不能为空', trigger: ['input', 'blur'],
+            required: true, message: '凭据不能为空', trigger: ['input', 'blur'],
             validator: (rule, value) => connectionForm.value.method === 'key' && !value ? false : true
         },
     ]
@@ -194,7 +194,7 @@ const handleSaveAndConnect = () => {
             username: connectionForm.value.username,
             method: connectionForm.value.method === 'password' ? '0' : '1',
             password: connectionForm.value.password,
-            credentialUUID: credentialsList.value.find(item => item.name === connectionForm.value.credential)?.uuid || '',
+            credentialUUID: credentialsList.value.find(item => item.name === connectionForm.value.credential).uuid || '',
         };
 
         const res = await asyncEditConnect(requestData);
