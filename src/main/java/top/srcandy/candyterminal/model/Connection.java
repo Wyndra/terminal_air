@@ -24,6 +24,10 @@ public class Connection implements Serializable {
     private String connectName;
     @Schema(description = "连接方式")
     private String connectMethod;
+
+    @Schema(description = "凭证ID")
+    private Long credentialId;
+
     @Schema(description = "连接创建者id")
     private Long connect_creater_uid;
 

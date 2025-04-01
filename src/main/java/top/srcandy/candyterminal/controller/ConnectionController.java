@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.model.Connection;
-import top.srcandy.candyterminal.request.AddConnectRequest;
+import top.srcandy.candyterminal.request.AddConnectionRequest;
 import top.srcandy.candyterminal.request.DeleteConnectRequest;
-import top.srcandy.candyterminal.request.UpdateConnectRequest;
+import top.srcandy.candyterminal.request.UpdateConnectionRequest;
 import top.srcandy.candyterminal.service.ConnectionService;
 
 import java.io.UnsupportedEncodingException;
@@ -31,13 +31,13 @@ public class ConnectionController {
 
     @PostMapping("/add")
     @Operation(summary = "添加连接")
-    public ResponseResult<Connection> insertConnect(@RequestHeader("Authorization") String token, @RequestBody AddConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<Connection> insertConnect(@RequestHeader("Authorization") String token, @RequestBody AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return connectManageService.insertConnect(token, request);
     }
 
     @PostMapping("/update")
     @Operation(summary = "更新连接")
-    public ResponseResult<Connection> updateConnect(@RequestHeader("Authorization") String token, @RequestBody UpdateConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<Connection> updateConnect(@RequestHeader("Authorization") String token, @RequestBody UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return connectManageService.updateConnect(token, request);
     }
 

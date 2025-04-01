@@ -3,7 +3,7 @@ package top.srcandy.candyterminal.request;
 import lombok.Data;
 
 @Data
-public class AddConnectRequest {
+public class AddConnectionRequest {
     private String host;
     private String port;
     private String username;

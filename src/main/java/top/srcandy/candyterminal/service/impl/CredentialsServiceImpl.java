@@ -117,6 +117,15 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
+    public Credential selectCredentialById(Long id) throws Exception {
+        Credential credential = credentialsMapper.selectCredentialById(id);
+        if (credential == null) {
+            throw new ServiceException("凭据不存在");
+        }
+        return credential;
+    }
+
+    @Override
     public void updateCredentialStatus(String token, CredentialStatusRequest request) throws Exception {
         User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
@@ -257,6 +266,11 @@ public class CredentialsServiceImpl implements CredentialsService {
                 uuid, token, encodedPublicKey, endpoint, uuid);
     }
 
+    @Override
+    public List<Credential> selectBoundCredentialsByConnectionId(String token, Long connectId) throws Exception {
+        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        return credentialsMapper.selectBoundCredentialsByConnectionId(user.getUid(), connectId);
+    }
 
 
     @Override

@@ -9,7 +9,7 @@ import java.util.List;
 public interface ConnectionMapper {
 
 
-    @Select("select cid, connect_host, connect_port, connect_username, connect_pwd,connect_name, connect_creater_uid, connect_method from Connection where connect_creater_uid = #{connectCreaterUid}")
+    @Select("select cid, connect_host, connect_port, connect_username, connect_pwd,connect_name, connect_creater_uid, connect_credential,connect_method from Connection where connect_creater_uid = #{connectCreaterUid}")
     @Results({
             @Result(property = "cid", column = "cid"),
             @Result(property = "connectHost", column = "connect_host"),
@@ -18,6 +18,7 @@ public interface ConnectionMapper {
             @Result(property = "connectPwd", column = "connect_pwd", javaType = String.class),
             @Result(property = "connectName", column = "connect_name"),
             @Result(property = "connectMethod", column = "connect_method"),
+            @Result(property = "credentialId", column = "connect_credential"),
             @Result(property = "connect_creater_uid", column = "connect_creater_uid")
     })
     List<Connection> selectByConnectCreaterUid(Long connectCreaterUid);
@@ -29,6 +30,6 @@ public interface ConnectionMapper {
     @Delete("delete from Connection where cid = #{cid}")
     void deleteConnect(Long cid);
 
-    @Update("update Connection set connect_name = #{connectName}, connect_host = #{connectHost}, connect_port = #{connectPort}, connect_username = #{connectUsername}, connect_pwd = #{connectPwd}, connect_method = #{connectMethod} where cid = #{cid}")
+    @Update("update Connection set connect_name = #{connectName}, connect_host = #{connectHost}, connect_port = #{connectPort}, connect_username = #{connectUsername}, connect_pwd = #{connectPwd}, connect_method = #{connectMethod}, connect_credential = #{credentialId} where cid = #{cid}")
     void updateConnect(Connection connect);
 }

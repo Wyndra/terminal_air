@@ -30,6 +30,10 @@ public interface CredentialsMapper {
     @Select("SELECT * FROM Credentials WHERE uid = #{userId}")
     List<Credential> selectCredentialsByUserId(Long userId);
 
+    @Select("SELECT * FROM Credentials WHERE id = #{id}")
+    @ResultMap("credentialResultMap")
+    Credential selectCredentialById(Long id);
+
     /**
      * 根据用户ID和凭据ID查询凭据
      */
@@ -63,6 +67,10 @@ public interface CredentialsMapper {
     @ResultMap("credentialResultMap")
     List<Credential> selectCredentialsByConnectId(Long connectId);
 
+
+    @Select("SELECT * FROM Credentials WHERE cid = #{connectId} AND status = 2 AND uid = #{userId}")
+    @ResultMap("credentialResultMap")
+    List<Credential> selectBoundCredentialsByConnectionId(Long userId, Long connectId);
     /**
      * 插入凭据
      */

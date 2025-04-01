@@ -1,10 +1,9 @@
 package top.srcandy.candyterminal.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
 
 
-public class UpdateConnectRequest {
+public class UpdateConnectionRequest {
     @Schema(description = "连接ID")
     private Long cid;
     @Schema(description = "主机")
@@ -19,6 +18,9 @@ public class UpdateConnectRequest {
     private String name;
     @Schema(description = "连接方式")
     private String method;
+    @Schema(description = "凭证UUID")
+    private String credentialUUID;
+
 
     public Long getCid() {
         return cid;
@@ -74,5 +76,13 @@ public class UpdateConnectRequest {
 
     public void setMethod(String method) {
         this.method = method;
+    }
+
+    public String getCredentialUUID() {
+        return credentialUUID;
+    }
+
+    public void setCredentialUUID(String credentialUUID) {
+        this.credentialUUID = credentialUUID;
     }
 }

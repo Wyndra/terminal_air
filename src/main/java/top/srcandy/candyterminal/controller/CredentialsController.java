@@ -66,6 +66,12 @@ public class CredentialsController {
         return ResponseResult.success(credentialsService.updateCredentialConnectId(token.substring(7), request));
     }
 
+    @GetMapping("/get/bound/{connectId}")
+    @Operation(summary = "获取当前Connection的已绑定凭据", description = "获取当前Connection的已绑定凭据")
+    public ResponseResult<List<Credential>> selectBoundCredentialsByConnectionId(@RequestHeader("Authorization") String token, @PathVariable Long connectId) throws Exception {
+        return ResponseResult.success(credentialsService.selectBoundCredentialsByConnectionId(token.substring(7), connectId));
+    }
+
     @GetMapping(value ="/installation/{uuid}", produces = "text/plain;charset=UTF-8")
     @Operation(summary = "安装脚本", description = "生成安装脚本")
     @AuthAccess

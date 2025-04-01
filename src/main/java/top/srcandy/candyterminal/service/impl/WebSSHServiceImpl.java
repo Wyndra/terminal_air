@@ -1,13 +1,13 @@
 package top.srcandy.candyterminal.service.impl;
 
 import cn.hutool.core.lang.copier.SrcToDestCopier;
+import com.aliyun.core.utils.IOUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.slf4j.SLF4JLogger;
 import org.springframework.aop.framework.AopContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
@@ -24,9 +24,11 @@ import top.srcandy.candyterminal.service.WebSSHService;
 import top.srcandy.candyterminal.utils.AESUtils;
 import top.srcandy.candyterminal.utils.ANSIFormatterUtil;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
@@ -109,10 +111,10 @@ public class WebSSHServiceImpl implements WebSSHService {
             WebSSHServiceImpl proxy = (WebSSHServiceImpl) AopContext.currentProxy();
             executorService.execute(() -> {
                 try {
-                    proxy.connectToSSH(sshConnectInfo, finalWebSSHData, session,"");
+                    proxy.connectToSSH(sshConnectInfo, finalWebSSHData, session,"","","");
                 } catch (IOException | JSchException e) {
                     log.error("连接失败");
-                    log.error("异常信息：{}", e.getMessage());
+                    log.error("异常信息：{}", e.getMessage(),e);
                     close(session);  // 连接失败，关闭会话
                 }
             });
@@ -196,29 +198,43 @@ public class WebSSHServiceImpl implements WebSSHService {
      * @throws JSchException 建立 SSH 会话时抛出的异常
      * @throws IOException   在通信过程中抛出的异常
      */
-    public void connectToSSH(SSHConnectInfo sshConnectInfo, WebSSHData webSSHData, WebSocketSession webSocketSession,String decryptedPassword) throws JSchException, IOException {
+    public void connectToSSH(SSHConnectInfo sshConnectInfo, WebSSHData webSSHData, WebSocketSession webSocketSession,String decryptedPassword,String privateKey,String publicKey) throws JSchException, IOException {
         if (sshConnectInfo == null || sshConnectInfo.getJSch() == null) {
             log.error("SSHConnectInfo 为空，无法建立连接");
             return;
         }
 
         Session session = null;
+        File tempKeyFile = null;
         Properties config = new Properties();
-        config.put("StrictHostKeyChecking", "no");  // 忽略 SSH 主机密钥检查
-
+        config.put("StrictHostKeyChecking", "no");
+        config.put("PubkeyAcceptedKeyTypes", "ssh-rsa,rsa-sha2-256,rsa-sha2-512");
         JSch jSch = sshConnectInfo.getJSch();
-//        jSch.addIdentity("id_rsa", webSSHData.getPrivateKey().getBytes(), null, null);  // 添加私钥
+        jSch.removeAllIdentity();  // 移除所有身份
+        if (webSSHData.getMethod().equals(1)) {
+            // 如果使用私钥登录，privateKey 是私钥文本
+            config.put("PreferredAuthentications", "publickey");
+            if (privateKey != null && !privateKey.isEmpty()) {
+                byte[] privateKeyBytes = privateKey.getBytes(StandardCharsets.UTF_8);  // 将私钥字符串转换为字节数组
+                jSch.addIdentity("id_rsa",privateKeyBytes,null,null);  // 添加私钥
+            } else {
+                log.error("私钥为空，无法使用私钥登录");
+                return;
+            }
+        }
         String uuid = (String) webSocketSession.getAttributes().get("username");  // 获取用户名作为 UUID
         log.info("尝试连接 SSH 主机: {}:{}", webSSHData.getHost(), webSSHData.getPort());
-
         try {
             // 已实现切面，此处不再需要解密密码，decryptPassword 会被自动注入
             session = jSch.getSession(webSSHData.getUsername(), webSSHData.getHost(), webSSHData.getPort());
             session.setConfig(config);
-            session.setPassword(decryptedPassword);
+            if (webSSHData.getMethod().equals(0)) {
+                session.setPassword(decryptedPassword);
+            };
 
             session.connect(30000);  // 设置连接超时为 30 秒
             log.info("SSH 会话连接成功");
+
 
             Channel channel = session.openChannel("shell");  // 打开一个 shell 通道
             channel.connect(3000);  // 设置通道连接超时为 3 秒
@@ -253,12 +269,12 @@ public class WebSSHServiceImpl implements WebSSHService {
                 }
             }
         } catch (Exception e) {
-            log.error("SSH 连接异常：{}", e.getMessage());
+            log.error("SSH 连接异常：{}", e.getMessage(),e);
             String errorMessage = ANSIFormatterUtil.formatMessage("✘ " + e.getMessage() + "\n\r", ANSIColor.BRIGHT_RED, ANSIStyle.BOLD);
             byte[] buffer = errorMessage.getBytes();
             sendMessage(webSocketSession, buffer, "error", e.getMessage());
 
-            close(webSocketSession);  // 发生异常时关闭连接
+//            close(webSocketSession);  // 发生异常时关闭连接
         }
     }
 

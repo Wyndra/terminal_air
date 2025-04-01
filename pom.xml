@@ -70,10 +70,11 @@
             <version>3.0.3</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.jcraft/jsch -->
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jsch</artifactId>
-            <version>0.1.54</version>
+            <version>0.1.55</version>
         </dependency>
         <!-- WebSocket 支持 -->
         <dependency>

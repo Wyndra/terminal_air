@@ -2,8 +2,8 @@ package top.srcandy.candyterminal.service;
 
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.model.Connection;
-import top.srcandy.candyterminal.request.AddConnectRequest;
-import top.srcandy.candyterminal.request.UpdateConnectRequest;
+import top.srcandy.candyterminal.request.AddConnectionRequest;
+import top.srcandy.candyterminal.request.UpdateConnectionRequest;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -15,9 +15,9 @@ public interface ConnectionService {
 
     ResponseResult<List<Connection>> selectByConnectCreaterUid(Long connectCreaterUid);
 
-    ResponseResult<Connection> insertConnect(String token, AddConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
+    ResponseResult<Connection> insertConnect(String token, AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
-    ResponseResult<Connection> updateConnect(String token, UpdateConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
+    ResponseResult<Connection> updateConnect(String token, UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
     ResponseResult<Connection> deleteConnect(String token, Long cid);
 

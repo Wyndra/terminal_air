@@ -4,14 +4,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.srcandy.candyterminal.constant.ResponseResult;
-import top.srcandy.candyterminal.converter.ConnectConverter;
+import top.srcandy.candyterminal.converter.ConnectionConverter;
 import top.srcandy.candyterminal.mapper.ConnectionMapper;
 import top.srcandy.candyterminal.model.Connection;
+import top.srcandy.candyterminal.model.Credential;
 import top.srcandy.candyterminal.model.User;
-import top.srcandy.candyterminal.request.AddConnectRequest;
-import top.srcandy.candyterminal.request.UpdateConnectRequest;
+import top.srcandy.candyterminal.request.AddConnectionRequest;
+import top.srcandy.candyterminal.request.UpdateConnectionRequest;
 import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.service.ConnectionService;
+import top.srcandy.candyterminal.service.CredentialsService;
 import top.srcandy.candyterminal.utils.AESUtils;
 import top.srcandy.candyterminal.utils.JWTUtil;
 
@@ -30,7 +32,10 @@ public class ConnectionServiceImpl implements ConnectionService {
     private AuthService authService;
 
     @Autowired
-    private ConnectConverter connectConverter;
+    private ConnectionConverter connectConverter;
+
+    @Autowired
+    private CredentialsService credentialsService;
 
 
     public ResponseResult<List<Connection>> list(String token) {
@@ -51,7 +56,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     @Override
-    public ResponseResult<Connection> insertConnect(String token, AddConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<Connection> insertConnect(String token, AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         // 提取 token 并解析用户名
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
@@ -80,7 +85,7 @@ public class ConnectionServiceImpl implements ConnectionService {
                 .connectHost(request.getHost())
                 .connectPort(request.getPort())
                 .connectUsername(request.getUsername())
-                .connectPwd(AESUtils.encryptToHex(request.getPassword(), userSalt))
+                .connectPwd(request.getPassword().equals("") ? "" : AESUtils.encryptToHex(request.getPassword(), userSalt))
                 .connectName(request.getName())
                 .connectMethod(request.getMethod())
                 .build();
@@ -89,7 +94,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     @Override
-    public ResponseResult<Connection> updateConnect(String token, UpdateConnectRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<Connection> updateConnect(String token, UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         // 提取 token 并解析用户名
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
@@ -132,6 +137,16 @@ public class ConnectionServiceImpl implements ConnectionService {
             }else {
                 updatedConnect.setConnectPwd(connect.getConnectPwd());
             }
+            if (requestPassword.equals("")) {
+                updatedConnect.setConnectPwd("");
+            }
+            Credential credential = null;
+            try {
+                credential = credentialsService.selectCredentialByUuid(token.substring(7), request.getCredentialUUID());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            updatedConnect.setCredentialId(credential.getId());
             connectionMapper.updateConnect(updatedConnect);
             return ResponseResult.success(updatedConnect);
         }).orElseGet(() -> ResponseResult.fail(null, "连接不存在"));
