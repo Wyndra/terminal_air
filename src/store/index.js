@@ -5,9 +5,11 @@ export default createStore({
     isLoggedIn: localStorage.getItem('token') ? true : false, // 从 localStorage 获取登录状态
     host: '',
     port: '',
+    method: 0,
     username: '',
     password: '',
-    showAddNewConnectionDrawer: false,
+    credentialId: '',
+    showAddConnectionDrawer: false,
     showEditConnectionDrawer: false,
     hasShownError: false,
     usingLocalhostWs: false,
@@ -64,8 +66,8 @@ export default createStore({
     setPassword(state, password) {
       state.password = password
     },
-    setShowAddNewConnectionDrawer(state, value) {
-      state.showAddNewConnectionDrawer = value
+    setshowAddConnectionDrawer(state, value) {
+      state.showAddConnectionDrawer = value
     },
     setShowEditConnectionDrawer(state, value) {
       state.showEditConnectionDrawer = value

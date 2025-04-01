@@ -1,4 +1,5 @@
 import serviceAxios from "@/utils/request";
+import { Connect } from "@vicons/carbon";
 export const listCredentials = () => {
     return serviceAxios({
         url: "/api/credentials/list",
@@ -31,5 +32,12 @@ export const bindCredentials = (data) => {
         url: "/api/credentials/bind",
         method: "post",
         data,
+    });
+}
+
+export const listBoundCredentials = (connectionId) => {
+    return serviceAxios({
+        url: "/api/credentials/get/bound/" + connectionId,
+        method: "get",
     });
 }
