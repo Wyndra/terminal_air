@@ -157,11 +157,41 @@ const handleBindCredential = debounce(async () => {
 
 
 const handleCopy = () => {
+    if (!navigator.clipboard) {
+        // **使用备用方案**
+        fallbackCopyTextToClipboard(curlCode.value);
+        return;
+    }
+
     navigator.clipboard.writeText(curlCode.value).then(() => {
         message.success("复制成功");
-    }).catch(() => {
-        message.error("复制失败");
+    }).catch((err) => {
+        fallbackCopyTextToClipboard(curlCode.value);
     });
+};
+
+// **备用方案（旧浏览器或 Clipboard API 失效时）**
+const fallbackCopyTextToClipboard = (text) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "absolute";
+    textarea.style.left = "-9999px"; // 隐藏 textarea
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+        const success = document.execCommand("copy");
+        if (success) {
+            message.success("复制成功");
+        } else {
+            message.error("复制失败");
+        }
+    } catch (err) {
+        console.error("execCommand 复制失败", err);
+        message.error("复制失败");
+    }
+
+    document.body.removeChild(textarea);
 };
 
 const handleIssue = () => {
