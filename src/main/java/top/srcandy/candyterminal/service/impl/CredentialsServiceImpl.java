@@ -126,6 +126,11 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
+    public Credential selectCredentialByUuid(String uuid) throws Exception {
+        return credentialsMapper.selectCredentialByUuid(uuid);
+    }
+
+    @Override
     public void updateCredentialStatus(String token, CredentialStatusRequest request) throws Exception {
         User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();

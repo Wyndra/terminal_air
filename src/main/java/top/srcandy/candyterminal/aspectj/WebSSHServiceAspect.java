@@ -38,12 +38,10 @@ public class WebSSHServiceAspect {
                 log.info("Decrypted password: {}", decryptedPassword);
                 args[3] = decryptedPassword;
             }else if (webSSHData.getMethod().equals(1)) {
-                args[4] = credentialsService.selectCredentialById(webSSHData.getCredentialUUID().longValue()).getPrivateKey();
-                args[5] = credentialsService.selectCredentialById(webSSHData.getCredentialUUID().longValue()).getPublicKey();
+                args[4] = credentialsService.selectCredentialByUuid(webSSHData.getCredentialUUID()).getPrivateKey();
+                args[5] = credentialsService.selectCredentialByUuid(webSSHData.getCredentialUUID()).getPublicKey();
             }
-
         }
-
         // 执行目标方法，返回结果
         return joinPoint.proceed(args);
     }

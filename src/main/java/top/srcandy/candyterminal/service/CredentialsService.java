@@ -22,6 +22,8 @@ public interface CredentialsService {
 
     Credential selectCredentialById(Long id) throws Exception;
 
+    Credential selectCredentialByUuid(String uuid) throws Exception;
+
     void updateCredentialStatus(String token, CredentialStatusRequest request) throws Exception;
 
     Credential updateCredentialConnectId(String token, CredentialConnectionRequest request) throws Exception;

@@ -10,6 +10,6 @@ public class WebSSHData {
     private Integer method = 0;
     private String username;
     private String password;
-    private Integer credentialUUID;
+    private String credentialUUID;
     private String command = "";
 }

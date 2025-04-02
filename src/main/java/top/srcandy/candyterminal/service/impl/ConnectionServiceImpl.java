@@ -3,6 +3,7 @@ package top.srcandy.candyterminal.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import top.srcandy.candyterminal.bean.vo.ConnectionVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.converter.ConnectionConverter;
 import top.srcandy.candyterminal.mapper.ConnectionMapper;
@@ -38,7 +39,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     private CredentialsService credentialsService;
 
 
-    public ResponseResult<List<Connection>> list(String token) {
+    public ResponseResult<List<ConnectionVO>> list(String token) {
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
         User user = authService.getUserByUsername(username);
@@ -46,7 +47,9 @@ public class ConnectionServiceImpl implements ConnectionService {
             return ResponseResult.fail(null, "用户不存在");
         }
         log.info("user:{}", user);
-        return ResponseResult.success(connectionMapper.selectByConnectCreaterUid(user.getUid()));
+        List<Connection> connections = connectionMapper.selectByConnectCreaterUid(user.getUid());
+
+        return ResponseResult.success(connectConverter.connectionList2ConnectionVOList(connections));
     }
 
 
@@ -54,6 +57,8 @@ public class ConnectionServiceImpl implements ConnectionService {
     public ResponseResult<List<Connection>> selectByConnectCreaterUid(Long connectCreaterUid) {
         return ResponseResult.success(connectionMapper.selectByConnectCreaterUid(connectCreaterUid));
     }
+
+
 
     @Override
     public ResponseResult<Connection> insertConnect(String token, AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
@@ -94,7 +99,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     @Override
-    public ResponseResult<Connection> updateConnect(String token, UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<ConnectionVO> updateConnect(String token, UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         // 提取 token 并解析用户名
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
@@ -131,7 +136,7 @@ public class ConnectionServiceImpl implements ConnectionService {
                 }
             }
             // 更新其他字段，但保留可能更新的密码
-            Connection updatedConnect = connectConverter.request2connectInfo(request);
+            Connection updatedConnect = connectConverter.request2connection(request);
             if (requestPassword.equals(storedPassword)) {
                 updatedConnect.setConnectPwd(storedPassword);
             }else {
@@ -140,15 +145,19 @@ public class ConnectionServiceImpl implements ConnectionService {
             if (requestPassword.equals("")) {
                 updatedConnect.setConnectPwd("");
             }
-            Credential credential = null;
-            try {
-                credential = credentialsService.selectCredentialByUuid(token.substring(7), request.getCredentialUUID());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            if (request.getMethod().equals("key")){
+                Credential credential = null;
+                try {
+                    credential = credentialsService.selectCredentialByUuid(token.substring(7), request.getCredentialUUID());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                updatedConnect.setCredentialId(credential.getId());
             }
-            updatedConnect.setCredentialId(credential.getId());
+
             connectionMapper.updateConnect(updatedConnect);
-            return ResponseResult.success(updatedConnect);
+            ConnectionVO connectionVO = connectConverter.connection2ConnectionVO(updatedConnect);
+            return ResponseResult.success(connectionVO);
         }).orElseGet(() -> ResponseResult.fail(null, "连接不存在"));
     }
 

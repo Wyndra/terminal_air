@@ -48,6 +48,10 @@ public interface CredentialsMapper {
     @ResultMap("credentialResultMap")
     Credential selectCredentialByUidAndUuid(Long uid, String uuid);
 
+    @Select("SELECT * FROM Credentials WHERE uuid = #{uuid}")
+    @ResultMap("credentialResultMap")
+    Credential selectCredentialByUuid(String uuid);
+
     /**
      * 统计用户同名凭据数量
      */
