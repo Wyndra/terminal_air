@@ -135,14 +135,12 @@ const fetchCredentialsList = async () => {
     try {
         const res = await listBoundCredentials(props.editConnectionInfo.cid);
         if (res.status === '200') {
-            credentialsList.value = [...res.data];
-            console.log('credentialsList', credentialsList.value);
+            credentialsList.value = res.data;
+            console.log('credentialsList' + credentialsList.value[0]?.id ,credentialsList.value);
             credentialsSelectOptions.value = credentialsList.value.map((item) => {
                 return {
                     label: item.name,
                     value: item.uuid,
-                    uuid: item.uuid,
-                    id: item.id,
                 }
             });
         } else {
@@ -188,6 +186,8 @@ const handleSaveAndConnect = () => {
             return;
         }
 
+        console.log('connectionForm', credentialsList.value);
+
         const requestData = {
             cid: props.editConnectionInfo.cid,
             name: connectionForm.value.name,
@@ -196,7 +196,7 @@ const handleSaveAndConnect = () => {
             username: connectionForm.value.username,
             method: connectionForm.value.method === 'password' ? '0' : '1',
             password: connectionForm.value.password,
-            credentialUUID: credentialsSelectOptions.value.find(item => item.label == connectionForm.value.credential).uuid || '',
+            credentialUUID: credentialsList.value.find(item => item.label == connectionForm.value.credential)[0].uuid || '',
         };
 
         const res = await asyncEditConnect(requestData);
