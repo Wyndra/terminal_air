@@ -159,40 +159,44 @@ const handleBindCredential = debounce(async () => {
 const handleCopy = () => {
     if (!navigator.clipboard) {
         // **使用备用方案**
-        fallbackCopyTextToClipboard(curlCode.value);
+        copyToClipboard(curlCode.value);
         return;
     }
 
     navigator.clipboard.writeText(curlCode.value).then(() => {
         message.success("复制成功");
     }).catch((err) => {
-        fallbackCopyTextToClipboard(curlCode.value);
+        copyToClipboard(curlCode.value).then(() => {
+            message.success("复制成功");
+        }).catch(() => {
+        });
     });
 };
 
-// **备用方案（旧浏览器或 Clipboard API 失效时）**
-const fallbackCopyTextToClipboard = (text) => {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.style.position = "absolute";
-    textarea.style.left = "-9999px"; // 隐藏 textarea
-    document.body.appendChild(textarea);
-    textarea.select();
-
-    try {
-        const success = document.execCommand("copy");
-        if (success) {
-            message.success("复制成功");
-        } else {
-            message.error("复制失败");
-        }
-    } catch (err) {
-        console.error("execCommand 复制失败", err);
-        message.error("复制失败");
+function copyToClipboard(textToCopy) {
+    // navigator clipboard 需要https等安全上下文
+    if (navigator.clipboard && window.isSecureContext) {
+        // navigator clipboard 向剪贴板写文本
+        return navigator.clipboard.writeText(textToCopy);
+    } else {
+        // 创建text area
+        let textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        // 使text area不在viewport，同时设置不可见
+        textArea.style.position = "absolute";
+        textArea.style.opacity = 0;
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        return new Promise((res, rej) => {
+            // 执行复制命令并移除文本框
+            document.execCommand('copy') ? res() : rej();
+            textArea.remove();
+        });
     }
-
-    document.body.removeChild(textarea);
-};
+}
 
 const handleIssue = () => {
     message.info("请 联系我们 或 查看文档 以获取帮助");

@@ -8,7 +8,7 @@ export default createStore({
     method: 0,
     username: '',
     password: '',
-    credentialId: '',
+    credentialUUID: '',
     showAddConnectionDrawer: false,
     showEditConnectionDrawer: false,
     hasShownError: false,

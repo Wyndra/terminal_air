@@ -68,8 +68,7 @@
             <!-- 有连接时显示连接列表 -->
             <div v-else>
               <div v-for="(item, index) in connect_list" :key="item">
-                <ConnectionItem @taggle_connect="handleTaggleConnectionEvent"
-                  @refresh="fetchConnectionList()" :connectionValue="item" />
+                <ConnectionItem @taggle_connect="handleTaggleConnectionEvent" @refresh="fetchConnectionList()" :connectionValue="item" />
               </div>
             </div>
           </div>
@@ -156,7 +155,7 @@ async function fetchConnectionList() {
         store.state.username = res.data[0].connectUsername;
         store.state.password = res.data[0].connectPwd;
         store.state.method = Number(res.data[0].connectMethod);
-        store.state.credentialId = res.data[0].credentialId;
+        store.state.credentialId = res.data[0].credentialUUID;
       }
     } else {
       if (!hasShownError.value) {

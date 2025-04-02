@@ -38,18 +38,17 @@ const props = defineProps({
 });
 
 const connection = ref(props.connectionValue);
+console.log('connection', connection.value);
 
 
 const store = useStore();
 const message = useMessage();
 const dialog = useDialog();
 const hasShownError = ref(store.getters.hasShownError);
-const connect_list = ref([])
 
 async function fetchConnectionList() {
     const res = await list();
     if (res.status === '200') {
-        connect_list.value = [...res.data];
         await nextTick();
         if (res.data.length > 0) {
             store.state.host = res.data[0].connectHost;
@@ -57,7 +56,7 @@ async function fetchConnectionList() {
             store.state.username = res.data[0].connectUsername;
             store.state.password = res.data[0].connectPwd;
             store.state.method = res.data[0].connectMethod;
-            store.state.credentialUUID = res.data[0].credentialId
+            store.state.credentialUUID = res.data[0].credentialUUID ? res.data[0].credentialUUID : '';
         }
     } else {
         if (!hasShownError.value) {

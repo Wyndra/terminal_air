@@ -24,11 +24,11 @@
                     </n-form-item>
                     <n-form-item label="连接方式">
                         <n-radio-group v-model:value="connectInfoForm.method">
-                            <n-radio value="password">密码</n-radio>
-                            <n-radio value="key" :disabled="true">密钥</n-radio>
+                            <n-radio value="0">密码</n-radio>
+                            <n-radio value="1" :disabled="true">密钥</n-radio>
                         </n-radio-group>
                     </n-form-item>
-                    <n-form-item label="密码" v-if="connectInfoForm.method === 'password'" path="password">
+                    <n-form-item label="密码" v-if="connectInfoForm.method === '0'" path="password">
                         <div style="display: flex; flex-direction: column; width: 100%;">
                             <!-- 输入框 -->
                             <n-input v-model:value="connectInfoForm.password" placeholder="请输入密码" type="password"
@@ -70,7 +70,7 @@ const connectInfoForm = ref({
     host: '',
     port: '',
     username: '',
-    method: 'password',
+    method: '0',
     password: '',
 });
 
@@ -91,7 +91,6 @@ const formRules = {
     ],
     password: [
         {
-            // required: true, message: '密码不能为空', trigger: ['input', 'blur'],
             validator: (rule, value) => connectInfoForm.value.method === 'password' && !value ? false : true
         },
     ]
@@ -105,7 +104,7 @@ const clearConnectInfoForm = () => {
         host: '',
         port: '',
         username: '',
-        method: 'password',
+        method: '0',
         password: ''
     };
 };
@@ -135,7 +134,6 @@ const handleSaveAndConnect = () => {
 
         // 转换字段值
         const data = { ...connectInfoForm.value };
-        data.method = data.method === 'password' ? '0' : '1';
 
         const res = await asyncAddConnect(data);
         if (res.status === '200') {

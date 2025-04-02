@@ -25,11 +25,11 @@
                     </n-form-item>
                     <n-form-item label="连接方式">
                         <n-radio-group v-model:value="connectionForm.method">
-                            <n-radio value="password">密码</n-radio>
-                            <n-radio value="key">密钥</n-radio>
+                            <n-radio value="0">密码</n-radio>
+                            <n-radio value="1">密钥</n-radio>
                         </n-radio-group>
                     </n-form-item>
-                    <n-form-item label="密码" v-if="connectionForm.method === 'password'" path="password">
+                    <n-form-item label="密码" v-if="connectionForm.method === '0'" path="password">
                         <div style="display: flex; flex-direction: column; width: 100%;">
                             <!-- 输入框 -->
                             <n-input v-model:value="connectionForm.password" placeholder="请输入密码" type="password"
@@ -43,12 +43,12 @@
                         </div>
                     </n-form-item>
                     <n-form-item label="密钥" v-else path="credential">
-                        <n-select v-model:value="connectionForm.credential" placeholder="请选择密钥"
+                        <n-select v-model:value="connectionForm.credential" placeholder="请选择凭据"
                             :options="credentialsSelectOptions" />
                     </n-form-item>
 
                 </n-form>
-                <n-button type="primary" style="width: 100%;" @click="handleSaveAndConnect">
+                <n-button type="primary" style="width: 100%;" @click="handleUpdate">
                     保存
                 </n-button>
             </n-card>
@@ -74,14 +74,15 @@ const emit = defineEmits(["refresh","close"]);
 
 // 表单绑定数据
 const connectionForm = ref({
-    name: '',
-    host: '',
-    port: '',
-    username: '',
-    method: 'password',
-    password: '',
-    credential: ''
+    name: props.editConnectionInfo.connectName,
+    host: props.editConnectionInfo.connectHost || '',
+    port: props.editConnectionInfo.connectPort || '',
+    username: props.editConnectionInfo.connectUsername || '',
+    method: props.editConnectionInfo.connectMethod,
+    password: props.editConnectionInfo.connectPwd || '',
+    credential: props.editConnectionInfo.credentialUUID || '',
 });
+const connectionFormRef = ref(null);
 
 const credentialsList = ref([]);
 const credentialsSelectOptions = ref([]);
@@ -115,21 +116,6 @@ const connectionFormRule = {
     ]
 };
 
-const connectionFormRef = ref(null);
-
-const loadConnectionInfo = () => {
-    connectionForm.value = {
-        name: props.editConnectionInfo.connectName || '',
-        host: props.editConnectionInfo.connectHost || '',
-        port: props.editConnectionInfo.connectPort || '',
-        username: props.editConnectionInfo.connectUsername || '',
-        method: props.editConnectionInfo.connectMethod === 0 ? 'password' : 'key',
-        password: props.editConnectionInfo.connectPwd || '',
-        credential: credentialsList.value.find(item => item.id === props.editConnectionInfo.credentialId)?.name || ''
-    };
-
-};
-
 // 获取凭证列表
 const fetchCredentialsList = async () => {
     try {
@@ -151,14 +137,8 @@ const fetchCredentialsList = async () => {
     }
 };
 
-// 监听 Vuex 中的 editConnectionInfo 更新
-// watch(() => store.state.editConnectionInfo, () => {
-//     loadConnectionInfo();
-// });
-
 onMounted(async () => {
     await fetchCredentialsList(); // 获取凭证列表
-    loadConnectionInfo();
 });
 
 const asyncEditConnect = async (data) => {
@@ -167,14 +147,13 @@ const asyncEditConnect = async (data) => {
         message.success('连接修改成功');
         emit('refresh'); // 通知父组件刷新列表
         emit('close'); // 关闭编辑连接抽屉
-        loadConnectionInfo()
     } else {
         message.error(res.message || '连接修改失败');
     }
     return res;
 };
 
-const handleSaveAndConnect = () => {
+const handleUpdate = () => {
     connectionFormRef.value.validate(async (errors) => {
         if (errors) {
             message.error('请检查表单填写是否完整');
@@ -186,17 +165,15 @@ const handleSaveAndConnect = () => {
             return;
         }
 
-        console.log('connectionForm', credentialsList.value);
-
         const requestData = {
             cid: props.editConnectionInfo.cid,
             name: connectionForm.value.name,
             host: connectionForm.value.host,
             port: connectionForm.value.port,
             username: connectionForm.value.username,
-            method: connectionForm.value.method === 'password' ? '0' : '1',
+            method: connectionForm.value.method,
             password: connectionForm.value.password,
-            credentialUUID: credentialsList.value.find(item => item.name == connectionForm.value.credential).uuid || '',
+            credentialUUID: connectionForm.value.credential,
         };
 
         const res = await asyncEditConnect(requestData);
