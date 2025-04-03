@@ -1,44 +1,5 @@
 <template>
-  <n-layout style="height: 100vh; position: relative;">
-    <!-- Header -->
-    <n-layout-header class="header" bordered>
-      <div style="display: flex; height: 100%; align-items: center">
-        <img src="@/assets/shell.svg" alt="Terminal Air" style="height: 24px;" />
-        <span @click="gotoHomeView" style="cursor: pointer;">
-          Terminal Air
-        </span>
-        <div style="flex: 1;"></div>
-        <div style="height: 100%; display: flex; align-items: center">
-          <!-- 登录按钮显示 -->
-          <n-button v-if="!InLogin" style="margin-right: 24px;" @click="openLoginModal">
-            登录
-          </n-button>
-
-          <!-- 登录后显示个人信息 -->
-          <n-popover v-else trigger="hover" v-if="!isLoading">
-            <template #trigger>
-              <div class="username_avatar" v-if="userInfo && userInfo.username">
-                <n-avatar id="user-avatar" round size="large" :src="userInfo.avatar || ''" />
-                <span v-if="userInfo.username" style="margin-right: 24px; margin-left: 10px !important;">
-                  {{ userInfo.nickname || userInfo.username }}
-                </span>
-              </div>
-            </template>
-            <template #header>
-              <n-text @click="gotoHomeView()" depth="1">回到工作区</n-text>
-            </template>
-            <template #footer>
-              <div style="display: flex;justify-content: center;">
-                <span @click="logout">退出登录</span>
-              </div>
-            </template>
-          </n-popover>
-        </div>
-      </div>
-    </n-layout-header>
-
     <!-- Main Content -->
-    <n-layout class="main-content">
       <n-layout style="height: 100%;">
         <n-layout-content content-style="padding: 24px;display: flex;gap:20px">
           <n-card :title="cardName" style="max-width: 800px;">
@@ -73,7 +34,7 @@
                         class="info-item">
                         <div class="value-wrapper">
                           <n-text>{{ userInfo[field.key] }}</n-text>
-                          <n-button v-if="field.editable" secondary size="tiny" text @click="openEditDialog(field)">
+                          <n-button v-if="field.editable" secondary size="small" text @click="openEditDialog(field)">
                             <n-text style="color: cornflowerblue;">
                               编辑
                             </n-text>
@@ -106,7 +67,6 @@
                   <n-form-item label="登录密码">
                     <div class="two-factor-wrapper">
                       <n-button @click="showChangePasswordModal = true">更改密码</n-button>
-                      <!-- <n-switch v-model:value="userInfo.isTwoFactorAuth" @update:value="handleTwoFactorChange" /> -->
                       <span class="description-text">当发现自己密码泄露，应立即更改密码。</span>
                     </div>
                   </n-form-item>
@@ -121,36 +81,12 @@
                   </n-form-item>
                 </n-form>
               </n-tab-pane>
-              <!-- <n-tab-pane name="安全设置" tab="安全设置">
-                <n-descriptions :column="1" label-align="left" label-style="width: 120px; padding-right: 16px;">
-                  <n-descriptions-item label="加密密钥">
-                    <div class="salt-input-wrapper">
-                      <n-input type="password" show-password-on="mousedown" v-model:value="safeSettingForm.salt"
-                        :disabled="!saltLockStatus" @focus="handleSaltInputFocus" />
-                      <n-button circle size="small" @click="handleLockByPassword">
-                        <template #icon>
-                          <n-icon>
-                            <component :is="saltLockStatus ? LockOpen : LockClosed" />
-                          </n-icon>
-                        </template>
-                      </n-button>
-                    </div>
-                  </n-descriptions-item>
-                </n-descriptions>
-              </n-tab-pane> -->
             </n-tabs>
           </n-card>
           <CredentialsManage />
         </n-layout-content>
       </n-layout>
-    </n-layout>
 
-    <!-- Footer -->
-    <n-layout-footer class="footer" bordered>
-      <div>
-        <span>© 2024 - 2025 Terminal Air 慕垂科技 - 浙ICP备2023031974号 - Commit ID: {{ gitCommitHash }}</span>
-      </div>
-    </n-layout-footer>
 
     <!-- 密钥 密码解锁弹出框 -->
     <UseLockByPasswordModal v-model:show="showLockByPasswordModal"
@@ -250,7 +186,6 @@
     </n-modal>
 
 
-  </n-layout>
 </template>
 
 <script setup>
@@ -272,7 +207,6 @@ import UseLockByTotpModal from '@/components/modal/UseLockByTOTPModal.vue';
 import TwoFactorAuthManageModal from '@/components/modal/TwoFactorAuthManageModal.vue';
 import CredentialsManage from '@/components/card/CredentialsManageCard.vue';
 
-const gitCommitHash = process.env.VUE_APP_GIT_COMMIT_HASH;
 
 const store = useStore();
 const message = useMessage();

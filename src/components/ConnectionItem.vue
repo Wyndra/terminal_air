@@ -5,19 +5,21 @@
         </n-ellipsis>
 
         <div style="flex: 1;"></div>
-        <n-popover :overlap="overlap" placement="right-start" trigger="hover">
+        <n-popover placement="right" trigger="hover">
             <template #trigger>
                 <n-icon size="20" style="cursor: pointer;">
                     <Dots></Dots>
                 </n-icon>
             </template>
-            <div>
-                <n-flex vertical>
-                    <div class="virtual_button" @click="handleEditButton">编辑</div>
-                    <!-- <div class="line"></div> -->
-                    <div class="virtual_button warn_button" @click="openDeleteWindows">删除</div>
-                </n-flex>
-            </div>
+            <span class="virtual_button" @click="handleEditButton">编辑</span>
+            <span class="virtual_button warn_button" @click="openDeleteWindows">删除</span>
+            <!-- <div> -->
+            <n-flex>
+                <!-- <div class="virtual_button" @click="handleEditButton">编辑</div> -->
+                <!-- <div class="line"></div> -->
+                <!-- <div class="virtual_button warn_button" @click="openDeleteWindows">删除</div> -->
+            </n-flex>
+            <!-- </div> -->
         </n-popover>
     </div>
     <EditConnectionDrawer v-model:show="showEditConnectionDrawer" :editConnectionInfo="connection"
@@ -84,7 +86,7 @@ const handleEditButton = () => {
 };
 
 const openDeleteWindows = () => {
-    dialog.warning({
+    dialog.error({
         showIcon: false,
         title: "确认删除",
         content: "操作不可撤销，确定继续吗？",
@@ -94,7 +96,7 @@ const openDeleteWindows = () => {
             handleDelete();
         },
         onNegativeClick: () => {
-            message.info("已取消操作");
+            // message.info("已取消操作");
         }
     });
 }

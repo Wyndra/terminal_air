@@ -89,7 +89,7 @@
                 <h2>11. 联系我们</h2>
                 <p>如果您对我们的隐私政策有任何疑问，或希望行使您的权利，请通过以下方式联系我们：</p>
                 <ul>
-                    <li>电子邮件：<a href="mailto:support@terminalair.com">support@terminalair.com</a></li>
+                    <li>电子邮件：<a href="mailto:q3199608937@gmail.com">q3199608937@gmail.com</a></li>
                     <li>客服电话：15888102494</li>
                 </ul>
             </div>

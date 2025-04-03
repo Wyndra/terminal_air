@@ -2,10 +2,13 @@
     <n-card title="凭证中心" style="min-width: 1000px;max-height: 625px;"
         content-style="display: flex; flex-direction: column;gap: 20px;">
         <template #header-extra>
-            <n-icon :size="20">
-                <QuestionCircle32Regular />
-            </n-icon>
-            了解更多
+            <div style="display: flex;align-items: center;">
+                <n-icon :size="18">
+                    <QuestionCircle32Regular />
+                </n-icon>
+                <span> 了解 凭证 必读</span>
+            </div>
+
         </template>
         <div class="view-header">
 

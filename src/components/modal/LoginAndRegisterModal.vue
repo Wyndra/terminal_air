@@ -1,125 +1,126 @@
 <template>
-    <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 600px;">
-        <template #header-extra>
-            <n-button text @click="closeModal">
-                <n-icon size="20">
-                    <Close />
-                </n-icon>
-            </n-button>
-        </template>
+        <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 600px;">
+            <template #header-extra>
+                <n-button text @click="closeModal">
+                    <n-icon size="20">
+                        <Close />
+                    </n-icon>
+                </n-button>
+            </template>
 
-        <n-tabs type="line" animated @before-leave="handleBeforeLeave" v-if="currentServiceType === '登录' && !isTwoFactor">
-            <n-tab-pane name="usernameLogin" tab="账密登录">
-                <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules">
-                    <n-form-item label="用户名" path="username">
-                        <n-input v-model:value="loginForm.username" placeholder="请输入用户名" @keydown.enter.prevent />
+            <n-tabs type="line" animated @before-leave="handleBeforeLeave"
+                v-if="currentServiceType === '登录' && !isTwoFactor">
+                <n-tab-pane name="usernameLogin" tab="账密登录">
+                    <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules">
+                        <n-form-item label="用户名" path="username">
+                            <n-input v-model:value="loginForm.username" placeholder="请输入用户名" @keydown.enter.prevent />
+                        </n-form-item>
+                        <n-form-item label="密码" path="password">
+                            <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
+                                show-password-on="mousedown" @keydown.enter.prevent />
+                        </n-form-item>
+                    </n-form>
+                </n-tab-pane>
+                <n-tab-pane name="phoneLogin" tab="手机号登录">
+                    <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules">
+                        <n-form-item ref="loginByCodeRef" label="手机号" path="phone">
+                            <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="codeLoginForm.phone"
+                                placeholder="请输入中国大陆手机号" />
+                        </n-form-item>
+                        <n-form-item label="验证码" path="verificationCode">
+                            <div style="display: flex; gap: 8px;">
+                                <n-input :allow-input="onlyDigitsInput" :maxlength="6"
+                                    v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
+                                <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
+                                    style="background-color: #319154; color: white;">
+                                    {{ codeButtonText }}
+                                </n-button>
+                            </div>
+                        </n-form-item>
+                    </n-form>
+                </n-tab-pane>
+            </n-tabs>
+
+
+            <n-form ref="twoFactorFormRef" label-position="top" :model="twoFactorForm" :rules="twoFactorAuthRules"
+                v-if="isTwoFactor">
+                <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
+                    <div style="position: relative;">
+                        <n-avatar round :size="48" :src="userAvatar" />
+                        <n-icon color="#cf3f37"
+                            style="position: absolute; bottom: 4px; right: -2px; width: 16px; height: 16px; background-color: transparent;">
+                            <LockClosed />
+                        </n-icon>
+                    </div>
+                    <n-text style="font-weight: bold; font-size: 16px;">我们需要验证你的身份才能继续</n-text>
+                    <n-text style="font-size: 14px;">输入来自身份验证器的代码</n-text>
+                    <n-form-item path="code">
+                        <VerifationCodeInput v-model="twoFactorForm.code" />
                     </n-form-item>
-                    <n-form-item label="密码" path="password">
-                        <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
-                            show-password-on="mousedown" @keydown.enter.prevent />
+                </div>
+            </n-form>
+
+            <!-- 验证码登录表单 -->
+
+
+            <!-- 注册表单 -->
+            <n-form ref="registerFormRef" label-position="top" :model="registerForm" :rules="registerRules"
+                v-if="currentServiceType === '注册'">
+                <div style="display: flex; gap: 16px;">
+                    <n-form-item label="用户名" path="username" style="flex: 1;">
+                        <n-input :allow-input="onlyEnglishWordsInput" v-model:value="registerForm.username"
+                            placeholder="请输入用户名" />
                     </n-form-item>
-                </n-form>
-            </n-tab-pane>
-            <n-tab-pane name="phoneLogin" tab="手机号登录">
-                <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules">
-                    <n-form-item ref="loginByCodeRef" label="手机号" path="phone">
-                        <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="codeLoginForm.phone"
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <n-form-item label="密码" path="password" style="flex: 1;">
+                        <n-input v-model:value="registerForm.password" placeholder="请输入密码" type="password"
+                            show-password-on="mousedown" />
+                    </n-form-item>
+                    <n-form-item label="确认密码" path="repeatPassword" style="flex: 1;">
+                        <n-input v-model:value="registerForm.repeatPassword" placeholder="请输入确认密码" type="password"
+                            show-password-on="mousedown" />
+                    </n-form-item>
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <n-form-item ref="registerPhoneRef" first label="手机号" path="phone" style="flex: 1;">
+                        <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="registerForm.phone"
                             placeholder="请输入中国大陆手机号" />
                     </n-form-item>
-                    <n-form-item label="验证码" path="verificationCode">
+                    <n-form-item label="验证码" path="verificationCode" style="flex: 1;">
                         <div style="display: flex; gap: 8px;">
                             <n-input :allow-input="onlyDigitsInput" :maxlength="6"
-                                v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
+                                v-model:value="registerForm.verificationCode" placeholder="请输入验证码" />
                             <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
                                 style="background-color: #319154; color: white;">
                                 {{ codeButtonText }}
                             </n-button>
                         </div>
                     </n-form-item>
-                </n-form>
-            </n-tab-pane>
-        </n-tabs>
-
-
-        <n-form ref="twoFactorFormRef" label-position="top" :model="twoFactorForm" :rules="twoFactorAuthRules"
-            v-if="isTwoFactor">
-            <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
-                <div style="position: relative;">
-                    <n-avatar round :size="48" :src="userAvatar" />
-                    <n-icon color="#cf3f37"
-                        style="position: absolute; bottom: 4px; right: -2px; width: 16px; height: 16px; background-color: transparent;">
-                        <LockClosed />
-                    </n-icon>
                 </div>
-                <n-text style="font-weight: bold; font-size: 16px;">我们需要验证你的身份才能继续</n-text>
-                <n-text style="font-size: 14px;">输入来自身份验证器的代码</n-text>
-                <n-form-item path="code">
-                    <VerifationCodeInput v-model="twoFactorForm.code" />
-                </n-form-item>
+            </n-form>
+            <!-- 人机验证组件 -->
+            <div data-size="flexible" id="turnstile-widget" />
+            <div style="display: flex; justify-content: space-between; margin-top: 16px;"
+                v-if="currentServiceType === '登录' && !isTwoFactor">
+                <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
+                    @click="handleClickRegister">立即注册</n-text>
             </div>
-        </n-form>
+            <div style="display: flex; justify-content: space-between; margin-top: 16px;"
+                v-if="currentServiceType === '注册'">
+                <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
+                    @click="currentServiceType = '登录'">返回登录</n-text>
 
-        <!-- 验证码登录表单 -->
-
-
-        <!-- 注册表单 -->
-        <n-form ref="registerFormRef" label-position="top" :model="registerForm" :rules="registerRules"
-            v-if="currentServiceType === '注册'">
-            <div style="display: flex; gap: 16px;">
-                <n-form-item label="用户名" path="username" style="flex: 1;">
-                    <n-input :allow-input="onlyEnglishWordsInput" v-model:value="registerForm.username"
-                        placeholder="请输入用户名" />
-                </n-form-item>
             </div>
-            <div style="display: flex; gap: 16px;">
-                <n-form-item label="密码" path="password" style="flex: 1;">
-                    <n-input v-model:value="registerForm.password" placeholder="请输入密码" type="password"
-                        show-password-on="mousedown" />
-                </n-form-item>
-                <n-form-item label="确认密码" path="repeatPassword" style="flex: 1;">
-                    <n-input v-model:value="registerForm.repeatPassword" placeholder="请输入确认密码" type="password"
-                        show-password-on="mousedown" />
-                </n-form-item>
-            </div>
-            <div style="display: flex; gap: 16px;">
-                <n-form-item ref="registerPhoneRef" first label="手机号" path="phone" style="flex: 1;">
-                    <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="registerForm.phone"
-                        placeholder="请输入中国大陆手机号" />
-                </n-form-item>
-                <n-form-item label="验证码" path="verificationCode" style="flex: 1;">
-                    <div style="display: flex; gap: 8px;">
-                        <n-input :allow-input="onlyDigitsInput" :maxlength="6"
-                            v-model:value="registerForm.verificationCode" placeholder="请输入验证码" />
-                        <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
-                            style="background-color: #319154; color: white;">
-                            {{ codeButtonText }}
-                        </n-button>
-                    </div>
-                </n-form-item>
-            </div>
-        </n-form>
-        <!-- 人机验证组件 -->
-        <div data-size="flexible" id="turnstile-widget" />
-        <div style="display: flex; justify-content: space-between; margin-top: 16px;"
-            v-if="currentServiceType === '登录' && !isTwoFactor">
-            <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
-                @click="handleClickRegister">立即注册</n-text>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 16px;"
-            v-if="currentServiceType === '注册'">
-            <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
-                @click="currentServiceType = '登录'">返回登录</n-text>
-
-        </div>
-        <template #footer>
-            <n-button type="primary" style="width: 100%;" @click="handleSubmit">{{ currentServiceType === '登录' ?
-                isTwoFactor ? '继续' : '登录' : '注册' }}</n-button>
-        </template>
-    </n-card>
+            <template #footer>
+                <n-button type="primary" style="width: 100%;" @click="handleSubmit">{{ currentServiceType === '登录' ?
+                    isTwoFactor ? '继续' : '登录' : '注册' }}</n-button>
+            </template>
+        </n-card>
 </template>
 
 <script setup>
-import { ref, computed, defineEmits, nextTick, onMounted, watch } from 'vue';
+import { ref, computed, defineEmits, nextTick, onMounted, watch,defineProps } from 'vue';
 import { useMessage } from 'naive-ui';
 import { login, register, loginBySmsCode, loginRequireTwoFactorAuth, getUserAvatar } from '../../api/auth';  // 确保你的 API 路径正确
 import { verifyTurnstile } from "../../api/turnstile";

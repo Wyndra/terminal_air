@@ -1,17 +1,25 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import store from '../store'
+import MainView from '@/views/MainView.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
-  },
-  {
-    path: '/profile',
-    name: 'profile',
-    component: () => import('../views/ProfileView.vue'),
+    name: 'index',
+    component: () => import('../views/MainView.vue'),
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: () => import('../views/HomeView.vue'),
+      },
+      {
+        path: '/profile',
+        name: 'profile',
+        component: () => import('../views/ProfileView.vue'),
+      },
+    ]
   },
   {
     path: '/privacy-policy',
@@ -30,7 +38,7 @@ router.beforeEach((to, from, next) => {
   // TODO 判断token是否过期
   if (!isLoggedIn) {
     next()
-  }else{
+  } else {
     next()
   }
 })
