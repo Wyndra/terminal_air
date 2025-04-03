@@ -327,6 +327,8 @@ public class AuthServiceImpl implements AuthService {
             return ResponseResult.fail(null, "更新资料失败");
         }
 
+
+
         // 返回更新后的用户资料
         UserProfileVO profileVO = UserProfileVO.builder()
                 .uid(user.getUid())
@@ -334,7 +336,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .nickname(user.getNickname())
-                .salt(user.getSalt())
+//                .salt(user.getSalt())
                 .isTwoFactorAuth(user.getIsTwoFactorAuth())
                 .build();
 

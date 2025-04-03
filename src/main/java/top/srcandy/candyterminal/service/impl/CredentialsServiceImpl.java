@@ -3,6 +3,8 @@ package top.srcandy.candyterminal.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import top.srcandy.candyterminal.bean.vo.CredentialVO;
+import top.srcandy.candyterminal.converter.CredentialConverter;
 import top.srcandy.candyterminal.dao.UserDao;
 import top.srcandy.candyterminal.exception.ServiceException;
 import top.srcandy.candyterminal.mapper.CredentialsMapper;
@@ -30,10 +32,13 @@ public class CredentialsServiceImpl implements CredentialsService {
     private CredentialsMapper credentialsMapper;
 
     @Autowired
+    private CredentialConverter credentialConverter;
+
+    @Autowired
     private UserDao userDao;
 
     @Override
-    public Credential generateKeyPair(String token, String name,String tags) throws ServiceException, Exception {
+    public CredentialVO generateKeyPair(String token, String name, String tags) throws ServiceException, Exception {
         User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
 
@@ -78,14 +83,15 @@ public class CredentialsServiceImpl implements CredentialsService {
         credential.setPrivateKey(privateKeyPem);
 
         credentialsMapper.insertCredential(credential);
-        return credential;
+        return credentialConverter.credential2VO(credential);
     }
 
     @Override
-    public List<Credential> listCredentials(String token) {
+    public List<CredentialVO> listCredentials(String token) {
         User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
-        return credentialsMapper.selectCredentialsByUserId(userId);
+
+        return credentialConverter.credentialList2VOList(credentialsMapper.selectCredentialsByUserId(userId));
     }
 
     @Override
@@ -142,7 +148,7 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public Credential updateCredentialConnectId(String token, CredentialConnectionRequest request) throws Exception {
+    public CredentialVO updateCredentialConnectId(String token, CredentialConnectionRequest request) throws Exception {
         User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
         Credential credential = credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid());
@@ -155,7 +161,7 @@ public class CredentialsServiceImpl implements CredentialsService {
         }
         credentialsMapper.updateCredentialConnectId(request);
 
-        return credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid());
+        return credentialConverter.credential2VO(credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid()));
     }
 
 

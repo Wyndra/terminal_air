@@ -1,7 +1,6 @@
 package top.srcandy.candyterminal.service;
 
-import org.checkerframework.checker.units.qual.C;
-import top.srcandy.candyterminal.model.Connection;
+import top.srcandy.candyterminal.bean.vo.CredentialVO;
 import top.srcandy.candyterminal.model.Credential;
 import top.srcandy.candyterminal.request.CredentialConnectionRequest;
 import top.srcandy.candyterminal.request.CredentialStatusRequest;
@@ -10,11 +9,11 @@ import java.util.List;
 
 public interface CredentialsService {
 
-    Credential generateKeyPair(String token, String name,String tags) throws Exception;
+    CredentialVO generateKeyPair(String token, String name, String tags) throws Exception;
 
 //    Credential generateKeyPairFork(String token, String name,String tags) throws Exception;
 
-    List<Credential> listCredentials(String token) throws Exception;
+    List<CredentialVO> listCredentials(String token) throws Exception;
 
     int countCredentialsByUserId(String token);
 
@@ -28,7 +27,7 @@ public interface CredentialsService {
 
     void updateCredentialStatus(String token, CredentialStatusRequest request) throws Exception;
 
-    Credential updateCredentialConnectId(String token, CredentialConnectionRequest request) throws Exception;
+    CredentialVO updateCredentialConnectId(String token, CredentialConnectionRequest request) throws Exception;
 
     String generateInstallShell(String token, String uuid,String endpoint) throws Exception;
 

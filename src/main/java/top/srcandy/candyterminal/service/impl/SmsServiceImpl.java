@@ -13,6 +13,7 @@ import top.srcandy.candyterminal.exception.ServiceException;
 import top.srcandy.candyterminal.exception.TooManyRequestsException;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.SendVerificationCodeRequest;
+import top.srcandy.candyterminal.service.RedisService;
 import top.srcandy.candyterminal.service.SmsService;
 import top.srcandy.candyterminal.utils.JWTUtil;
 import top.srcandy.candyterminal.utils.SMSUtils;
@@ -25,8 +26,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class SmsServiceImpl implements SmsService {
 
+
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private RedisService redisService;
 
     @Autowired
     private UserDao userDao;
@@ -64,14 +66,15 @@ public class SmsServiceImpl implements SmsService {
 
         // Apply rate-limiting for requests within a 5-minute window
         String redisKey = "sms_request_count:" + phone;
-        Long requestCount = stringRedisTemplate.opsForValue().increment(redisKey, 1);
+        long requestCount = redisService.increment(redisKey, 1);
         if (requestCount == 1) {
             // Set expiry for the key when it is first created (5 minutes)
-            stringRedisTemplate.expire(redisKey, 5, TimeUnit.MINUTES);
+            redisService.expire(redisKey, 5, TimeUnit.MINUTES);
         }
 
         // If more than 3 requests are made in 5 minutes, throw an exception for too many requests
         if (requestCount > 3) {
+            log.warn("{} 请求验证码过于频繁，请稍后再试 ", phone);
             throw new TooManyRequestsException("请求验证码过于频繁，请稍后再试 " + phone);
         }
 
@@ -94,14 +97,15 @@ public class SmsServiceImpl implements SmsService {
 
         // Apply rate-limiting for requests within a 5-minute window
         String redisKey = "sms_request_count:" + phone;
-        Long requestCount = stringRedisTemplate.opsForValue().increment(redisKey, 1);
+        long requestCount = redisService.increment(redisKey, 1);
         if (requestCount == 1) {
             // Set expiry for the key when it is first created (5 minutes)
-            stringRedisTemplate.expire(redisKey, 5, TimeUnit.MINUTES);
+            redisService.expire(redisKey, 5, TimeUnit.MINUTES);
         }
 
         // If more than 3 requests are made in 5 minutes, throw an exception for too many requests
         if (requestCount > 3) {
+            log.warn("{},{} 请求验证码过于频繁，请稍后再试 ", phone, username);
             throw new TooManyRequestsException("请求验证码过于频繁，请稍后再试 " + phone + " " + username);
         }
 
@@ -127,8 +131,8 @@ public class SmsServiceImpl implements SmsService {
         // Store the verification code and serial number in Redis with a 5-minute expiration
         String verifyCodeKey = "verify_code:" + phone;
         String verifyCodeValue = serial + ":" + code; // Store serial and code together
-        stringRedisTemplate.opsForValue().set(verifyCodeKey, verifyCodeValue, 5, TimeUnit.MINUTES);
 
+        redisService.set(verifyCodeKey, verifyCodeValue, 5, TimeUnit.MINUTES);
         // Call the SMSUtils.sendSms method to send the verification code via SMS
         try {
             SendSmsResponse smsResponse = SMSUtils.sendSms(phone, code);
@@ -158,7 +162,7 @@ public class SmsServiceImpl implements SmsService {
     public boolean verifySmsCode(String phone, String serial, String code) {
         // Get the stored verification code and serial number from Redis
         String redisKey = "verify_code:" + phone;
-        String storedValue = stringRedisTemplate.opsForValue().get(redisKey);
+        String storedValue = redisService.get(redisKey);
 
         // Check if the verification code exists (it may have expired)
         if (storedValue == null) {
@@ -174,7 +178,7 @@ public class SmsServiceImpl implements SmsService {
         // Validate the entered serial and code
         if (storedSerial.equals(serial) && storedCode.equals(code)) {
             // If correct, delete the verification code from Redis to prevent reuse
-            stringRedisTemplate.delete(redisKey);
+            redisService.delete(redisKey);
             return true;
         } else {
             // If serial or code is incorrect, return false

@@ -2,12 +2,15 @@ package top.srcandy.candyterminal.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Null;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.spel.ast.NullLiteral;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.srcandy.candyterminal.aspectj.lang.annoations.AuthAccess;
+import top.srcandy.candyterminal.bean.vo.CredentialVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
 import top.srcandy.candyterminal.model.Credential;
 import top.srcandy.candyterminal.request.CredentialConnectionRequest;
@@ -28,14 +31,14 @@ public class CredentialsController {
 
     @PostMapping("/generate")
     @Operation(summary = "生成密钥对", description = "生成密钥对")
-    public ResponseResult<Credential> generateKeyPair(@RequestHeader("Authorization") String token, @RequestBody(required = false) @NonNull GenerateKeyPairRequest request) throws Exception {
+    public ResponseResult<CredentialVO> generateKeyPair(@RequestHeader("Authorization") String token, @RequestBody(required = false) @NonNull GenerateKeyPairRequest request) throws Exception {
         return ResponseResult.success(credentialsService.generateKeyPair(token.substring(7), request.getName(), request.getTags()));
     }
 
     @GetMapping("/list")
     @Operation(summary = "凭据列表", description = "列出用户当前凭据")
-    public ResponseResult<List<Credential>> listCredentials(@RequestHeader("Authorization") String token) throws Exception {
-        List<Credential> credentials = credentialsService.listCredentials(token.substring(7));
+    public ResponseResult<List<CredentialVO>> listCredentials(@RequestHeader("Authorization") String token) throws Exception {
+        List<CredentialVO> credentials = credentialsService.listCredentials(token.substring(7));
         return ResponseResult.success(credentials);
     }
 
@@ -48,7 +51,7 @@ public class CredentialsController {
 
     @PostMapping("/update/status")
     @Operation(summary = "更新凭据状态", description = "更新凭据状态 curl请求更新凭据状态")
-    public ResponseResult<List<Credential>> updateCredentialStatus(@RequestHeader("Authorization") String token, @RequestBody CredentialStatusRequest request) throws Exception {
+    public ResponseResult<Null> updateCredentialStatus(@RequestHeader("Authorization") String token, @RequestBody CredentialStatusRequest request) throws Exception {
         credentialsService.updateCredentialStatus(token.substring(7), request);
         return ResponseResult.success(null);
     }
@@ -62,7 +65,7 @@ public class CredentialsController {
 
     @PostMapping("/bind")
     @Operation(summary = "绑定凭据", description = "绑定凭据")
-    public ResponseResult<Credential> updateCredentialConnectId(@RequestHeader("Authorization") String token, @RequestBody CredentialConnectionRequest request) throws Exception {
+    public ResponseResult<CredentialVO> updateCredentialConnectId(@RequestHeader("Authorization") String token, @RequestBody CredentialConnectionRequest request) throws Exception {
         return ResponseResult.success(credentialsService.updateCredentialConnectId(token.substring(7), request));
     }
 
