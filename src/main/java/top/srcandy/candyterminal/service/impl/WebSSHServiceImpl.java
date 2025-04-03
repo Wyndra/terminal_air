@@ -6,12 +6,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.slf4j.SLF4JLogger;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
-import top.srcandy.candyterminal.aspectj.lang.annoations.AESDecrypt;
 import top.srcandy.candyterminal.bean.vo.WebSSHMessageResultVO;
 import top.srcandy.candyterminal.enums.ANSIColor;
 import top.srcandy.candyterminal.enums.ANSIStyle;
@@ -19,16 +17,11 @@ import top.srcandy.candyterminal.pojo.SSHConnectInfo;
 import top.srcandy.candyterminal.pojo.WebSSHData;
 import org.springframework.web.socket.TextMessage;
 import top.srcandy.candyterminal.pojo.WebSocketTypeData;
-import top.srcandy.candyterminal.service.AuthService;
 import top.srcandy.candyterminal.service.WebSSHService;
-import top.srcandy.candyterminal.utils.AESUtils;
 import top.srcandy.candyterminal.utils.ANSIFormatterUtil;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
@@ -205,7 +198,6 @@ public class WebSSHServiceImpl implements WebSSHService {
         }
 
         Session session = null;
-        File tempKeyFile = null;
         Properties config = new Properties();
         config.put("StrictHostKeyChecking", "no");
         config.put("PubkeyAcceptedKeyTypes", "ssh-rsa,rsa-sha2-256,rsa-sha2-512");

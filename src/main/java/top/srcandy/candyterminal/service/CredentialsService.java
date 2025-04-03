@@ -12,6 +12,8 @@ public interface CredentialsService {
 
     Credential generateKeyPair(String token, String name,String tags) throws Exception;
 
+//    Credential generateKeyPairFork(String token, String name,String tags) throws Exception;
+
     List<Credential> listCredentials(String token) throws Exception;
 
     int countCredentialsByUserId(String token);

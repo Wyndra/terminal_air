@@ -4,7 +4,7 @@ logging:
   level:
     root: info
 minio:
-  endpoint: http://minio.srcandy.top
+  endpoint: https://minio.srcandy.top
   accessKey: oHllD9UzI00MP33eF3S4
   secretKey: CMRkLjistyc1laAG8MtIyvjqqjKROEsnecqp6ko8
   bucketName: terminal-air

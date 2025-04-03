@@ -71,10 +71,16 @@
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.jcraft/jsch -->
+<!--        <dependency>-->
+<!--            <groupId>com.jcraft</groupId>-->
+<!--            <artifactId>jsch</artifactId>-->
+<!--            <version>0.1.55</version>-->
+<!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/com.github.mwiede/jsch -->
         <dependency>
-            <groupId>com.jcraft</groupId>
+            <groupId>com.github.mwiede</groupId>
             <artifactId>jsch</artifactId>
-            <version>0.1.55</version>
+            <version>0.2.18</version>
         </dependency>
         <!-- WebSocket 支持 -->
         <dependency>
