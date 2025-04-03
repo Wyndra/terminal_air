@@ -121,7 +121,7 @@
                   </n-form-item>
                 </n-form>
               </n-tab-pane>
-              <n-tab-pane name="安全设置" tab="安全设置">
+              <!-- <n-tab-pane name="安全设置" tab="安全设置">
                 <n-descriptions :column="1" label-align="left" label-style="width: 120px; padding-right: 16px;">
                   <n-descriptions-item label="加密密钥">
                     <div class="salt-input-wrapper">
@@ -137,7 +137,7 @@
                     </div>
                   </n-descriptions-item>
                 </n-descriptions>
-              </n-tab-pane>
+              </n-tab-pane> -->
             </n-tabs>
           </n-card>
           <CredentialsManage />

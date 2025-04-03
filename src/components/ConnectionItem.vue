@@ -26,11 +26,10 @@
 </template>
 <script setup>
 import { defineEmits, ref, defineProps,nextTick } from 'vue';
-import { del } from '@/api/connection';
+import { del,list } from '@/api/connection';
 import { useStore } from 'vuex';
 import { Dots } from '@vicons/tabler';
 import { useMessage, useDialog } from 'naive-ui';
-import { list } from '@/api/connection';
 import EditConnectionDrawer from '@/components/drawer/EditConnectionDrawer.vue';
 
 const props = defineProps({

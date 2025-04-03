@@ -5,7 +5,7 @@
             <template #header>
                 <span
                     style="font-size: 20px; align-content: center; font-family: ui-sans-serif, -apple-system, system-ui">
-                    修改连接
+                    编辑连接
                 </span>
             </template>
             <n-card bordered style="background-color: #fff;">
@@ -26,7 +26,7 @@
                     <n-form-item label="连接方式">
                         <n-radio-group v-model:value="connectionForm.method">
                             <n-radio value="0">密码</n-radio>
-                            <n-radio value="1">密钥</n-radio>
+                            <n-radio value="1">凭证</n-radio>
                         </n-radio-group>
                     </n-form-item>
                     <n-form-item label="密码" v-if="connectionForm.method === '0'" path="password">
@@ -42,8 +42,8 @@
                             </span>
                         </div>
                     </n-form-item>
-                    <n-form-item label="密钥" v-else path="credential">
-                        <n-select v-model:value="connectionForm.credential" placeholder="请选择凭据"
+                    <n-form-item label="凭证" v-else path="credential">
+                        <n-select v-model:value="connectionForm.credential" placeholder="请选择凭证"
                             :options="credentialsSelectOptions" />
                     </n-form-item>
 
@@ -110,7 +110,7 @@ const connectionFormRule = {
     ],
     credential: [
         {
-            required: true, message: '凭据不能为空', trigger: ['input', 'blur'],
+            required: true, message: '凭证不能为空', trigger: ['input', 'blur'],
             validator: (rule, value) => connectionForm.value.method === 'key' && !value ? false : true
         },
     ]

@@ -1,8 +1,17 @@
 <template>
-    <n-card title="凭证中心" style="min-width: 1000px;max-height: 625px;" content-style="display: flex; flex-direction: column;gap: 20px;">
+    <n-card title="凭证中心" style="min-width: 1000px;max-height: 625px;"
+        content-style="display: flex; flex-direction: column;gap: 20px;">
+        <template #header-extra>
+            <n-icon :size="20">
+                <QuestionCircle32Regular />
+            </n-icon>
+            了解更多
+        </template>
         <div class="view-header">
+
             <div class="main-area">
-                <n-button type="primary" style="width: 120px;" @click="createCredentialsModalVisible = true">创建凭证</n-button>
+                <n-button type="primary" style="width: 120px;"
+                    @click="createCredentialsModalVisible = true">创建凭证</n-button>
             </div>
             <div class="other-area">
                 <n-button circle size="small" @click="() => {
@@ -18,7 +27,7 @@
 
         </div>
         <n-spin size="large" :show="onloading">
-            <n-data-table :columns="credentialsColumns" :data="credentialsData" :bordered="false" >
+            <n-data-table :columns="credentialsColumns" :data="credentialsData" :bordered="false">
                 <template #empty>
                     <div style="text-align: center; font-size: 16px; color: #7f7e7a;">
                         暂无凭证
@@ -29,15 +38,17 @@
 
 
     </n-card>
-    <CreateCredentialsModal v-model:show="createCredentialsModalVisible" @close="handleCreateClose" @refresh="fetchCredentials"
-        :currentCredentialsList="credentialsData" />
+    <CreateCredentialsModal v-model:show="createCredentialsModalVisible" @close="handleCreateClose"
+        @refresh="fetchCredentials" :currentCredentialsList="credentialsData" />
 
-    <BindCredentialsModal v-model:show="bindCredentialsModalVisible" @close="handleBindClose" @refresh="fetchCredentials" :row="currentRow"/>
+    <BindCredentialsModal v-model:show="bindCredentialsModalVisible" @close="handleBindClose"
+        @refresh="fetchCredentials" :row="currentRow" />
 </template>
 <script setup>
 import { ref, onMounted, h } from 'vue';
 import { listCredentials, deleteCredentials } from '@/api/credentials';
-import { useMessage, NTag, NButton, NPopconfirm,NDataTable } from "naive-ui";
+import { useMessage, NTag, NButton, NPopconfirm, NDataTable } from "naive-ui";
+import { QuestionCircle32Regular } from '@vicons/fluent';
 import { RefreshSharp } from "@vicons/ionicons5"
 import CreateCredentialsModal from '@/components/modal/CreateCredentialsModal.vue';
 import BindCredentialsModal from '@/components/modal/BindCredentialsModal.vue';

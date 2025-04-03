@@ -46,7 +46,7 @@
                     保存
                 </n-button>
                 <span class="description-text">
-                    您无法在 <span class="info">新增连接</span> 窗口中使用 SSH 密钥进行连接。您可以先不填入密码，然后前往 <a href="/profile"
+                    为了您的服务器安全，您无法在 <span class="info">新增连接</span> 中使用 SSH 凭证进行连接。您可以先不填入密码，然后前往 <a href="/profile"
                         style="color: #007bff; text-decoration: none;">凭证中心</a> 进行 SSH 密钥的绑定。
                 </span>
             </n-card>
