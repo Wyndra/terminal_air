@@ -7,6 +7,7 @@ import com.aliyun.sdk.service.dysmsapi20170525.models.SendSmsResponse;
 import com.aliyun.sdk.service.dysmsapi20170525.AsyncClient;
 import com.google.gson.Gson;
 import darabonba.core.client.ClientOverrideConfiguration;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;
 

@@ -7,10 +7,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import top.srcandy.candyterminal.bean.vo.SmsCodeVO;
 import top.srcandy.candyterminal.constant.ResponseResult;
-import top.srcandy.candyterminal.dao.UserDao;
 import top.srcandy.candyterminal.enums.SMSChannel;
 import top.srcandy.candyterminal.exception.ServiceException;
 import top.srcandy.candyterminal.exception.TooManyRequestsException;
+import top.srcandy.candyterminal.mapper.UserMapper;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.SendVerificationCodeRequest;
 import top.srcandy.candyterminal.service.RedisService;
@@ -31,7 +31,7 @@ public class SmsServiceImpl implements SmsService {
     private RedisService redisService;
 
     @Autowired
-    private UserDao userDao;
+    private UserMapper userMapper;
 
     /**
      * Sends an SMS code based on the request details.
@@ -47,7 +47,7 @@ public class SmsServiceImpl implements SmsService {
         // Check if the phone number is already registered (for registration flow)
         // 1021 is the channel for registration
         if (Objects.equals(request.getChannel(), SMSChannel.REGISTER.getServiceCode())) {
-            User existingUser = userDao.selectByUserPhone(phone);
+            User existingUser = userMapper.selectByUserPhone(phone);
             Optional<User> userOptional = Optional.ofNullable(existingUser);
             if (userOptional.isPresent()) {
                 // Return failure response if phone is already registered
@@ -56,7 +56,7 @@ public class SmsServiceImpl implements SmsService {
         }
 
         if (Objects.equals(request.getChannel(), SMSChannel.LOGIN.getServiceCode())) {
-            User existingUser = userDao.selectByUserPhone(phone);
+            User existingUser = userMapper.selectByUserPhone(phone);
             Optional<User> userOptional = Optional.ofNullable(existingUser);
             if (userOptional.isEmpty()) {
                 // Return failure response if phone is already registered
@@ -92,7 +92,7 @@ public class SmsServiceImpl implements SmsService {
     @Override
     public ResponseResult<SmsCodeVO> sendSmsCodeByToken(String token_no_bearer) throws Exception {
         String username = JWTUtil.getTokenClaimMap(token_no_bearer).get("username").asString();
-        User user = userDao.selectByUserName(username);
+        User user = userMapper.selectByUserName(username);
         String phone = user.getPhone();
 
         // Apply rate-limiting for requests within a 5-minute window

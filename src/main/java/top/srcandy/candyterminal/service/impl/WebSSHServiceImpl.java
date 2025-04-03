@@ -79,7 +79,6 @@ public class WebSSHServiceImpl implements WebSSHService {
         WebSSHData webSSHData = null;
         WebSocketTypeData webSocketTypeData = null;
         try {
-            // 将接收到的 WebSocket 数据转换为 WebSSHData 对象
             webSSHData = objectMapper.readValue(buffer, WebSSHData.class);
         } catch (IOException e) {
             if (buffer.contains("pong")) {
@@ -118,11 +117,11 @@ public class WebSSHServiceImpl implements WebSSHService {
             } catch (IOException e) {
                 log.error("发送命令失败");
                 log.error("异常信息：{}", e.getMessage());
-                close(session);  // 命令发送失败，关闭会话
+                close(session);
             }
         } else {
             log.error("不支持的操作");
-            close(session);  // 不支持的操作，关闭会话
+            close(session);
         }
     }
 
@@ -136,7 +135,7 @@ public class WebSSHServiceImpl implements WebSSHService {
             } catch (IOException e) {
                 log.error("发送 ping 消息失败");
                 log.error("异常信息：{}", e.getMessage());
-                close(session);  // 发送 ping 消息失败，关闭会话
+                close(session);
             }
         });
     }

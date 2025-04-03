@@ -20,9 +20,6 @@ import top.srcandy.candyterminal.utils.JWTUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
-import java.util.Map;
-import java.util.Objects;
-
 @RestController
 @Slf4j
 @Validated

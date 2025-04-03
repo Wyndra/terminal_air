@@ -48,7 +48,7 @@ mail:
             port: 465
             class: javax.net.ssl.SSLSocketFactory
 mybatis:
-  type-aliases-package: top.srcandy.communitymanage.model
+  type-aliases-package: top.srcandy.candyterminal.model
   configuration:
     cache-enabled: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

@@ -2,7 +2,7 @@ package top.srcandy.candyterminal.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import top.srcandy.candyterminal.dao.UserDao;
+import top.srcandy.candyterminal.mapper.UserMapper;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.VerifyTwoFactorAuthCodeRequest;
 import top.srcandy.candyterminal.service.MultiFactorAuthenticationService;
@@ -16,11 +16,8 @@ import java.security.GeneralSecurityException;
 @Service
 public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenticationService {
 
-    private final UserDao userDao;
-
-    public MultiFactorAuthenticationServiceImpl(UserDao userDao) {
-        this.userDao = userDao;
-    }
+    @Autowired
+    private UserMapper userMapper;
 
     @Autowired
     private MicrosoftAuth microsoftAuth;
@@ -28,7 +25,7 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
     @Override
     public String switchTwoFactorAuth(String token) {
         String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
-        User user = userDao.selectByUserName(username);
+        User user = userMapper.selectByUserName(username);
         if (user == null) {
             return null;
         }
@@ -37,14 +34,14 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
         } else {
             user.setIsTwoFactorAuth("0");
         }
-        userDao.update(user);
+        userMapper.update(user);
         return user.getIsTwoFactorAuth();
     }
 
     @Override
     public String getTwoFactorAuthSecretQRCode(String token) {
         String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
-        User user = userDao.selectByUserName(username);
+        User user = userMapper.selectByUserName(username);
         if (user == null) {
             return null;
         }
@@ -54,7 +51,7 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
     @Override
     public boolean verifyTwoFactorAuthCode(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         String username = JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("username").asString();
-        User user = userDao.selectByUserName(username);
+        User user = userMapper.selectByUserName(username);
         if (user == null) {
             return false;
         }

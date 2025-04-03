@@ -8,7 +8,6 @@ import java.util.List;
 @Mapper
 public interface ConnectionMapper {
 
-
     @Select("select cid, connect_host, connect_port, connect_username, connect_pwd,connect_name, connect_creater_uid, connect_credential,connect_method from Connection where connect_creater_uid = #{connectCreaterUid}")
     @Results({
             @Result(property = "cid", column = "cid"),

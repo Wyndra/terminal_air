@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.srcandy.candyterminal.bean.vo.CredentialVO;
 import top.srcandy.candyterminal.converter.CredentialConverter;
-import top.srcandy.candyterminal.dao.UserDao;
 import top.srcandy.candyterminal.exception.ServiceException;
 import top.srcandy.candyterminal.mapper.CredentialsMapper;
+import top.srcandy.candyterminal.mapper.UserMapper;
 import top.srcandy.candyterminal.model.Credential;
 import top.srcandy.candyterminal.model.User;
 import top.srcandy.candyterminal.request.CredentialConnectionRequest;
@@ -35,11 +35,11 @@ public class CredentialsServiceImpl implements CredentialsService {
     private CredentialConverter credentialConverter;
 
     @Autowired
-    private UserDao userDao;
+    private UserMapper userMapper;
 
     @Override
     public CredentialVO generateKeyPair(String token, String name, String tags) throws ServiceException, Exception {
-        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
 
         // 检查凭据名称是否已存在
@@ -88,7 +88,7 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Override
     public List<CredentialVO> listCredentials(String token) {
-        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
 
         return credentialConverter.credentialList2VOList(credentialsMapper.selectCredentialsByUserId(userId));
@@ -96,13 +96,13 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Override
     public int countCredentialsByUserId(String token) {
-        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         return credentialsMapper.countCredentialsByUserId(user.getUid());
     }
 
     @Override
     public Credential selectCredentialById(String token, Long id) throws Exception {
-        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
         Credential credential = credentialsMapper.selectCredentialByUidAndId(userId, id);
         if (credential == null) {
@@ -113,7 +113,7 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Override
     public Credential selectCredentialByUuid(String token, String uuid) throws Exception {
-        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
         Credential credential = credentialsMapper.selectCredentialByUidAndUuid(userId, uuid);
         if (credential == null) {
@@ -138,7 +138,7 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Override
     public void updateCredentialStatus(String token, CredentialStatusRequest request) throws Exception {
-        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
         Credential credential = credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid());
         if (credential == null) {
@@ -149,7 +149,7 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Override
     public CredentialVO updateCredentialConnectId(String token, CredentialConnectionRequest request) throws Exception {
-        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
         Credential credential = credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid());
         if (credential == null) {
@@ -167,7 +167,7 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Override
     public String generateInstallShell(String token, String uuid, String endpoint) throws Exception {
-        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         String publicKey = credentialsMapper.selectCredentialByUidAndUuid(user.getUid(), uuid).getPublicKey();
 
         // Base64 编码公钥，避免 Shell 解析问题
@@ -279,14 +279,14 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Override
     public List<Credential> selectBoundCredentialsByConnectionId(String token, Long connectId) throws Exception {
-        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         return credentialsMapper.selectBoundCredentialsByConnectionId(user.getUid(), connectId);
     }
 
 
     @Override
     public void deleteCredential(String token, Long id) throws Exception {
-        User user = userDao.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
         Long userId = user.getUid();
         Credential credential = credentialsMapper.selectCredentialsByUserId(userId).stream().filter(c -> c.getId().equals(id)).findFirst().orElse(null);
         if (credential == null) {
