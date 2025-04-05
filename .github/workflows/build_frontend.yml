@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - "frontend/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Build and deploy
+        run: |
+          npm install
+          npm run build
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H sh.srcandy.top >> ~/.ssh/known_hosts
+          rsync -avz dist/ root@sh.srcandy.top:/etc/Share/terminal_air/
