@@ -24,8 +24,10 @@ jobs:
 
       - name: Build and deploy
         run: |
+          cd frontend
           npm install
           npm run build
+
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
