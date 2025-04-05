@@ -6,7 +6,7 @@
                 <n-icon :size="18">
                     <QuestionCircle32Regular />
                 </n-icon>
-                <span> 了解 凭证 必读</span>
+                <span> 了解 凭证1 必读</span>
             </div>
 
         </template>
