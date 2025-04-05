@@ -15,6 +15,7 @@ import top.srcandy.candyterminal.request.CredentialStatusRequest;
 import top.srcandy.candyterminal.service.CredentialsService;
 import top.srcandy.candyterminal.utils.JWTUtil;
 import top.srcandy.candyterminal.utils.KeyUtils;
+import top.srcandy.candyterminal.utils.RSAKeyUtils;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -44,43 +45,36 @@ public class CredentialsServiceImpl implements CredentialsService {
 
         // 检查凭据名称是否已存在
         if (credentialsMapper.countCredentialsByUserIdAndName(userId, name) > 0) {
+            log.info("{} 凭据名称已存在",user.getUsername());
             throw new ServiceException("凭据名称已存在");
         }
         // 最大允许凭据数量
         int MAX_CREDENTIALS = 10;
         if (credentialsMapper.countCredentialsByUserId(userId) >= MAX_CREDENTIALS) {
+            log.info("{} 凭据数量已达上限",user.getUsername());
             throw new ServiceException("凭据数量已达上限");
         }
+        RSAKeyUtils.KeyPairString pair = RSAKeyUtils.generateSSHKeyPair(user.getUsername());
 
-        // 生成 3072 位 RSA 密钥对
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(3072, new SecureRandom());
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
-
-        RSAPrivateCrtKey privateKey = (RSAPrivateCrtKey) keyPair.getPrivate();
-
-        // 使用工具类生成密钥
-        String publicKeyPem = KeyUtils.encodePublicKeyToOpenSSH(privateKey, user.getUsername());
-        String privateKeyPem = KeyUtils.encodePrivateKeyToPKCS1Pem(privateKey);
+        KeyUtils.calculateFingerprint(pair.getPublicKey());
 
         Credential credential = new Credential();
         credential.setUserId(userId);
         credential.setUuid(KeyUtils.generateUUID());
         credential.setName(name);
-        credential.setFingerprint(KeyUtils.calculateFingerprint(keyPair.getPublic()));
-        credential.setPublicKey(publicKeyPem);
+        credential.setPublicKey(pair.getPublicKey());
         credential.setStatus(0);
-        credential.setPrivateKey(privateKeyPem);
+        credential.setPrivateKey(pair.getPrivateKey());
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         credential.setCreateTime(timestamp);
         credential.setUpdateTime(timestamp);
         credential.setTags(tags);
 
         // 计算指纹
-        String fingerprint = KeyUtils.calculateFingerprint(keyPair.getPublic());
+        String fingerprint = KeyUtils.calculateFingerprint(pair.getPublicKey());
         log.info("密钥指纹：{}", fingerprint);
         // 临时存储私钥以便返回
-        credential.setPrivateKey(privateKeyPem);
+        credential.setFingerprint(fingerprint);
 
         credentialsMapper.insertCredential(credential);
         return credentialConverter.credential2VO(credential);

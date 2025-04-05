@@ -16,6 +16,7 @@ public interface CredentialConverter {
     @Mapping(target = "uuid", source = "uuid")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "tags", source = "tags")
+    @Mapping(target = "status", source = "status")
     @Mapping(target = "fingerprint", source = "fingerprint")
     @Mapping(target = "publicKey", source = "publicKey")
     @Mapping(target = "connectId", source = "connectId")

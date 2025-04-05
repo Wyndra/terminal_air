@@ -4,13 +4,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateCrtKey;
+import java.util.Arrays;
 import java.util.UUID;
+import java.security.MessageDigest;
+import java.security.interfaces.RSAPublicKey;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class KeyUtils {
@@ -98,8 +109,20 @@ public class KeyUtils {
     /**
      * 计算公钥的 SHA-256 指纹
      */
-    public static String calculateFingerprint(PublicKey publicKey) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    public static String calculateFingerprint(String publicKeyString) throws Exception {
+        // 解析公钥字符串，提取 Base64 部分
+        String base64Part = extractBase64FromPublicKey(publicKeyString);
+        byte[] decoded = Base64.decode(base64Part);
+
+        // 解析二进制数据，获取 e 和 n 的字节数组
+        byte[] eBytes = parseE(decoded);
+        byte[] nBytes = parseN(decoded);
+
+        // 处理 e 和 n 的字节数组（与原代码逻辑相同）
+        eBytes = adjustBytes(eBytes);
+        nBytes = adjustBytes(nBytes);
+
+        // 构建数据流并计算指纹
         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
         DataOutputStream dataOut = new DataOutputStream(byteOut);
 
@@ -107,37 +130,94 @@ public class KeyUtils {
         dataOut.writeInt(sshRsa.length);
         dataOut.write(sshRsa);
 
-        byte[] eBytes = ((java.security.interfaces.RSAPublicKey) publicKey).getPublicExponent().toByteArray();
-        if (eBytes[0] == 0 && eBytes.length > 1) {
-            byte[] trimmed = new byte[eBytes.length - 1];
-            System.arraycopy(eBytes, 1, trimmed, 0, trimmed.length);
-            eBytes = trimmed;
-        }
-        if ((eBytes[0] & 0x80) != 0) {
-            byte[] padded = new byte[eBytes.length + 1];
-            System.arraycopy(eBytes, 0, padded, 1, eBytes.length);
-            eBytes = padded;
-        }
         dataOut.writeInt(eBytes.length);
         dataOut.write(eBytes);
 
-        byte[] nBytes = ((java.security.interfaces.RSAPublicKey) publicKey).getModulus().toByteArray();
-        if (nBytes[0] == 0 && nBytes.length > 1) {
-            byte[] trimmed = new byte[nBytes.length - 1];
-            System.arraycopy(nBytes, 1, trimmed, 0, trimmed.length);
-            nBytes = trimmed;
-        }
-        if ((nBytes[0] & 0x80) != 0) {
-            byte[] padded = new byte[nBytes.length + 1];
-            System.arraycopy(nBytes, 0, padded, 1, nBytes.length);
-            nBytes = padded;
-        }
         dataOut.writeInt(nBytes.length);
         dataOut.write(nBytes);
 
         byte[] pubKeyBytes = byteOut.toByteArray();
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] fingerprint = digest.digest(pubKeyBytes);
-        return "SHA256:" + Base64.toBase64String(fingerprint).replaceAll("=+$", "");
+
+        return "SHA256:" + Base64.toBase64String(fingerprint);
+    }
+
+    // 辅助方法：从公钥字符串中提取 Base64 部分
+    private static String extractBase64FromPublicKey(String publicKeyString) {
+        String[] parts = publicKeyString.split(" ");
+        if (parts.length < 2) {
+            throw new IllegalArgumentException("Invalid public key format");
+        }
+        return parts[1];
+    }
+
+    // 辅助方法：从二进制数据中解析 e 的字节数组
+    private static byte[] parseE(byte[] decoded) throws IOException {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(decoded);
+             DataInputStream dis = new DataInputStream(bis)) {
+            // 读取算法名称（如 "ssh-rsa"）
+            String algorithm = readString(dis);
+            if (!algorithm.equals("ssh-rsa")) {
+                throw new IllegalArgumentException("Unsupported algorithm: " + algorithm);
+            }
+            // 读取 e 的 MPINT（SSH 整数格式）
+            return readMPInt(dis);
+        }
+    }
+
+    // 辅助方法：从二进制数据中解析 n 的字节数组
+    private static byte[] parseN(byte[] decoded) throws IOException {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(decoded);
+             DataInputStream dis = new DataInputStream(bis)) {
+            String algorithm = readString(dis);
+            if (!algorithm.equals("ssh-rsa")) {
+                throw new IllegalArgumentException("Unsupported algorithm");
+            }
+            // 跳过 e 的 MPINT
+            skipMPInt(dis);
+            // 读取 n 的 MPINT
+            return readMPInt(dis);
+        }
+    }
+
+    // 辅助方法：调整字节数组（去除前导零，补前导零）
+    private static byte[] adjustBytes(byte[] bytes) {
+        // 去除前导零
+        if (bytes[0] == 0 && bytes.length > 1) {
+            byte[] trimmed = new byte[bytes.length - 1];
+            System.arraycopy(bytes, 1, trimmed, 0, trimmed.length);
+            bytes = trimmed;
+        }
+        // 补前导零（如果最高位为负数）
+        if ((bytes[0] & 0x80) != 0) {
+            byte[] padded = new byte[bytes.length + 1];
+            System.arraycopy(bytes, 0, padded, 1, bytes.length);
+            bytes = padded;
+        }
+        return bytes;
+    }
+
+    // 辅助方法：读取 SSH 字符串（前 4 字节为长度）
+    private static String readString(DataInputStream dis) throws IOException {
+        int length = dis.readInt();
+        byte[] bytes = new byte[length];
+        dis.readFully(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    // 辅助方法：读取 SSH 整数（MPINT 格式）
+    private static byte[] readMPInt(DataInputStream dis) throws IOException {
+        int length = dis.readInt();
+        byte[] bytes = new byte[length];
+        dis.readFully(bytes);
+        return bytes;
+    }
+
+    // 辅助方法：跳过 SSH 整数（MPINT 格式）
+    private static void skipMPInt(DataInputStream dis) throws IOException {
+        int length = dis.readInt();
+        dis.skip(length);
     }
 
     private static void writeDERInteger(DataOutputStream out, BigInteger value) throws Exception {

@@ -28,7 +28,6 @@ public class JWTIntercept implements HandlerInterceptor {
                 return true;
             }
         }
-        // 获取请求头的 如果没有则抛出异常
         String authorization = Optional.ofNullable(request.getHeader("Authorization"))
                 .orElseThrow(() -> new ServiceException("未登录,请先登录"));
 
@@ -40,7 +39,6 @@ public class JWTIntercept implements HandlerInterceptor {
             }
             TwoFactorAuthRequired usingTwoFactorAuth = ((HandlerMethod) handler).getMethodAnnotation(TwoFactorAuthRequired.class);
             // 如果该接口为双重认证接口，则验证双重认证token
-
             if (usingTwoFactorAuth != null) {
                 JWTUtil.validateTwoFactorAuthSecretToken(authorization.substring(PREFIX.length()));
             } else {
