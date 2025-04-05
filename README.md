@@ -1,6 +1,6 @@
 
 
-<p align="center"><img src="https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/shell.png" alt="MeterSphere" width="50" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/shell.png" alt="MeterSphere" width="50" /></p>
 <h3 align="center">你的下一个终端</h3>
 <hr />
 
