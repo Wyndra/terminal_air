@@ -1,6 +1,6 @@
 
 
-<p align="center"><img src="https://minio.srcandy.top:9000/mckj/static/shell.png" alt="MeterSphere" width="50" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/shell.png" alt="MeterSphere" width="50" /></p>
 <h3 align="center">你的下一个终端</h3>
 <hr />
 
@@ -17,16 +17,16 @@
 
 <table style="border-collapse: collapse; border: 1px solid black;">
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://minio.srcandy.top:9000/mckj/static/page.png" alt="Terminal Air Demo1" /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://minio.srcandy.top:9000/mckj/static/login.png" alt="Terminal Air Demo2" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/page.png" alt="Terminal Air Demo1" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/login.png" alt="Terminal Air Demo2" /></td>
   </tr>
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://minio.srcandy.top:9000/mckj/static/connection.png" alt="Terminal Air Demo3" /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://minio.srcandy.top:9000/mckj/static/edit.png" alt="Terminal Air Demo4" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/connection.png" alt="Terminal Air Demo3" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/edit.png" alt="Terminal Air Demo4" /></td>
   </tr>
   <tr>
     <td style="padding: 5px;background-color:#fff;"><img src= "https://minio.srcandy.top:9000/mckj/static/profile.png" alt="Terminal Air Demo5" /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://minio.srcandy.top:9000/mckj/static/bind.png" alt="Terminal Air Demo6" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/bind.png" alt="Terminal Air Demo6" /></td>
   </tr>
 </table>
 
