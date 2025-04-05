@@ -3,6 +3,7 @@ package top.srcandy.candyterminal.interceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -28,6 +29,7 @@ public class JWTIntercept implements HandlerInterceptor {
                 return true;
             }
         }
+
         String authorization = Optional.ofNullable(request.getHeader("Authorization"))
                 .orElseThrow(() -> new ServiceException("未登录,请先登录"));
 

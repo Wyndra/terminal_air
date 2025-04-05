@@ -15,7 +15,7 @@ public class CredentialVO {
     private String tags;
     @Schema(description = "凭据指纹")
     private String fingerprint;
-    @Schema(description = "凭据状态")
+    @Schema(description = "凭据状态, 我们用0表示未使用，1表示正在创建，2表示已使用")
     private Integer status;
     @Schema(description = "公钥")
     private String publicKey;

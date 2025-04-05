@@ -29,7 +29,7 @@ public interface UserMapper {
     @ResultMap("userResultMap")
     User selectByUserPhone(String phone);
 
-    @Insert("insert into User (username,password,salt,phone,twoFactorAuthSecret) values (#{username},#{password},#{salt},#{phone},#{twoFactorAuthSecret})")
+    @Insert("insert into User (username,password,salt,phone,twoFactorAuthSecret) values (#{username},#{password},#{salt},#{phone},#{twoFactorSecret})")
     int insertSelective(RegisterDTO request);
 
     @Update("update User set username = #{username},password = #{password},password_hash = #{password_hash},phone = #{phone},email = #{email},nickname = #{nickname},avatar = #{avatar},isTwoFactorAuth = #{isTwoFactorAuth},twoFactorAuthSecret = #{twoFactorAuthSecret} where uid = #{uid}")

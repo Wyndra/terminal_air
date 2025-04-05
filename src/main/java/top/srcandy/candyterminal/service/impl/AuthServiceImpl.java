@@ -194,7 +194,12 @@ public class AuthServiceImpl implements AuthService {
             return ResponseResult.fail(null, "用户不存在");
         }
         UserProfileVO userProfileVO = userProfileConverter.user2UserProfileVO(user);
-        userProfileVO.setAvatar(minioService.generateDisplaySignedUrl(user.getAvatar()));
+        try{
+            userProfileVO.setAvatar(minioService.generateDisplaySignedUrl(user.getAvatar()));
+        }catch (Exception e){
+            log.error("获取用户头像失败", e);
+            userProfileVO.setAvatar(null);
+        }
         return ResponseResult.success(userProfileVO);
     }
 
@@ -203,7 +208,14 @@ public class AuthServiceImpl implements AuthService {
         String username = JWTUtil.getTokenClaimMap(no_bearer_token).get("username").asString();
         User user = userMapper.selectByUserName(username);
         if (user != null) {
-            return ResponseResult.success(minioService.generateDisplaySignedUrl(user.getAvatar()));
+            try {
+                // 生成头像的临时访问链接
+                String avatarUrl = minioService.generateDisplaySignedUrl(user.getAvatar());
+                return ResponseResult.success(avatarUrl);
+            } catch (Exception e) {
+                log.error("获取用户头像失败", e);
+                return ResponseResult.fail(null, "获取头像失败");
+            }
         }
         return ResponseResult.fail(null, "用户不存在");
     }

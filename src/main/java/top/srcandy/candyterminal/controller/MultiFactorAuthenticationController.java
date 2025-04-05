@@ -46,7 +46,7 @@ public class MultiFactorAuthenticationController {
     @PostMapping("/verifyTwoFactorAuthCode")
     @TwoFactorAuthRequired
     @Operation(summary = "验证两步验证验证码")
-    public ResponseResult<Boolean> verifyTwoFactorAuthCode(@RequestHeader("Authorization") String twoFactorAuthToken, @Valid @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<Boolean> verifyTwoFactorAuthCode(@RequestHeader("Authorization") String twoFactorAuthToken, @RequestBody(required = false) VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return ResponseResult.success(multiFactorAuthenticationService.verifyTwoFactorAuthCode(twoFactorAuthToken.substring(7), request));
     }
 
