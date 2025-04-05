@@ -17,16 +17,16 @@
 
 <table style="border-collapse: collapse; border: 1px solid black;">
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/page.png" alt="Terminal Air Demo1" /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/login.png" alt="Terminal Air Demo2" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/page.png" alt="Terminal Air Demo1" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/login.png" alt="Terminal Air Demo2" /></td>
   </tr>
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/connection.png" alt="Terminal Air Demo3" /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/edit.png" alt="Terminal Air Demo4" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/connection.png" alt="Terminal Air Demo3" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/edit.png" alt="Terminal Air Demo4" /></td>
   </tr>
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://minio.srcandy.top:9000/mckj/static/profile.png" alt="Terminal Air Demo5" /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/images/bind.png" alt="Terminal Air Demo6" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/profile.png" alt="Terminal Air Demo5" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/bind.png" alt="Terminal Air Demo6" /></td>
   </tr>
 </table>
 
