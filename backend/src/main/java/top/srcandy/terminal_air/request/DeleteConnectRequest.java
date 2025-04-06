@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class DeleteConnectRequest {
-    @Schema(description = "连接id")
+    @Schema(description = "连接uuid")
     private String uuid;
 }

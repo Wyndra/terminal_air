@@ -104,7 +104,7 @@ const openDeleteWindows = () => {
 async function deleteConnection() {
     try {
         const tdata = {
-            cid: connection.value.cid
+            uuid: connection.value.connectionUuid,
         };
         const res = await del(tdata);
         if (res.status === '200') {
