@@ -51,6 +51,7 @@ async function fetchConnectionList() {
     const res = await list();
     if (res.status === '200') {
         await nextTick();
+        emit("refresh");
         if (res.data.length > 0) {
             store.state.host = res.data[0].connectHost;
             store.state.port = res.data[0].connectPort;

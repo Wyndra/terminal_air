@@ -41,25 +41,30 @@ const refresh_fitAddon = () => {
 
 const initTerminal = () => {
     requestAnimationFrame(() => {
-        const terminalElement = document.getElementById("terminal");
-        if (!terminalElement) return;
+    const terminalElement = document.getElementById("terminal");
+    if (!terminalElement) return;
 
-        const webglAddon = new WebglAddon();
-        terminal.loadAddon(fitAddon);
-        terminal.loadAddon(webglAddon);
+    const webglAddon = new WebglAddon();
+    const fitAddon = new FitAddon();
 
-        terminal.open(terminalElement);
+    terminal.loadAddon(fitAddon);
+    terminal.loadAddon(webglAddon);
+
+    terminal.open(terminalElement);
+    fitAddon.fit();
+
+    terminal.onKey(({ key, domEvent }) => {
+        if (domEvent.isComposing) {
+            return;
+        }
+        sendCommand(key);
         fitAddon.fit();
-
-        terminal.onData((data) => {
-            sendCommand(data);
-            fitAddon.fit();
-        });
-
-        window.addEventListener('resize', () => {
-            fitAddon.fit();
-        });
     });
+
+    window.addEventListener('resize', () => {
+        fitAddon.fit();
+    });
+});
 };
 
 const terminal = new Terminal({
@@ -151,7 +156,7 @@ const sendToggleConnect = () => {
         if (isFirstConnection.value){
             terminal.write(`\r\n`)
         }
-        terminal.write(`Connecting to ${datas.host} on port ${datas.port}...\n\r`);
+        terminal.write(`Connecting to ${datas.host} ...\n\r`);
         socket.send(JSON.stringify(datas));
     }, 100);
 };

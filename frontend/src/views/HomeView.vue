@@ -59,10 +59,7 @@
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue';
 import { useStore } from 'vuex';
-import { useMessage, useNotification } from 'naive-ui';
-import { useRouter } from 'vue-router';
-
-import { getUserInfo } from '@/api/auth';
+import { useMessage } from 'naive-ui';
 import { list } from '@/api/connection';
 
 import ConnectionNewItemButton from '@/components/ConnectionNewItemButton.vue';
@@ -73,9 +70,6 @@ import LoginAndRegisterModal from '@/components/modal/LoginAndRegisterModal.vue'
 
 const store = useStore();
 const message = useMessage();
-const notification = useNotification();
-
-const router = useRouter();
 import { Terminal } from '@vicons/ionicons5';
 
 watch(() => store.getters.isLoggedIn, (value) => {
@@ -84,7 +78,6 @@ watch(() => store.getters.isLoggedIn, (value) => {
 
 const showLoginOrRegisterModal = ref(false);
 const connect_list = ref([]);
-const userInfo = ref({});
 const InLogin = ref(store.getters.isLoggedIn);
 
 const current_connect = ref({});
