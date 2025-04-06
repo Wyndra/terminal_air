@@ -268,9 +268,9 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public List<Credential> selectBoundCredentialsByConnectionId(String token, Long connectId) throws Exception {
+    public List<Credential> selectBoundCredentialsByConnectionId(String token, String uuid) throws Exception {
         User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        return credentialsMapper.selectBoundCredentialsByConnectionId(user.getUid(), connectId);
+        return credentialsMapper.selectBoundCredentialsByConnectionUuid(user.getUid(), uuid);
     }
 
 

@@ -119,7 +119,7 @@ const connectionFormRule = {
 // 获取凭证列表
 const fetchCredentialsList = async () => {
     try {
-        const res = await listBoundCredentials(props.editConnectionInfo.cid);
+        const res = await listBoundCredentials(props.editConnectionInfo.connectionUuid);
         if (res.status === '200') {
             credentialsList.value = res.data;
             console.log('credentialsList' + credentialsList.value[0]?.id ,credentialsList.value);

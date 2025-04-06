@@ -1,6 +1,7 @@
 package top.srcandy.terminal_air.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.srcandy.terminal_air.bean.vo.ConnectionVO;
@@ -17,6 +18,7 @@ import top.srcandy.terminal_air.service.ConnectionService;
 import top.srcandy.terminal_air.service.CredentialsService;
 import top.srcandy.terminal_air.utils.AESUtils;
 import top.srcandy.terminal_air.utils.JWTUtil;
+import top.srcandy.terminal_air.utils.KeyUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -48,7 +50,12 @@ public class ConnectionServiceImpl implements ConnectionService {
         }
         log.info("user:{}", user);
         List<Connection> connections = connectionMapper.selectByConnectCreaterUid(user.getUid());
-
+        connections.forEach(connection -> {
+            if (connection.getConnectionUuid() == null || connection.getConnectionUuid().isEmpty()) {
+                connection.setConnectionUuid(KeyUtils.generateUUID());
+                connectionMapper.updateConnectUuid(connection);
+            }
+        });
         return ResponseResult.success(connectConverter.connectionList2ConnectionVOList(connections));
     }
 
@@ -66,7 +73,6 @@ public class ConnectionServiceImpl implements ConnectionService {
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
 
-        // 验证用户是否存在
         User user = authService.getUserByUsername(username);
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
@@ -74,7 +80,6 @@ public class ConnectionServiceImpl implements ConnectionService {
 
         // 获取用户的连接信息
         List<Connection> userConnects = connectionMapper.selectByConnectCreaterUid(user.getUid());
-        log.info("userConnects:{}", userConnects);
 
         // 判断新增的连接是否已经存在
         for (Connection userConnect : userConnects) {
@@ -89,6 +94,7 @@ public class ConnectionServiceImpl implements ConnectionService {
                 .connect_creater_uid(user.getUid())
                 .connectHost(request.getHost())
                 .connectPort(request.getPort())
+                .connectionUuid(KeyUtils.generateUUID())
                 .connectUsername(request.getUsername())
                 .connectPwd(request.getPassword().equals("") ? "" : AESUtils.encryptToHex(request.getPassword(), userSalt))
                 .connectName(request.getName())
@@ -162,7 +168,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     @Override
-    public ResponseResult<Connection> deleteConnect(String token, Long cid) {
+    public ResponseResult<Connection> deleteConnect(String token, String connectionUuid) {
         // 提取 token 并解析用户名
         String tokenNoBearer = token.substring(7);
         String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
@@ -176,11 +182,12 @@ public class ConnectionServiceImpl implements ConnectionService {
         Optional<Connection> optionalConnectInfo = connectionMapper
                 .selectByConnectCreaterUid(optionalUser.get().getUid())
                 .stream()
-                .filter(connect -> connect.getCid().equals(cid))
+                .filter(c -> c.getConnectionUuid().equals(connectionUuid))
                 .findFirst();
+
         return optionalConnectInfo
                 .map(connectInfo -> {
-                    connectionMapper.deleteConnect(cid);
+                    connectionMapper.deleteConnectByUuid(connectionUuid);
                     return ResponseResult.success(connectInfo);
                 })
                 .orElseGet(() -> ResponseResult.fail(null, "连接不存在"));

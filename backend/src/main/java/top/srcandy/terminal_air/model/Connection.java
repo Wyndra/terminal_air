@@ -12,6 +12,8 @@ public class Connection implements Serializable {
     private static final long serialVersionUID = 5L;
     @Schema(description = "连接id")
     private Long cid;
+    @Schema(description = "连接uuid")
+    private String connectionUuid;
     @Schema(description = "连接主机")
     private String connectHost;
     @Schema(description = "连接端口")

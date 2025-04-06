@@ -20,7 +20,7 @@ public interface ConnectionService {
 
     ResponseResult<ConnectionVO> updateConnect(String token, UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
-    ResponseResult<Connection> deleteConnect(String token, Long cid);
+    ResponseResult<Connection> deleteConnect(String token, String connectionUuid);
 
 
 

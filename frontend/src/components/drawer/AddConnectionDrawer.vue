@@ -23,10 +23,19 @@
                         <n-input v-model:value="connectInfoForm.username" placeholder="请输入用户名" />
                     </n-form-item>
                     <n-form-item label="连接方式">
-                        <n-radio-group v-model:value="connectInfoForm.method">
-                            <n-radio value="0">密码</n-radio>
-                            <n-radio value="1" :disabled="true">密钥</n-radio>
-                        </n-radio-group>
+                        <div style="display: flex; flex-direction: column; width: 100%;">
+                            <n-radio-group v-model:value="connectInfoForm.method">
+                                <n-radio value="0">密码</n-radio>
+                                <n-radio value="1" :disabled="true">凭证</n-radio>
+                            </n-radio-group>
+                            <span style="font-size: 12px; color: #999; margin-top: 6px;">
+                                凭证登录 需要凭证绑定后方可使用。<br>您可以先不填入密码，然后前往
+                                <a href="/profile" target="_blank"
+                                    style="color: #007bff; text-decoration: none;">凭证中心</a> 进行凭证绑定。
+                            </span>
+                        </div>
+
+
                     </n-form-item>
                     <n-form-item label="密码" v-if="connectInfoForm.method === '0'" path="password">
                         <div style="display: flex; flex-direction: column; width: 100%;">
@@ -34,21 +43,23 @@
                             <n-input v-model:value="connectInfoForm.password" placeholder="请输入密码" type="password"
                                 show-password-on="mousedown" />
                             <!-- 说明文字 -->
-                            <span style="font-size: 12px; color: #999; margin-top: 4px;">
-                                密码将会被加密存储，Terminal Air 遵守我们的
+                            <span style="font-size: 12px; color: #999; margin-top: 6px;">
+                                密码将会以安全的方式存储，Terminal Air 遵守我们的
                                 <a href="/privacy-policy" target="_blank"
                                     style="color: #007bff; text-decoration: none;">隐私政策</a> 。
                             </span>
                         </div>
                     </n-form-item>
+                    <n-form-item>
+                        <n-button type="primary" style="width: 100%;" @click="handleSaveAndConnect">
+                            保存
+                        </n-button>
+                    </n-form-item>
                 </n-form>
-                <n-button type="primary" style="width: 100%;" @click="handleSaveAndConnect">
-                    保存
-                </n-button>
-                <span class="description-text">
+                <!-- <span class="description-text">
                     为了您的服务器安全，您无法在 <span class="info">新增连接</span> 中使用 SSH 凭证进行连接。您可以先不填入密码，然后前往 <a href="/profile"
                         style="color: #007bff; text-decoration: none;">凭证中心</a> 进行 SSH 密钥的绑定。
-                </span>
+                </span> -->
             </n-card>
 
         </n-drawer-content>

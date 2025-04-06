@@ -45,7 +45,7 @@ public class ConnectionController {
     @PostMapping ("/deleteConnect")
     @Operation(summary = "删除连接")
     public ResponseResult<Connection> deleteConnect(@RequestHeader("Authorization") String token, @RequestBody DeleteConnectRequest request) {
-        return connectManageService.deleteConnect(token,request.getCid());
+        return connectManageService.deleteConnect(token,request.getUuid());
     }
 
 }

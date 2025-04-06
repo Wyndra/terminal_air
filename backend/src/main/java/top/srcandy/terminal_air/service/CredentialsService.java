@@ -38,7 +38,7 @@ public interface CredentialsService {
      * @return
      * @throws Exception
      */
-    List<Credential> selectBoundCredentialsByConnectionId(String token, Long connectId) throws Exception;
+    List<Credential> selectBoundCredentialsByConnectionId(String token, String connectionUuid) throws Exception;
 
     void deleteCredential(String token, Long id) throws Exception;
 

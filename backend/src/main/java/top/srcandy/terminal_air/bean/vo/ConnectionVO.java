@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class ConnectionVO {
     private Long cid;
+    private String connectionUuid;
     private String connectHost;
     private String connectPort;
     private String connectUsername;

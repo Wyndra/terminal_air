@@ -35,9 +35,9 @@ export const bindCredentials = (data) => {
     });
 }
 
-export const listBoundCredentials = (connectionId) => {
+export const listBoundCredentials = (connectionUuid) => {
     return serviceAxios({
-        url: "/api/credentials/get/bound/" + connectionId,
+        url: "/api/credentials/get/bound/" + connectionUuid,
         method: "get",
     });
 }

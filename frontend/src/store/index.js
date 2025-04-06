@@ -17,7 +17,7 @@ export default createStore({
     showTerminalSettings: false, // 控制终端设置抽屉的显示
     terminalSettings: {
       fontSize: 16,
-      fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+      fontFamily: "Menlo",
       lineHeight: 1,
       letterSpacing: 0,
       cursorStyle: 'block',

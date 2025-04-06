@@ -35,6 +35,11 @@
               <n-form-item label="光标闪烁">
                 <n-switch v-model:value="settings.cursorBlink" />
               </n-form-item>
+              <n-form-item>
+                <n-button strong secondary type="primary"
+                  style="width: 100%;" @click="resetDefaultSettings" >恢复默认</n-button>
+              </n-form-item>
+
             </n-form>
           </n-tab-pane>
 
@@ -117,6 +122,14 @@ const getDeviceType = () => {
 };
 
 const settings = ref({ ...store.state.terminalSettings });
+const defaultSettings = {
+  fontSize: 16,
+  fontFamily: "Menlo",
+  lineHeight: 1,
+  letterSpacing: 0,
+  cursorStyle: 'block',
+  cursorBlink: true,
+}
 // 根据设备类型设置默认字体大小
 if (getDeviceType() === 'mobile') {
   settings.value.fontSize = 8;
@@ -157,6 +170,7 @@ watch(currentTheme, (value) => {
 
 onMounted(() => {
   loadingPresetTheme()
+  loadingSettings();
 })
 
 const loadingPresetTheme = () => {
@@ -167,8 +181,24 @@ const loadingPresetTheme = () => {
   }
 }
 
+const loadingSettings = () => {
+  const savedSettings = localStorage.getItem('terminalSettings');
+  if (savedSettings) {
+    settings.value = { ...settings.value, ...JSON.parse(savedSettings) };
+  }
+};
+
+const resetDefaultSettings = () => {
+  settings.value = defaultSettings;
+  message.success('已恢复默认设置');
+};
+
 watch(settings, (newSettings) => {
   store.commit('updateTerminalSettings', newSettings);
+  // 对象解构，去除 theme 属性
+  const { theme, ...otherSettings } = settings.value;
+  // 存储到 localStorage
+  localStorage.setItem('terminalSettings', JSON.stringify(otherSettings));
 }, { deep: true });
 
 const handleFileUpload = (options) => {

@@ -34,6 +34,7 @@ public abstract class ConnectionConverter {
     @Mapping(target = "connectPwd", source = "connectPwd")
     @Mapping(target = "connectName", source = "connectName")
     @Mapping(target = "connectMethod", source = "connectMethod")
+    @Mapping(target = "connectionUuid", source = "connectionUuid")
     @Mapping(target = "connect_creater_uid", source = "connect_creater_uid")
     public abstract ConnectionVO connection2ConnectionVO(Connection connection);
 
