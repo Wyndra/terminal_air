@@ -122,6 +122,7 @@ public class WebSecurityConfig {
                             response.setContentType("application/json;charset=UTF-8");
                             response.setStatus(401);
 
+                            log.warn("未认证请求：{}", request.getRequestURI());
                             ObjectMapper mapper = new ObjectMapper();
                             ResponseResult<?> result = ResponseResult.unauthorized("未登录，请先登录");
                             response.getWriter().write(mapper.writeValueAsString(result));
@@ -130,7 +131,7 @@ public class WebSecurityConfig {
                             response.setCharacterEncoding("UTF-8");
                             response.setContentType("application/json;charset=UTF-8");
                             response.setStatus(403);
-
+                            log.warn("权限不足请求：{}", request.getRequestURI());
                             ObjectMapper mapper = new ObjectMapper();
                             ResponseResult<?> result = ResponseResult.forbidden("暂无权限");
                             response.getWriter().write(mapper.writeValueAsString(result));

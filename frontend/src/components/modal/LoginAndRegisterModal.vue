@@ -184,13 +184,11 @@ const refreshTurnstile = () => {
             sitekey: serverConfig.turnstile_siteKey,
             callback: (token) => {
                 turnstileToken.value = token;
+                
             },
             "expired-callback": () => {
                 message.error('人机验证已过期，请刷新页面重试');
                 window.location.reload();
-            },
-            "error-callback": (error) => {
-                message.error('人机验证检查中...');
             },
         });
     });
