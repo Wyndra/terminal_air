@@ -1,4 +1,4 @@
-package top.srcandy.terminal_air.bean.dto;
+package top.srcandy.terminal_air.pojo.dto;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;

@@ -13,6 +13,10 @@
 
 **Terminal Air** —— 一款为新时代云管理而生的 WebSSH 工具，助您轻松驾驭复杂基础设施，释放运维生产力。
 
+## 项目地址
+
+项目地址： [term.srcandy.top](https://term.srcandy.top)
+
 ## UI 展示
 
 <table style="border-collapse: collapse; border: 1px solid black;">

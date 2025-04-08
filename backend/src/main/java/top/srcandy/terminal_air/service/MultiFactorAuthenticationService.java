@@ -6,9 +6,9 @@ import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 
 public interface MultiFactorAuthenticationService {
-    String switchTwoFactorAuth(String token);
+    String switchTwoFactorAuth();
 
-    String getTwoFactorAuthSecretQRCode(String token);
+    String getTwoFactorAuthSecretQRCode();
 
     boolean verifyTwoFactorAuthCode(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 }

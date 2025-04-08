@@ -8,14 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import top.srcandy.terminal_air.aspectj.lang.annoations.PublicAccessValidate;
-import top.srcandy.terminal_air.aspectj.lang.annoations.TwoFactorAuthRequired;
-import top.srcandy.terminal_air.bean.vo.LoginResultVO;
-import top.srcandy.terminal_air.bean.vo.UserProfileVO;
+import top.srcandy.terminal_air.pojo.vo.LoginResultVO;
+import top.srcandy.terminal_air.pojo.vo.UserProfileVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.request.*;
 import top.srcandy.terminal_air.service.AuthService;
-import top.srcandy.terminal_air.aspectj.lang.annoations.AuthAccess;
 import top.srcandy.terminal_air.utils.JWTUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -31,32 +28,44 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
-    @AuthAccess
     @Operation(summary = "用户登录请求")
     public ResponseResult<LoginResultVO> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
-//        return authService.login(request);
-        // 请求转到新的登录方法，实现无感切换密码强度。
-        return authService.loginAndChangePassword(request);
+        log.info("login user:{}", request);
+        // 请求转到SpringSecurity的认证
+        return authService.loginSecurity(request);
     }
 
     @PostMapping("/loginBySmsCode")
-    @AuthAccess
     @Operation(summary = "用户短信验证码登录请求")
     public ResponseResult<String> loginByPhoneAndSmsCode(@Valid @RequestBody(required = false) @NonNull LoginBySmsCodeRequest request) {
-        return authService.loginBySmsCode(request);
+        return authService.loginSecurityBySmsCode(request);
+//        return authService.loginBySmsCode(request);
     }
 
+    @PostMapping("/loginRequireTwoFactorAuth")
+    @Operation(summary = "用户需要二次认证的登录请求")
+    public ResponseResult<String> loginRequireTwoFactorAuth(@Valid @RequestHeader("Authorization") String twoFactorAuthToken, @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+        return authService.loginSecurityRequireTwoFactorAuth(twoFactorAuthToken.substring(7), request);
+    }
+
+
     @PostMapping("/register")
-    @AuthAccess
     @Operation(summary = "用户注册请求")
     public ResponseResult<String> register(@Valid @RequestBody(required = false) @NonNull RegisterRequest request) {
         log.info("register user:{}", request);
         return authService.register(request);
     }
 
+    @GetMapping("/logout")
+    @Operation(summary = "用户登出请求")
+    public ResponseResult<String> logout() {
+        authService.logout();
+        return ResponseResult.success("登出成功");
+    }
+
     @GetMapping("/getProfile")
-    public ResponseResult<UserProfileVO> getUserInfo(@RequestHeader("Authorization") String token) {
-        return authService.getUserProfile(token.substring(7));
+    public ResponseResult<UserProfileVO> getUserInfo() {
+        return authService.getUserProfile();
     }
 
     @GetMapping("/getSalt")
@@ -65,32 +74,26 @@ public class AuthController {
     }
 
     @PostMapping("/verifyUserPassword")
-    public ResponseResult<Boolean> verifyUserPassword(@RequestHeader("Authorization") String token, @RequestBody(required = false) @NonNull VerifyUserPasswordRequest request) {
+    public ResponseResult<Boolean> verifyUserPassword(@RequestBody(required = false) @NonNull VerifyUserPasswordRequest request) {
         log.info("verifyUserPassword:{}", request.getPassword());
-        return ResponseResult.success(authService.verifyUserPassword(token.substring(7), request.getPassword()));
+        return ResponseResult.success(authService.verifyUserPassword(request.getPassword()));
     }
 
     @PostMapping("/updateProfile")
-    public ResponseResult<UserProfileVO> updateProfile(@RequestHeader("Authorization") String token, @Valid @RequestBody(required = false) @NonNull UpdateProfileRequest request) {
-        return authService.updateProfile(token.substring(7), request);
+    public ResponseResult<UserProfileVO> updateProfile(@Valid @RequestBody(required = false) @NonNull UpdateProfileRequest request) {
+        return authService.updateProfile(request);
     }
 
-
-    @PostMapping("/loginRequireTwoFactorAuth")
-    @TwoFactorAuthRequired
-    public ResponseResult<String> loginRequireTwoFactorAuth(@Valid @RequestHeader("Authorization") String twoFactorAuthToken, @RequestBody(required = false) @NonNull VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
-        return authService.loginRequireTwoFactorAuth(twoFactorAuthToken.substring(7),request);
-    }
 
     @GetMapping("/getUserAvatar")
-    @TwoFactorAuthRequired
-    @PublicAccessValidate
-    public ResponseResult<String> getUserAvatar(@RequestHeader("Authorization") String token) {
-        return authService.getUserAvatar(token.substring(7));
+    @Operation(summary = "获取用户头像")
+    public ResponseResult<String> getUserAvatar() {
+        return authService.getUserAvatar();
     }
 
     @PostMapping("/updatePassword")
-    public ResponseResult<String> updatePassword(@RequestHeader("Authorization") String token, @Valid @RequestBody(required = false) @NonNull UpdatePasswordRequest request) {
-        return authService.updatePassword(token.substring(7), request);
+    @Operation(summary = "修改用户密码")
+    public ResponseResult<String> updatePassword(@Valid @RequestBody(required = false) @NonNull UpdatePasswordRequest request) {
+        return authService.updatePassword(request);
     }
 }

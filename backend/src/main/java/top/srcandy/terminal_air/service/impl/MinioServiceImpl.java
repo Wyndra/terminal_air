@@ -6,10 +6,11 @@ import io.minio.http.Method;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import top.srcandy.terminal_air.bean.vo.AvatarUploadVO;
+import top.srcandy.terminal_air.pojo.vo.AvatarUploadVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.exception.ServiceException;
 import top.srcandy.terminal_air.service.MinioService;
+import top.srcandy.terminal_air.utils.SecurityUtils;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -36,7 +37,8 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @Override
-    public ResponseResult<AvatarUploadVO> generatePresignedUrl(String extra) {
+    public ResponseResult<AvatarUploadVO> generatePresignedUrl() {
+        String extra = SecurityUtils.getUsername();
         try {
             String randomString = UUID.randomUUID().toString().replace("-", "");
             String filePath = "/avatar/%s-%s.png".formatted(randomString, extra);

@@ -73,7 +73,7 @@ serviceAxios.interceptors.response.use(
         if (error && error.response) {
             console.log("响应错误", error.response);
 
-            switch (error.response.data.status) {
+            switch (error.response.status) {
                 case 301:
                     message = "接口重定向了！";
                     break;
@@ -81,12 +81,12 @@ serviceAxios.interceptors.response.use(
                     message = "参数不正确！";
                     break;
                 case 401:
-                    message = "您未登录，或者登录已经超时，请先登录！";
+                    message = "未登录，请先登录";
                     localStorage.removeItem("token");
-                    // window.location.href = "/login";
                     break;
                 case 403:
                     message = "您没有权限操作！";
+                    localStorage.removeItem("token");
                     break;
                 case 404:
                     message = `请求地址出错: ${error.response.config.url}`;

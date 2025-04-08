@@ -8,7 +8,7 @@ import org.springframework.aop.framework.AopContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
-import top.srcandy.terminal_air.bean.vo.WebSSHMessageResultVO;
+import top.srcandy.terminal_air.pojo.vo.WebSSHMessageResultVO;
 import top.srcandy.terminal_air.enums.ANSIColor;
 import top.srcandy.terminal_air.enums.ANSIStyle;
 import top.srcandy.terminal_air.pojo.SSHConnectInfo;

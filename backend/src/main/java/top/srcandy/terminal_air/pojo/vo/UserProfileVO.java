@@ -1,4 +1,4 @@
-package top.srcandy.terminal_air.bean.vo;
+package top.srcandy.terminal_air.pojo.vo;
 
 import com.lzhpo.sensitive.SensitiveStrategy;
 import com.lzhpo.sensitive.annocation.Sensitive;

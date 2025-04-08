@@ -8,6 +8,7 @@ import top.srcandy.terminal_air.request.VerifyTwoFactorAuthCodeRequest;
 import top.srcandy.terminal_air.service.MultiFactorAuthenticationService;
 import top.srcandy.terminal_air.utils.AESUtils;
 import top.srcandy.terminal_air.utils.JWTUtil;
+import top.srcandy.terminal_air.utils.SecurityUtils;
 import top.srcandy.terminal_air.utils.TwoFactorAuthUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -23,9 +24,8 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
     private MicrosoftAuth microsoftAuth;
 
     @Override
-    public String switchTwoFactorAuth(String token) {
-        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
-        User user = userMapper.selectByUserName(username);
+    public String switchTwoFactorAuth() {
+        User user = SecurityUtils.getUser();
         if (user == null) {
             return null;
         }
@@ -39,9 +39,9 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
     }
 
     @Override
-    public String getTwoFactorAuthSecretQRCode(String token) {
-        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
-        User user = userMapper.selectByUserName(username);
+    public String getTwoFactorAuthSecretQRCode() {
+        User user = SecurityUtils.getUser();
+        String username = SecurityUtils.getUsername();
         if (user == null) {
             return null;
         }

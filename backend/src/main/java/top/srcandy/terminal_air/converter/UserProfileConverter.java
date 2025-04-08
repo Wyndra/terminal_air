@@ -1,7 +1,7 @@
 package top.srcandy.terminal_air.converter;
 
 import org.mapstruct.*;
-import top.srcandy.terminal_air.bean.vo.UserProfileVO;
+import top.srcandy.terminal_air.pojo.vo.UserProfileVO;
 import top.srcandy.terminal_air.model.User;
 import top.srcandy.terminal_air.request.UpdateProfileRequest;
 

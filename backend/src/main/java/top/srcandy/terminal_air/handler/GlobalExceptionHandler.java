@@ -1,4 +1,4 @@
-package top.srcandy.terminal_air.config;
+package top.srcandy.terminal_air.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.MethodArgumentNotValidException;

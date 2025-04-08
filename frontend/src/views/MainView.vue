@@ -62,7 +62,7 @@ import { ref, onMounted, watch, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage, useNotification } from 'naive-ui';
 import { useRouter } from 'vue-router';
-import { getUserInfo } from '@/api/auth';
+import { getUserInfo, logoutInService } from '@/api/auth';
 import { list } from '@/api/connection';
 import LoginAndRegisterModal from '@/components/modal/LoginAndRegisterModal.vue';
 
@@ -90,6 +90,9 @@ const openLoginModal = () => {
 };
 
 const logout = async () => {
+    // 执行登出操作
+    await logoutInService();
+    // 清除本地存储的 token
     localStorage.removeItem('token');
     localStorage.removeItem("twoFactorAuthToken")
     InLogin.value = false;
@@ -139,7 +142,7 @@ async function fetchUserInfo() {
         }
     }).catch(error => {
         if (!hasShownError.value) {
-            message.error('请求用户信息时出错');
+            message.error(error.response.data.message);
             store.commit('setHasShownError', true);
             hasShownError.value = true;
         }

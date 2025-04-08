@@ -106,7 +106,7 @@ async function fetchConnectionList() {
     }
   } catch (error) {
     if (!hasShownError.value) {
-      message.error('请求连接列表时出错');
+      message.error(error.response.data.message);
       store.commit('setHasShownError', true);
       hasShownError.value = true;
     }
