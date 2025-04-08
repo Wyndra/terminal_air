@@ -184,7 +184,6 @@ const refreshTurnstile = () => {
             sitekey: serverConfig.turnstile_siteKey,
             callback: (token) => {
                 turnstileToken.value = token;
-                
             },
             "expired-callback": () => {
                 message.error('人机验证已过期，请刷新页面重试');
@@ -489,83 +488,76 @@ const closeModal = () => {
 };
 
 // 统一提交处理
-const handleSubmit = () => {
+const validateForm = (formRef) => {
+    return new Promise((resolve) => {
+        formRef.value.validate((valid) => {
+            resolve(!valid); // validate返回false说明验证成功，我们取反
+        });
+    });
+};
+
+const verifyTurnstile = async () => {
+    try {
+        const res = await async_verifyTurnstile();
+        return res.data.success;
+    } catch (err) {
+        console.error('Turnstile 验证异常', err);
+        message.error('人机验证请求异常，请稍后重试');
+        return false;
+    }
+};
+
+const handleSubmit = async () => {
     if (currentServiceType.value === '登录') {
         if (useCodeLogin.value) {
             // 验证码登录
-            codeLoginFormRef.value.validate((valid) => {
-                async_verifyTurnstile().then((res) => {
-                    let response = res;
-                    if (response.data.success) {
-                        if (!valid) {
-                            async_loginWithCode();
-                            // 清除人机验证
-                            clearTurnstile();
-                        } else {
-                            message.error('请填写完整的登录信息');
-                        }
-                    } else {
-                        message.error('请完成人机验证');
-                    }
-                }).catch((error) => {
-                    message.error('人机验证未通过');
-                });
-            });
+            const valid = await validateForm(codeLoginFormRef);
+            const verified = await verifyTurnstile();
+            if (!valid && verified) {
+                await async_loginWithCode();
+                clearTurnstile();
+            } else if (!verified) {
+                message.error('请完成人机验证');
+            } else {
+                message.error('请填写完整的登录信息');
+            }
         } else if (isTwoFactor.value) {
-            twoFactorFormRef.value.validate((valid) => {
-                if (!valid) {
-                    async_twoFactor();
-                    // 清除人机验证
-                    clearTurnstile();
-                } else {
-                    message.error('请填写完整的一次性验证码');
-                }
-            });
+            // 两步验证
+            const valid = await validateForm(twoFactorFormRef);
+            if (!valid) {
+                await async_twoFactor();
+                clearTurnstile();
+            } else {
+                message.error('请填写完整的一次性验证码');
+            }
         } else {
-            // 普通登录
-            loginFormRef.value.validate((valid) => {
-                console.log(valid);
-                async_verifyTurnstile().then((res) => {
-                    let response = res;
-                    if (response.data.success) {
-                        if (!valid) {
-                            async_login();
-                            // 清除人机验证
-                            clearTurnstile();
-                        } else {
-                            message.error('请填写完整的登录信息');
-                        }
-                    } else {
-                        message.error('请完成人机验证');
-                    }
-                }).catch((error) => {
-                    message.error('人机验证未通过');
-                });
-
-            });
+            // 普通账号密码登录
+            const valid = await validateForm(loginFormRef);
+            const verified = await verifyTurnstile();
+            if (!valid && verified) {
+                await async_login();
+                clearTurnstile();
+            } else if (!verified) {
+                message.error('请完成人机验证');
+            } else {
+                message.error('请填写完整的登录信息');
+            }
         }
-
     } else {
         // 注册
-        registerFormRef.value.validate((valid) => {
-            async_verifyTurnstile().then((res) => {
-                let response = res;
-                if (response.data.success) {
-                    if (!valid) {
-                        async_register();
-                        clearTurnstile();
-                    } else {
-                        message.error('请填写完整的注册信息');
-                    }
-                } else {
-                    message.error('请完成人机验证');
-                }
-            }).catch((error) => {
-                message.error('人机验证未通过');
-            });
-        });
+        const valid = await validateForm(registerFormRef);
+        const verified = await verifyTurnstile();
+        if (!valid && verified) {
+            await async_register();
+            clearTurnstile();
+        } else if (!verified) {
+            message.error('请完成人机验证');
+        } else {
+            message.error('请填写完整的注册信息');
+        }
     }
 };
+
 
 watch(
     () => [currentServiceType.value, useCodeLogin.value],
