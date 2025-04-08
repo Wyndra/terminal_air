@@ -112,7 +112,14 @@ public class JWTUtil {
 
 
 
-    public static Map<String, Claim> getTokenClaimMap(String token){
+    public static Map<String, Claim> getTokenClaimMap(String token) {
+        if (token == null || token.isEmpty()) {
+            throw new ServiceException("Token不能为空");
+        }
+        // 可以检查 token 格式，简单地判断是否包含 '.'
+        if (token.split("\\.").length != 3) {
+            throw new ServiceException("无效的Token格式");
+        }
         return JWT.decode(token).getClaims();
     }
 }

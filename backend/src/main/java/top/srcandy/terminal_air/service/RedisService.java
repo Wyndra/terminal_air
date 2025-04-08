@@ -46,5 +46,7 @@ public interface RedisService {
     void setObject(String key, Object value, long timeout, TimeUnit unit);
 
     Object getObject(String key);
+
+    <T> T getObject(String key, Class<T> clazz);
 }
 

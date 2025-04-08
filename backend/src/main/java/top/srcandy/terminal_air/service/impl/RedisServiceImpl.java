@@ -1,5 +1,7 @@
 package top.srcandy.terminal_air.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -17,6 +19,9 @@ public class RedisServiceImpl implements RedisService {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     // ------- String 类型 -------
 
@@ -117,5 +122,30 @@ public class RedisServiceImpl implements RedisService {
 
     public Object getObject(String key) {
         return redisTemplate.opsForValue().get(key);
+    }
+
+
+
+    public <T> T getObject(String key, Class<T> clazz) {
+        Object value = redisTemplate.opsForValue().get(key);
+        if (value == null) {
+            return null;
+        }
+
+        // 若 RedisTemplate 的序列化器不是 JSON，还需手动转 JSON -> Java 对象
+        if (value instanceof String) {
+            try {
+                return (T) objectMapper.readValue((String) value, clazz);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Redis 中对象反序列化失败", e);
+            }
+        }
+
+        // 已是对象直接返回（前提是存入时就是这个类型）
+        if (clazz.isInstance(value)) {
+            return (T) clazz.cast(value);
+        }
+
+        throw new IllegalStateException("Redis 返回的对象类型不匹配，实际类型: " + value.getClass());
     }
 }

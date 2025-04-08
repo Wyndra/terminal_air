@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.converter;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import top.srcandy.terminal_air.bean.vo.CredentialVO;
+import top.srcandy.terminal_air.pojo.vo.CredentialVO;
 import top.srcandy.terminal_air.model.Credential;
 
 import java.util.List;

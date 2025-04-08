@@ -1,13 +1,21 @@
 package top.srcandy.terminal_air.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.mapstruct.control.MappingControl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.token.Sha512DigestUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
-import top.srcandy.terminal_air.bean.dto.RegisterDTO;
-import top.srcandy.terminal_air.bean.vo.LoginResultVO;
-import top.srcandy.terminal_air.bean.vo.UserProfileVO;
+import top.srcandy.terminal_air.pojo.LoginUser;
+import top.srcandy.terminal_air.security.token.SmsCodeAuthenticationToken;
+import top.srcandy.terminal_air.security.token.TwoFactorAuthenticationToken;
+import top.srcandy.terminal_air.pojo.dto.RegisterDTO;
+import top.srcandy.terminal_air.pojo.vo.LoginResultVO;
+import top.srcandy.terminal_air.pojo.vo.UserProfileVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.converter.UserProfileConverter;
 import top.srcandy.terminal_air.exception.ServiceException;
@@ -16,26 +24,41 @@ import top.srcandy.terminal_air.model.User;
 import top.srcandy.terminal_air.request.*;
 import top.srcandy.terminal_air.service.AuthService;
 import top.srcandy.terminal_air.service.MinioService;
+import top.srcandy.terminal_air.service.RedisService;
 import top.srcandy.terminal_air.service.SmsService;
 import top.srcandy.terminal_air.utils.AESUtils;
 import top.srcandy.terminal_air.utils.JWTUtil;
 import top.srcandy.terminal_air.utils.SaltUtils;
+import top.srcandy.terminal_air.utils.SecurityUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
-//    private final UserDao userDao;
 
     @Autowired
     private UserProfileConverter userProfileConverter;
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private RedisService redisService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+//    @Autowired
+//    private AuthenticationProvider authenticationProvider;
+//
+//    @Autowired
+//    private SmsCodeAuthenticationProvider smsCodeAuthenticationProvider;
 
     @Autowired
     private SmsService smsService;
@@ -51,6 +74,7 @@ public class AuthServiceImpl implements AuthService {
 //    }
 
     @Override
+    @Deprecated
     public ResponseResult<LoginResultVO> login(LoginRequest request) {
         User result = userMapper.selectByUserName(request.getUsername());
         if (result == null) {
@@ -67,7 +91,10 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+
+
     @Override
+    @Deprecated
     public ResponseResult<LoginResultVO> loginAndChangePassword(LoginRequest request) {
         User result = userMapper.selectByUserName(request.getUsername());
         Optional<User> userOptional = Optional.ofNullable(result);
@@ -84,6 +111,7 @@ public class AuthServiceImpl implements AuthService {
                     return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
                 } else {
                     // 直接生成token
+                    redisService.setObject("security:" + result.getUsername(), result, 24, TimeUnit.HOURS);
                     return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
                 }
             } else {
@@ -110,8 +138,67 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Override
+    public ResponseResult<LoginResultVO> loginSecurity(LoginRequest request) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+        if (Objects.isNull(authentication)) {
+            log.error("登录失败");
+            throw new ServiceException("登录失败");
+        }
+
+        // 获取登录用户信息
+        LoginUser principal = (LoginUser) authentication.getPrincipal();
+        User user = principal.getUser();
+        // 自动升级低安全性密码
+        if (user.getPassword_hash() != null) {
+            // 比对旧密码是否匹配（这里假设 authenticationProvider 认证已成功）
+            String expectedMd5 = DigestUtils.md5DigestAsHex(request.getPassword().getBytes());
+            if (user.getPassword_hash().equals(expectedMd5)) {
+                log.info("检测到 {} 为低安全性密码，正在升级为高安全性加密...",user.getUsername());
+                // 设置新密码为高安全性 SHA-512（加盐）
+                String newSecurePassword = Sha512DigestUtils.shaHex(request.getPassword() + user.getSalt());
+                user.setPassword(newSecurePassword);
+                user.setPassword_hash(null); // 清除旧密码字段
+                // 更新数据库密码
+                userMapper.update(user);
+                // 同时更新认证信息中的密码
+                principal.getUser().setPassword(newSecurePassword);
+                principal.getUser().setPassword_hash(null);
+            }
+        }
+
+        // 登录流程
+        if ("1".equals(user.getIsTwoFactorAuth())) {
+            // 开启两步验证
+            log.info("用户 {} 进入了两步验证流程", user.getUsername());
+            return ResponseResult.success(LoginResultVO.builder()
+                    .token(JWTUtil.generateTwoFactorAuthSecretToken(user))
+                    .requireTwoFactorAuth(true)
+                    .build());
+        } else {
+            // 直接登录
+            redisService.setObject("security:" + user.getUsername(), principal, 24, TimeUnit.HOURS);
+            log.info("登录成功，token:{}", JWTUtil.generateToken(user));
+            return ResponseResult.success(LoginResultVO.builder()
+                    .token(JWTUtil.generateToken(user))
+                    .requireTwoFactorAuth(false)
+                    .build());
+        }
+    }
 
     @Override
+    public void logout() {
+        String username = SecurityUtils.getUsername();
+        redisService.delete("security:" + username);
+        SecurityContextHolder.clearContext();
+        ResponseResult.success("Logout success");
+    }
+
+
+    @Override
+    @Deprecated
     public ResponseResult<String> loginRequireTwoFactorAuth(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         String username = JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("username").asString();
         User user = userMapper.selectByUserName(username);
@@ -126,10 +213,28 @@ public class AuthServiceImpl implements AuthService {
         }
         boolean verifyTwoFactorAuthCodeResult = microsoftAuth.checkCode(user.getTwoFactorAuthSecret(), request.getCode(), request.getTime());
         if (verifyTwoFactorAuthCodeResult) {
+
             return ResponseResult.success(JWTUtil.generateToken(user));
         } else {
             return ResponseResult.fail(null, "验证码错误");
         }
+    }
+
+    @Override
+    public ResponseResult<String> loginSecurityRequireTwoFactorAuth(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+        String username = JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("username").asString();
+        TwoFactorAuthenticationToken twoFactorAuthenticationToken = new TwoFactorAuthenticationToken(username, twoFactorAuthToken, request.getCode(), request.getTime());
+        Authentication authentication = authenticationManager.authenticate(twoFactorAuthenticationToken);
+        if (Objects.isNull(authentication)) {
+            log.error("登录失败");
+            throw new ServiceException("登录失败");
+        }
+        LoginUser principal = (LoginUser) authentication.getPrincipal();
+        User currentUser = principal.getUser();
+        redisService.setObject("security:" + currentUser.getUsername(), principal, 24, TimeUnit.HOURS);
+        // 将认证信息存入 SecurityContextHolder
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return ResponseResult.success(JWTUtil.generateToken(currentUser));
     }
 
 
@@ -144,6 +249,22 @@ public class AuthServiceImpl implements AuthService {
         } else {
             return ResponseResult.fail(null, "验证码错误");
         }
+    }
+
+    @Override
+    public ResponseResult<String> loginSecurityBySmsCode(LoginBySmsCodeRequest request) {
+        SmsCodeAuthenticationToken smsCodeAuthenticationToken = new SmsCodeAuthenticationToken(request.getPhone(), request.getSerial(), request.getVerificationCode());
+        Authentication authentication = authenticationManager.authenticate(smsCodeAuthenticationToken);
+        if (Objects.isNull(authentication)) {
+            log.error("登录失败");
+            throw new ServiceException("登录失败");
+        }
+        // 获取登录用户信息
+        LoginUser principal = (LoginUser) authentication.getPrincipal();
+        User user = principal.getUser();
+        redisService.setObject("security:" + user.getUsername(), principal, 24, TimeUnit.HOURS);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return ResponseResult.success(JWTUtil.generateToken(user));
     }
 
     @Override
@@ -175,10 +296,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseResult<UserProfileVO> getUserProfile(String token_no_bearer) {
-        String username = JWTUtil.getTokenClaimMap(token_no_bearer).get("username").asString();
-        log.info("username:{}", username);
-        User user = getUserByUsername(username);
+    public ResponseResult<UserProfileVO> getUserProfile() {
+        User user = SecurityUtils.getUser();
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
@@ -193,9 +312,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseResult<String> getUserAvatar(String no_bearer_token) {
-        String username = JWTUtil.getTokenClaimMap(no_bearer_token).get("username").asString();
-        User user = userMapper.selectByUserName(username);
+    public ResponseResult<String> getUserAvatar() {
+        User user = SecurityUtils.getUser();
         if (user != null) {
             try {
                 // 生成头像的临时访问链接
@@ -221,18 +339,14 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String getSaltByUsername(String username) {
+//        String username = SecurityUtils.getUsername();
         return userMapper.selectByUserName(username).getSalt();
     }
 
     @Override
-    public boolean verifyUserPassword(String token, String password) {
-        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
-        User user = userMapper.selectByUserName(username);
-        Optional<User> userOptional = Optional.ofNullable(user);
-        if (userOptional.isEmpty()) {
-            return false;
-        }
-        // 如果Password_hash为null
+    public boolean verifyUserPassword(String password) {
+        User user = SecurityUtils.getUser();
+        assert user != null;
         Optional<String> passwordHashOptional = Optional.ofNullable(user.getPassword_hash());
         if (passwordHashOptional.isEmpty()) {
             // 说明已经是高安全性密码
@@ -257,14 +371,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseResult<String> updatePassword(String token, UpdatePasswordRequest request) {
-
-        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
-        User user = userMapper.selectByUserName(username);
-        Optional<User> userOptional = Optional.ofNullable(user);
-        if (userOptional.isEmpty()) {
-            return ResponseResult.fail(null, "用户不存在");
-        }
+    public ResponseResult<String> updatePassword(UpdatePasswordRequest request) {
+        User user = SecurityUtils.getUser();
         // 如果Password_hash为null
         Optional<String> passwordHashOptional = Optional.ofNullable(user.getPassword_hash());
         if (passwordHashOptional.isEmpty()) {
@@ -292,26 +400,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseResult<UserProfileVO> updateProfile(String token, UpdateProfileRequest request) {
-        String username;
-        try {
-            // 从JWT Token中提取用户名
-            username = JWTUtil.getTokenClaimMap(token).get("username").asString();
-            if (username == null) {
-                return ResponseResult.fail(null, "Token中不包含用户名");
-            }
-        } catch (Exception e) {
-            log.error("从Token中提取用户名出错", e);
-            return ResponseResult.fail(null, "无效的Token");
-        }
-
-        log.info("提取到的用户名:{}", username);
-
-        // 根据用户名查询用户信息
-        User user = getUserByUsername(username);
-        if (user == null) {
-            return ResponseResult.fail(null, "用户不存在");
-        }
+    public ResponseResult<UserProfileVO> updateProfile(UpdateProfileRequest request) {
+        User user = SecurityUtils.getUser();
+        String username = SecurityUtils.getUsername();
 
         // 校验新的手机号是否已经被注册
         if (request.getPhone() != null) {

@@ -25,9 +25,9 @@ public class TurnstileController {
 
     @Autowired
     private TurnstileService turnstileService;
+
     @PostMapping("/verify")
     @Operation(summary = "提交验证")
-    @AuthAccess
     public ResponseResult<Map<String, Objects>> verifyTurnstile(@RequestBody Map<String, String> request) {
         String token = request.get("token");
         if (token == null) {

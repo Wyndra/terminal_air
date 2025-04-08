@@ -1,4 +1,4 @@
-package top.srcandy.terminal_air.bean.vo;
+package top.srcandy.terminal_air.pojo.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

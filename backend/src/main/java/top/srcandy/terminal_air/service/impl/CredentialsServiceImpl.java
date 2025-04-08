@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import top.srcandy.terminal_air.bean.vo.CredentialVO;
+import top.srcandy.terminal_air.pojo.vo.CredentialVO;
 import top.srcandy.terminal_air.converter.CredentialConverter;
 import top.srcandy.terminal_air.exception.ServiceException;
 import top.srcandy.terminal_air.mapper.CredentialsMapper;
@@ -16,6 +16,7 @@ import top.srcandy.terminal_air.service.CredentialsService;
 import top.srcandy.terminal_air.utils.JWTUtil;
 import top.srcandy.terminal_air.utils.KeyUtils;
 import top.srcandy.terminal_air.utils.RSAKeyUtils;
+import top.srcandy.terminal_air.utils.SecurityUtils;
 
 import java.sql.Timestamp;
 import java.util.Base64;
@@ -35,22 +36,23 @@ public class CredentialsServiceImpl implements CredentialsService {
     private UserMapper userMapper;
 
     @Override
-    public CredentialVO generateKeyPair(String token, String name, String tags) throws ServiceException, Exception {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        Long userId = user.getUid();
+    public CredentialVO generateKeyPair(String name, String tags) throws ServiceException, Exception {
+//        User user = SecurityUtils.getUser();
+        String username = SecurityUtils.getUsername();
+        Long userId = SecurityUtils.getUserId();
 
         // 检查凭据名称是否已存在
         if (credentialsMapper.countCredentialsByUserIdAndName(userId, name) > 0) {
-            log.info("{} 凭据名称已存在",user.getUsername());
+            log.info("{} 凭据名称已存在",username);
             throw new ServiceException("凭据名称已存在");
         }
         // 最大允许凭据数量
         int MAX_CREDENTIALS = 10;
         if (credentialsMapper.countCredentialsByUserId(userId) >= MAX_CREDENTIALS) {
-            log.info("{} 凭据数量已达上限",user.getUsername());
+            log.info("{} 凭据数量已达上限",username);
             throw new ServiceException("凭据数量已达上限");
         }
-        RSAKeyUtils.KeyPairString pair = RSAKeyUtils.generateSSHKeyPair(user.getUsername());
+        RSAKeyUtils.KeyPairString pair = RSAKeyUtils.generateSSHKeyPair(username);
 
         KeyUtils.calculateFingerprint(pair.getPublicKey());
 
@@ -77,23 +79,20 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public List<CredentialVO> listCredentials(String token) {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        Long userId = user.getUid();
-
+    public List<CredentialVO> listCredentials() {
+        Long userId = SecurityUtils.getUserId();
         return credentialConverter.credentialList2VOList(credentialsMapper.selectCredentialsByUserId(userId));
     }
 
     @Override
-    public int countCredentialsByUserId(String token) {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        return credentialsMapper.countCredentialsByUserId(user.getUid());
+    public int countCredentialsByUserId() {
+        Long userId = SecurityUtils.getUserId();
+        return credentialsMapper.countCredentialsByUserId(userId);
     }
 
     @Override
-    public Credential selectCredentialById(String token, Long id) throws Exception {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        Long userId = user.getUid();
+    public Credential selectCredentialById(Long id) throws Exception {
+        Long userId = SecurityUtils.getUserId();
         Credential credential = credentialsMapper.selectCredentialByUidAndId(userId, id);
         if (credential == null) {
             throw new ServiceException("凭据不存在");
@@ -102,9 +101,8 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public Credential selectCredentialByUuid(String token, String uuid) throws Exception {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        Long userId = user.getUid();
+    public Credential selectCredentialByUuid(String uuid) throws Exception {
+        Long userId = SecurityUtils.getUserId();
         Credential credential = credentialsMapper.selectCredentialByUidAndUuid(userId, uuid);
         if (credential == null) {
             throw new ServiceException("凭据不存在");
@@ -113,23 +111,8 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public Credential selectCredentialById(Long id) throws Exception {
-        Credential credential = credentialsMapper.selectCredentialById(id);
-        if (credential == null) {
-            throw new ServiceException("凭据不存在");
-        }
-        return credential;
-    }
-
-    @Override
-    public Credential selectCredentialByUuid(String uuid) throws Exception {
-        return credentialsMapper.selectCredentialByUuid(uuid);
-    }
-
-    @Override
-    public void updateCredentialStatus(String token, CredentialStatusRequest request) throws Exception {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        Long userId = user.getUid();
+    public void updateCredentialStatus(CredentialStatusRequest request) throws Exception {
+        Long userId = SecurityUtils.getUserId();
         Credential credential = credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid());
         if (credential == null) {
             throw new ServiceException("凭据不存在");
@@ -138,9 +121,8 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public CredentialVO updateCredentialConnectId(String token, CredentialConnectionRequest request) throws Exception {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        Long userId = user.getUid();
+    public CredentialVO updateCredentialConnectId(CredentialConnectionRequest request) throws Exception {
+        Long userId = SecurityUtils.getUserId();
         Credential credential = credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid());
         if (credential == null) {
             throw new ServiceException("凭据不存在");
@@ -157,8 +139,9 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Override
     public String generateInstallShell(String token, String uuid, String endpoint) throws Exception {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        String publicKey = credentialsMapper.selectCredentialByUidAndUuid(user.getUid(), uuid).getPublicKey();
+        User user = SecurityUtils.getUser();
+        Long userId = SecurityUtils.getUserId();
+        String publicKey = credentialsMapper.selectCredentialByUidAndUuid(userId, uuid).getPublicKey();
 
         // Base64 编码公钥，避免 Shell 解析问题
         String encodedPublicKey = Base64.getEncoder().encodeToString(publicKey.getBytes());
@@ -268,16 +251,15 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public List<Credential> selectBoundCredentialsByConnectionId(String token, String uuid) throws Exception {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        return credentialsMapper.selectBoundCredentialsByConnectionUuid(user.getUid(), uuid);
+    public List<Credential> selectBoundCredentialsByConnectionId(String uuid) throws Exception {
+        Long userId = SecurityUtils.getUserId();
+        return credentialsMapper.selectBoundCredentialsByConnectionUuid(userId, uuid);
     }
 
 
     @Override
-    public void deleteCredential(String token, Long id) throws Exception {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        Long userId = user.getUid();
+    public void deleteCredential(Long id) throws Exception {
+        Long userId = SecurityUtils.getUserId();
         Credential credential = credentialsMapper.selectCredentialsByUserId(userId).stream().filter(c -> c.getId().equals(id)).findFirst().orElse(null);
         if (credential == null) {
             throw new ServiceException("凭据不存在");

@@ -1,7 +1,7 @@
 package top.srcandy.terminal_air.service;
 
-import top.srcandy.terminal_air.bean.vo.LoginResultVO;
-import top.srcandy.terminal_air.bean.vo.UserProfileVO;
+import top.srcandy.terminal_air.pojo.vo.LoginResultVO;
+import top.srcandy.terminal_air.pojo.vo.UserProfileVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.model.User;
 import top.srcandy.terminal_air.request.*;
@@ -14,15 +14,23 @@ public interface AuthService {
 
     ResponseResult<LoginResultVO> loginAndChangePassword(LoginRequest request);
 
+    ResponseResult<LoginResultVO> loginSecurity(LoginRequest request);
+
+    void logout();
+
     ResponseResult<String> loginRequireTwoFactorAuth(String twoFactorAuthToken,VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
+
+    ResponseResult<String> loginSecurityRequireTwoFactorAuth(String twoFactorAuthToken,VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
     ResponseResult<String> loginBySmsCode(LoginBySmsCodeRequest request);
 
+    ResponseResult<String> loginSecurityBySmsCode(LoginBySmsCodeRequest request);
+
     ResponseResult<String> register(RegisterRequest request);
 
-    ResponseResult<UserProfileVO> getUserProfile(String no_bearer_token);
+    ResponseResult<UserProfileVO> getUserProfile();
 
-    ResponseResult<String> getUserAvatar(String no_bearer_token);
+    ResponseResult<String> getUserAvatar();
 
     User getUserByUsername(String username);
 
@@ -30,10 +38,10 @@ public interface AuthService {
 
     String getSaltByUsername(String username);
 
-    boolean verifyUserPassword(String token, String password);
+    boolean verifyUserPassword(String password);
 
-    ResponseResult<String> updatePassword(String username, UpdatePasswordRequest request);
+    ResponseResult<String> updatePassword(UpdatePasswordRequest request);
 
-    ResponseResult<UserProfileVO> updateProfile(String token, UpdateProfileRequest request);
+    ResponseResult<UserProfileVO> updateProfile(UpdateProfileRequest request);
 
 }

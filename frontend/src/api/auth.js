@@ -7,6 +7,13 @@ export const login = (data) => {
     });
 }
 
+export const logoutInService = () => {
+    return serviceAxios({
+        url: "/api/auth/logout",
+        method: "get",
+    });
+}
+
 export const loginBySmsCode = (data) => {
     return serviceAxios({
         url: "/api/auth/loginBySmsCode",
@@ -106,4 +113,6 @@ export const updatePassword = (data) => {
         data,
     });
 }
+
+
 

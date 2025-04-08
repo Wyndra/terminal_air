@@ -4,7 +4,7 @@ import com.aliyun.sdk.service.dysmsapi20170525.models.SendSmsResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import top.srcandy.terminal_air.bean.vo.SmsCodeVO;
+import top.srcandy.terminal_air.pojo.vo.SmsCodeVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.enums.SMSChannel;
 import top.srcandy.terminal_air.exception.ServiceException;
@@ -16,6 +16,7 @@ import top.srcandy.terminal_air.service.RedisService;
 import top.srcandy.terminal_air.service.SmsService;
 import top.srcandy.terminal_air.utils.JWTUtil;
 import top.srcandy.terminal_air.utils.SMSUtils;
+import top.srcandy.terminal_air.utils.SecurityUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -89,9 +90,9 @@ public class SmsServiceImpl implements SmsService {
      * @throws Exception if there are any issues during SMS sending.
      */
     @Override
-    public ResponseResult<SmsCodeVO> sendSmsCodeByToken(String token_no_bearer) throws Exception {
-        String username = JWTUtil.getTokenClaimMap(token_no_bearer).get("username").asString();
-        User user = userMapper.selectByUserName(username);
+    public ResponseResult<SmsCodeVO> sendSmsCodeByToken() throws Exception {
+        String username = SecurityUtils.getUsername();
+        User user = SecurityUtils.getUser();
         String phone = user.getPhone();
 
         // Apply rate-limiting for requests within a 5-minute window

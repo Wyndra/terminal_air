@@ -86,5 +86,21 @@ public class ResponseResult<T> {
                 .build();
     }
 
+    public static <T> ResponseResult<T> unauthorized(String message) {
+        return ResponseResult.<T>builder().data(null)
+                .message(message)
+                .status(ResponseStatus.HTTP_STATUS_401.getResponseCode())
+                .timestamp(System.currentTimeMillis())
+                .build();
+    }
+
+    public static <T> ResponseResult<T> forbidden(String message) {
+        return ResponseResult.<T>builder().data(null)
+                .message(message)
+                .status(ResponseStatus.HTTP_STATUS_403.getResponseCode())
+                .timestamp(System.currentTimeMillis())
+                .build();
+    }
+
 
 }

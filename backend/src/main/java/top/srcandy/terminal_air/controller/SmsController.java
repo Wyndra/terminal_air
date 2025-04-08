@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import top.srcandy.terminal_air.bean.vo.SmsCodeVO;
+import top.srcandy.terminal_air.pojo.vo.SmsCodeVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.request.SendVerificationCodeRequest;
 import top.srcandy.terminal_air.request.VerifyCodeRequest;
@@ -24,7 +24,6 @@ public class SmsController {
     private SmsService smsService;
 
     @PostMapping ("/sendVerificationCode")
-    @AuthAccess
     @Operation(summary = "发送验证码")
     public ResponseResult<SmsCodeVO> sendVerifyCode(@Valid @RequestBody(required = false) @NotNull SendVerificationCodeRequest request) {
         try {
@@ -36,7 +35,6 @@ public class SmsController {
     }
 
     @PostMapping("/verifyCode")
-    @AuthAccess
     @Operation(summary = "验证验证码")
     public ResponseResult<Boolean> verifyCode(@Valid @RequestBody(required = false) @NotNull VerifyCodeRequest request) {
         return ResponseResult.success(smsService.verifySmsCode(request.getPhone(), request.getSerial(), request.getCode()));
@@ -44,10 +42,9 @@ public class SmsController {
 
     @GetMapping("/sendSmsCodeByToken")
     @Operation(summary = "通过token发送验证码")
-    public ResponseResult<SmsCodeVO> sendSmsCodeByToken(@RequestHeader("Authorization") String token) {
-        String token_no_bearer = token.substring(7);
+    public ResponseResult<SmsCodeVO> sendSmsCodeByToken() {
         try {
-            return smsService.sendSmsCodeByToken(token_no_bearer);
+            return smsService.sendSmsCodeByToken();
         } catch (Exception e) {
             log.error("Failed to send SMS code", e);
         }

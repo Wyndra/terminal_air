@@ -1,10 +1,10 @@
 package top.srcandy.terminal_air.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import top.srcandy.terminal_air.bean.vo.ConnectionVO;
+import top.srcandy.terminal_air.pojo.LoginUser;
+import top.srcandy.terminal_air.pojo.vo.ConnectionVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.converter.ConnectionConverter;
 import top.srcandy.terminal_air.mapper.ConnectionMapper;
@@ -19,6 +19,7 @@ import top.srcandy.terminal_air.service.CredentialsService;
 import top.srcandy.terminal_air.utils.AESUtils;
 import top.srcandy.terminal_air.utils.JWTUtil;
 import top.srcandy.terminal_air.utils.KeyUtils;
+import top.srcandy.terminal_air.utils.SecurityUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -41,15 +42,8 @@ public class ConnectionServiceImpl implements ConnectionService {
     private CredentialsService credentialsService;
 
 
-    public ResponseResult<List<ConnectionVO>> list(String token) {
-        String tokenNoBearer = token.substring(7);
-        String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
-        User user = authService.getUserByUsername(username);
-        if (user == null) {
-            return ResponseResult.fail(null, "用户不存在");
-        }
-        log.info("user:{}", user);
-        List<Connection> connections = connectionMapper.selectByConnectCreaterUid(user.getUid());
+    public ResponseResult<List<ConnectionVO>> list(Long userid) {
+        List<Connection> connections = connectionMapper.selectByConnectCreaterUid(userid);
         connections.forEach(connection -> {
             if (connection.getConnectionUuid() == null || connection.getConnectionUuid().isEmpty()) {
                 connection.setConnectionUuid(KeyUtils.generateUUID());
@@ -68,12 +62,8 @@ public class ConnectionServiceImpl implements ConnectionService {
 
 
     @Override
-    public ResponseResult<Connection> insertConnect(String token, AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
-        // 提取 token 并解析用户名
-        String tokenNoBearer = token.substring(7);
-        String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
-
-        User user = authService.getUserByUsername(username);
+    public ResponseResult<Connection> insertConnect(AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+        User user = SecurityUtils.getUser();
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
@@ -105,13 +95,8 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     @Override
-    public ResponseResult<ConnectionVO> updateConnect(String token, UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
-        // 提取 token 并解析用户名
-        String tokenNoBearer = token.substring(7);
-        String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
-
-        // 验证用户是否存在
-        User user = authService.getUserByUsername(username);
+    public ResponseResult<ConnectionVO> updateConnect(UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+        User user = SecurityUtils.getUser();
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
@@ -154,7 +139,7 @@ public class ConnectionServiceImpl implements ConnectionService {
             if (request.getMethod().equals("key")){
                 Credential credential = null;
                 try {
-                    credential = credentialsService.selectCredentialByUuid(token.substring(7), request.getCredentialUUID());
+                    credential = credentialsService.selectCredentialByUuid(request.getCredentialUUID());
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -168,19 +153,10 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     @Override
-    public ResponseResult<Connection> deleteConnect(String token, String connectionUuid) {
-        // 提取 token 并解析用户名
-        String tokenNoBearer = token.substring(7);
-        String username = JWTUtil.getTokenClaimMap(tokenNoBearer).get("username").asString();
-
-        // 验证用户是否存在
-        Optional<User> optionalUser = Optional.ofNullable(authService.getUserByUsername(username));
-        if (optionalUser.isEmpty()) {
-            return ResponseResult.fail(null, "用户不存在");
-        }
-
+    public ResponseResult<Connection> deleteConnect(String connectionUuid) {
+        Long userId = SecurityUtils.getUserId();
         Optional<Connection> optionalConnectInfo = connectionMapper
-                .selectByConnectCreaterUid(optionalUser.get().getUid())
+                .selectByConnectCreaterUid(userId)
                 .stream()
                 .filter(c -> c.getConnectionUuid().equals(connectionUuid))
                 .findFirst();

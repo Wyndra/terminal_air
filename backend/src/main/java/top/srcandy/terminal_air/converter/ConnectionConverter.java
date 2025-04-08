@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.converter;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import top.srcandy.terminal_air.bean.vo.ConnectionVO;
+import top.srcandy.terminal_air.pojo.vo.ConnectionVO;
 import top.srcandy.terminal_air.model.Connection;
 import top.srcandy.terminal_air.request.UpdateConnectionRequest;
 import top.srcandy.terminal_air.service.CredentialsService;
