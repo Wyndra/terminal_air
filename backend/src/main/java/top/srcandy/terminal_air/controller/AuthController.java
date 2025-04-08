@@ -87,8 +87,8 @@ public class AuthController {
 
     @GetMapping("/getUserAvatar")
     @Operation(summary = "获取用户头像")
-    public ResponseResult<String> getUserAvatar() {
-        return authService.getUserAvatar();
+    public ResponseResult<String> getUserAvatar(@RequestHeader("Authorization") String token) {
+        return authService.getUserAvatar(token.substring(7));
     }
 
     @PostMapping("/updatePassword")

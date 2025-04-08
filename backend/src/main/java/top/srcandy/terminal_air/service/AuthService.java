@@ -30,7 +30,7 @@ public interface AuthService {
 
     ResponseResult<UserProfileVO> getUserProfile();
 
-    ResponseResult<String> getUserAvatar();
+    ResponseResult<String> getUserAvatar(String token);
 
     User getUserByUsername(String username);
 

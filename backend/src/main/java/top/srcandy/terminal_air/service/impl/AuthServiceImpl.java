@@ -312,8 +312,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseResult<String> getUserAvatar() {
-        User user = SecurityUtils.getUser();
+    public ResponseResult<String> getUserAvatar(String token) {
+        String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
+        User user = userMapper.selectByUserName(username);
         if (user != null) {
             try {
                 // 生成头像的临时访问链接
