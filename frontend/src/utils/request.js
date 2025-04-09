@@ -3,129 +3,110 @@ import serverConfig from "./config";
 import store from "@/store";
 import router from "@/router";
 
-// 创建 axios 请求实例
+// axios 实例
 const serviceAxios = axios.create({
-    baseURL: serverConfig.baseURL, // 基础请求地址
-    timeout: 10000, // 请求超时设置
-    withCredentials: false, // 跨域请求是否需要携带 cookie
+    baseURL: serverConfig.baseURL,
+    timeout: 10000,
+    withCredentials: false,
 });
 
-// 全局错误处理函数
+// 全局错误提示（你可以换成 message 弹窗）
 function handleGlobalError(message) {
-    console.log("全局错误处理:", message);
+    console.warn("全局错误:", message);
 }
 
-// 创建请求拦截
+// === 请求拦截器 ===
 serviceAxios.interceptors.request.use(
     (config) => {
-        // 如果开启 token 认证
-        if (serverConfig.useTokenAuthorization) {
-            const token = localStorage.getItem("token");
-            const twoFactorAuthToken = localStorage.getItem("twoFactorAuthToken");
-            if (twoFactorAuthToken && token) {
-                config.headers["Authorization"] = "Bearer " + twoFactorAuthToken; // 请求头携带 token
-            } else if (token) {
-                config.headers["Authorization"] = "Bearer " + token; // 请求头携带 token
-            }
+        const token = localStorage.getItem("token");
+        const twoFactorToken = localStorage.getItem("twoFactorAuthToken");
+
+        if (serverConfig.useTokenAuthorization && token) {
+            config.headers["Authorization"] = `Bearer ${twoFactorToken || token}`;
         }
-        if (!config.headers["content-type"]) { // 如果没有设置请求头
-            if (config.method === 'post' || config.method === 'put') {
-                config.headers["content-type"] = "application/json"; // 默认类型
-                config.data = JSON.stringify(config.data); // 序列化,比如表单数据
-            }
+
+        if (!config.headers["content-type"] && ['post', 'put'].includes(config.method)) {
+            config.headers["content-type"] = "application/json";
+            config.data = JSON.stringify(config.data);
         }
-        // console.log("请求配置", config);
+
         return config;
     },
     (error) => {
-        // 全局错误处理
-        handleGlobalError("请求错误");
-    }
-);
-
-// 创建响应拦截
-serviceAxios.interceptors.response.use(
-    (res) => {
-        let data = res.data;
-        if (data.status === '200') {
-            console.log("Response Successful:", data);
-            return data;
-        }
-        if (data.status === '500' && data.message === '登录已过期，请重新登录' || data.message === '非法登录') {
-            localStorage.removeItem("token");
-            localStorage.removeItem("twoFactorAuthToken");
-            store.dispatch("logout");
-            router.push("/");
-            handleGlobalError(data.message || "登录已过期，请重新登录");
-            return data;
-        }
-        if (data.status === '500' && data.message === '用户不存在') {
-            localStorage.removeItem("token");
-            handleGlobalError("用户不存在");
-            return data;
-        }
-        console.error("Response Error:", data);
-        handleGlobalError(data.message || "未知错误");
-        return data;
-    },
-    (error) => {
-        let message = "";
-        if (error && error.response) {
-            console.log("响应错误", error.response);
-
-            switch (error.response.status) {
-                case 301:
-                    message = "接口重定向了！";
-                    break;
-                case 400:
-                    message = "参数不正确！";
-                    break;
-                case 401:
-                    message = "未登录，请先登录";
-                    localStorage.removeItem("token");
-                    break;
-                case 403:
-                    message = "您没有权限操作！";
-                    localStorage.removeItem("token");
-                    break;
-                case 404:
-                    message = `请求地址出错: ${error.response.config.url}`;
-                    break;
-                case 408:
-                    message = "请求超时！";
-                    break;
-                case 409:
-                    message = "系统已存在相同数据！";
-                    break;
-                case 500:
-                    message = "服务器内部错误！";
-                    break;
-                case 501:
-                    message = "服务未实现！";
-                    break;
-                case 502:
-                    message = "网关错误！";
-                    break;
-                case 503:
-                    message = "服务不可用！";
-                    break;
-                case 504:
-                    message = "服务暂时无法访问，请稍后再试！";
-                    break;
-                case 505:
-                    message = "HTTP 版本不受支持！";
-                    break;
-                default:
-                    message = "异常问题，请联系管理员！";
-                    break;
-            }
-        } else {
-            message = "连接到服务器失败！";
-        }
-        console.error("响应错误", message);
-        handleGlobalError(message);
+        handleGlobalError("请求发送失败");
         return Promise.reject(error);
     }
 );
+
+// === 响应拦截器 ===
+serviceAxios.interceptors.response.use(
+    (response) => {
+        const data = response.data;
+
+        // 假设后端统一返回格式 { status, message, data }
+        if (data.status === "200") {
+            return data;
+        }
+
+        // 常见业务错误统一处理
+        handleBusinessError(data);
+        return Promise.reject(data);
+    },
+    (error) => {
+        if (error.response) {
+            handleHttpStatusError(error.response.status, error.response.config?.url);
+        } else {
+            handleGlobalError("无法连接服务器，请检查网络");
+        }
+        return Promise.reject(error);
+    }
+);
+
+// === 业务状态码处理 ===
+function handleBusinessError(data) {
+    const { status, message } = data;
+
+    switch (message) {
+        case "登录已过期，请重新登录":
+        case "非法登录":
+            clearAuthAndRedirect();
+            break;
+        case "用户不存在":
+            localStorage.removeItem("token");
+            break;
+    }
+
+    handleGlobalError(message || "业务异常");
+}
+
+// === HTTP 状态码处理 ===
+function handleHttpStatusError(status, url = "") {
+    const codeMessage = {
+        400: "参数不正确",
+        401: "未登录，请先登录",
+        403: "没有权限",
+        404: `接口不存在: ${url}`,
+        408: "请求超时",
+        500: "服务器内部错误",
+        502: "网关错误",
+        503: "服务不可用",
+        504: "服务暂时无法访问",
+        default: "连接异常，请联系管理员",
+    };
+
+    if ([401, 403].includes(status)) {
+        clearAuthAndRedirect();
+    }
+
+    handleGlobalError(codeMessage[status] || codeMessage.default);
+}
+
+// === 清除 token 并重定向到登录页 ===
+function clearAuthAndRedirect() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("twoFactorAuthToken");
+    store.dispatch("logout");
+    router.push("/");
+}
 
 export default serviceAxios;

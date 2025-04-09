@@ -1,122 +1,123 @@
 <template>
-        <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 600px;">
-            <template #header-extra>
-                <n-button text @click="closeModal">
-                    <n-icon size="20">
-                        <Close />
-                    </n-icon>
-                </n-button>
-            </template>
+    <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 600px;">
+        <template #header-extra>
+            <n-button text @click="closeModal">
+                <n-icon size="20">
+                    <Close />
+                </n-icon>
+            </n-button>
+        </template>
 
-            <n-tabs type="line" animated @before-leave="handleBeforeLeave"
-                v-if="currentServiceType === '登录' && !isTwoFactor">
-                <n-tab-pane name="usernameLogin" tab="账密登录">
-                    <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules">
-                        <n-form-item label="用户名" path="username">
-                            <n-input v-model:value="loginForm.username" placeholder="请输入用户名" @keydown.enter.prevent />
-                        </n-form-item>
-                        <n-form-item label="密码" path="password">
-                            <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
-                                show-password-on="mousedown" @keydown.enter.prevent />
-                        </n-form-item>
-                    </n-form>
-                </n-tab-pane>
-                <n-tab-pane name="phoneLogin" tab="手机号登录">
-                    <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules">
-                        <n-form-item ref="loginByCodeRef" label="手机号" path="phone">
-                            <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="codeLoginForm.phone"
-                                placeholder="请输入中国大陆手机号" />
-                        </n-form-item>
-                        <n-form-item label="验证码" path="verificationCode">
-                            <div style="display: flex; gap: 8px;">
-                                <n-input :allow-input="onlyDigitsInput" :maxlength="6"
-                                    v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
-                                <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
-                                    style="background-color: #319154; color: white;">
-                                    {{ codeButtonText }}
-                                </n-button>
-                            </div>
-                        </n-form-item>
-                    </n-form>
-                </n-tab-pane>
-            </n-tabs>
-
-
-            <n-form ref="twoFactorFormRef" label-position="top" :model="twoFactorForm" :rules="twoFactorAuthRules"
-                v-if="isTwoFactor">
-                <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
-                    <div style="position: relative;">
-                        <n-avatar round :size="48" :src="userAvatar" />
-                        <n-icon color="#cf3f37"
-                            style="position: absolute; bottom: 4px; right: -2px; width: 16px; height: 16px; background-color: transparent;">
-                            <LockClosed />
-                        </n-icon>
-                    </div>
-                    <n-text style="font-weight: bold; font-size: 16px;">我们需要验证你的身份才能继续</n-text>
-                    <n-text style="font-size: 14px;">输入来自身份验证器的代码</n-text>
-                    <n-form-item path="code">
-                        <VerifationCodeInput v-model="twoFactorForm.code" />
+        <n-tabs type="line" animated @before-leave="handleBeforeLeave"
+            v-if="currentServiceType === '登录' && !isTwoFactor">
+            <n-tab-pane name="usernameLogin" tab="账密登录">
+                <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules">
+                    <n-form-item label="用户名" path="username">
+                        <n-input v-model:value="loginForm.username" placeholder="请输入用户名" @keydown.enter.prevent />
                     </n-form-item>
-                </div>
-            </n-form>
-
-            <!-- 验证码登录表单 -->
-
-
-            <!-- 注册表单 -->
-            <n-form ref="registerFormRef" label-position="top" :model="registerForm" :rules="registerRules"
-                v-if="currentServiceType === '注册'">
-                <div style="display: flex; gap: 16px;">
-                    <n-form-item label="用户名" path="username" style="flex: 1;">
-                        <n-input :allow-input="onlyEnglishWordsInput" v-model:value="registerForm.username"
-                            placeholder="请输入用户名" />
+                    <n-form-item label="密码" path="password">
+                        <n-input v-model:value="loginForm.password" placeholder="请输入密码" type="password"
+                            show-password-on="mousedown" @keydown.enter.prevent />
                     </n-form-item>
-                </div>
-                <div style="display: flex; gap: 16px;">
-                    <n-form-item label="密码" path="password" style="flex: 1;">
-                        <n-input v-model:value="registerForm.password" placeholder="请输入密码" type="password"
-                            show-password-on="mousedown" />
-                    </n-form-item>
-                    <n-form-item label="确认密码" path="repeatPassword" style="flex: 1;">
-                        <n-input v-model:value="registerForm.repeatPassword" placeholder="请输入确认密码" type="password"
-                            show-password-on="mousedown" />
-                    </n-form-item>
-                </div>
-                <div style="display: flex; gap: 16px;">
-                    <n-form-item ref="registerPhoneRef" first label="手机号" path="phone" style="flex: 1;">
-                        <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="registerForm.phone"
+                </n-form>
+            </n-tab-pane>
+            <n-tab-pane name="phoneLogin" tab="手机号登录">
+                <n-form ref="codeLoginFormRef" label-position="top" :model="codeLoginForm" :rules="codeLoginRules">
+                    <n-form-item ref="loginByCodeRef" label="手机号" path="phone">
+                        <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="codeLoginForm.phone"
                             placeholder="请输入中国大陆手机号" />
                     </n-form-item>
-                    <n-form-item label="验证码" path="verificationCode" style="flex: 1;">
+                    <n-form-item label="验证码" path="verificationCode">
                         <div style="display: flex; gap: 8px;">
                             <n-input :allow-input="onlyDigitsInput" :maxlength="6"
-                                v-model:value="registerForm.verificationCode" placeholder="请输入验证码" />
+                                v-model:value="codeLoginForm.verificationCode" placeholder="请输入验证码" />
                             <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
                                 style="background-color: #319154; color: white;">
                                 {{ codeButtonText }}
                             </n-button>
                         </div>
                     </n-form-item>
-                </div>
-            </n-form>
-            <!-- 人机验证组件 -->
-            <div data-size="flexible" id="turnstile-widget" />
-            <div style="display: flex; justify-content: space-between; margin-top: 16px;"
-                v-if="currentServiceType === '登录' && !isTwoFactor">
-                <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
-                    @click="handleClickRegister">立即注册</n-text>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 16px;"
-                v-if="currentServiceType === '注册'">
-                <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
-                    @click="currentServiceType = '登录'">返回登录</n-text>
+                </n-form>
+            </n-tab-pane>
+        </n-tabs>
 
+
+        <n-form ref="twoFactorFormRef" label-position="top" :model="twoFactorForm" :rules="twoFactorAuthRules"
+            v-if="isTwoFactor">
+            <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
+                <div style="position: relative;">
+                    <n-avatar round :size="48" :src="userAvatar" />
+                    <n-icon color="#cf3f37"
+                        style="position: absolute; bottom: 4px; right: -2px; width: 16px; height: 16px; background-color: transparent;">
+                        <LockClosed />
+                    </n-icon>
+                </div>
+                <n-text style="font-weight: bold; font-size: 16px;">我们需要验证你的身份才能继续</n-text>
+                <n-text style="font-size: 14px;">输入来自身份验证器的代码</n-text>
+                <n-form-item path="code">
+                    <VerifationCodeInput v-model="twoFactorForm.code" />
+                </n-form-item>
             </div>
-            <template #footer>
-                <n-button type="primary" style="width: 100%;" @click="handleSubmit">{{ currentServiceType === '登录' ?
-                    isTwoFactor ? '继续' : '登录' : '注册' }}</n-button>
-            </template>
-        </n-card>
+        </n-form>
+
+        <!-- 验证码登录表单 -->
+
+
+        <!-- 注册表单 -->
+        <n-form ref="registerFormRef" label-position="top" :model="registerForm" :rules="registerRules"
+            v-if="currentServiceType === '注册'">
+            <div style="display: flex; gap: 16px;">
+                <n-form-item label="用户名" path="username" style="flex: 1;">
+                    <n-input :allow-input="onlyEnglishWordsInput" v-model:value="registerForm.username"
+                        placeholder="请输入用户名" />
+                </n-form-item>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <n-form-item label="密码" path="password" style="flex: 1;">
+                    <n-input v-model:value="registerForm.password" placeholder="请输入密码" type="password"
+                        show-password-on="mousedown" />
+                </n-form-item>
+                <n-form-item label="确认密码" path="repeatPassword" style="flex: 1;">
+                    <n-input v-model:value="registerForm.repeatPassword" placeholder="请输入确认密码" type="password"
+                        show-password-on="mousedown" />
+                </n-form-item>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <n-form-item ref="registerPhoneRef" first label="手机号" path="phone" style="flex: 1;">
+                    <n-input :allow-input="onlyDigitsInput" :maxlength="11" v-model:value="registerForm.phone"
+                        placeholder="请输入中国大陆手机号" />
+                </n-form-item>
+                <n-form-item label="验证码" path="verificationCode" style="flex: 1;">
+                    <div style="display: flex; gap: 8px;">
+                        <n-input :allow-input="onlyDigitsInput" :maxlength="6"
+                            v-model:value="registerForm.verificationCode" placeholder="请输入验证码" />
+                        <n-button :disabled="isCodeButtonDisabled" @click="handleGetVerificationCode"
+                            style="background-color: #319154; color: white;">
+                            {{ codeButtonText }}
+                        </n-button>
+                    </div>
+                </n-form-item>
+            </div>
+        </n-form>
+        <!-- 人机验证组件 -->
+        <div data-size="flexible" id="turnstile-widget" />
+        <div style="display: flex; justify-content: space-between; margin-top: 16px;"
+            v-if="currentServiceType === '登录' && !isTwoFactor">
+            <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
+                @click="handleClickRegister">立即注册</n-text>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 16px;"
+            v-if="currentServiceType === '注册'">
+            <n-text style="cursor: pointer; color: #319154; font-weight: bold;"
+                @click="currentServiceType = '登录'">返回登录</n-text>
+
+        </div>
+        <template #footer>
+            <n-button type="primary" style="width: 100%;" :loading="loading" @click="handleSubmit">
+                {{ submitButtonText }}
+            </n-button>
+        </template>
+    </n-card>
 </template>
 
 <script setup>
@@ -129,7 +130,18 @@ import { useStore } from 'vuex';
 import { Close, LockClosed } from '@vicons/ionicons5';
 import VerifationCodeInput from '@/components/VerifationCodeInput.vue';
 import serverConfig from "@/utils/config";
+import { debounce } from "lodash";
+const loading = ref(false);
 
+const submitButtonText = computed(() => {
+    if (currentServiceType.value === '登录') {
+        if (isTwoFactor.value) {
+            return loading.value ? '检查中' : '继续'
+        }
+        return loading.value ? '登录中' : '登录'
+    }
+    return '注册'
+})
 
 const turnstileToken = ref("");
 
@@ -313,25 +325,34 @@ async function async_login() {
     const res = await login({
         username: loginForm.value.username,
         password: loginForm.value.password
-    });
-    if (res.status === '200') {
-        if (res.data.requireTwoFactorAuth) {
-            isTwoFactor.value = true;
-            localStorage.setItem('twoFactorAuthToken', res.data.token);
-            userAvatar.value = await getUserAvatar().then(res => res.data || '');
-            message.warning("账户已启用双重认证，请输入一次性验证码")
-            return;
+    }).then(async res => {
+        if (res.status === '200') {
+            if (res.data.requireTwoFactorAuth) {
+                isTwoFactor.value = true;
+                loading.value = false;
+                localStorage.setItem('twoFactorAuthToken', res.data.token);
+                userAvatar.value = await getUserAvatar().then(res => res.data || '');
+                message.warning("账户已启用双重认证，请输入一次性验证码")
+                return;
+            } else {
+                localStorage.setItem('token', res.data.token);
+                message.success('登录成功');
+            }
+            // 重置错误显示状态
+            store.dispatch("resetHasShownError");
+            location.reload();
+            emit('close'); // 关闭模态框
         } else {
-            localStorage.setItem('token', res.data.token);
-            message.success('登录成功');
+            message.error(res.message || '登录失败');
         }
-        // 重置错误显示状态
-        store.dispatch("resetHasShownError");
-        location.reload();
-        emit('close'); // 关闭模态框
-    } else {
-        message.error(res.message || '登录失败');
-    }
+    }).catch(err => {
+        console.log(err)
+        message.error(err.message || '登录失败');
+        // emit('close'); // 关闭模态框
+        refreshTurnstile();
+    }).finally(() => {
+        loading.value = false;
+    });
 }
 
 // 二次验证提交
@@ -340,24 +361,28 @@ async function async_twoFactor() {
         // 均为数字类型
         code: Number(twoFactorForm.value.code),
         time: Number(new Date().getTime())
+    }).then(async res => {
+        if (res.status === '200') {
+            localStorage.setItem('token', res.data);
+            message.success('登录成功');
+            loading.value = false;
+            // 移除twoFactorAuthToken
+            localStorage.removeItem("twoFactorAuthToken")
+            // 重置错误显示状态
+            store.dispatch("resetHasShownError");
+            emit('close');
+            await nextTick();
+            location.reload();
+        } else {
+            message.error(res.message || '登录失败');
+        }
+    }).catch(err => {
+        console.log(err)
+        message.error(err.message || '登录失败');
+        // refreshTurnstile();
+    }).finally(() => {
+        loading.value = false;
     });
-
-    if (res.status === '200') {
-        store.dispatch("resetHasShownError");
-        localStorage.setItem('token', res.data);
-        // 移除twoFactorAuthToken
-        localStorage.removeItem("twoFactorAuthToken")
-        // 重置错误显示状态
-        store.dispatch("resetHasShownError");
-        emit('close');
-        message.success('登录成功');
-        await nextTick();
-        location.reload();
-    } else {
-        message.error(res.message || '登录失败');
-        twoFactorFormRef.value.code = '';
-
-    }
 }
 
 // 验证码登录提交
@@ -366,11 +391,11 @@ async function async_loginWithCode() {
         phone: codeLoginForm.value.phone,
         serial: serial.value || localStorage.getItem('serial'),
         verificationCode: codeLoginForm.value.verificationCode
-    });
-
-    if (res.status === '200') {
+    }).then(async res => {
+        if (res.status === '200') {
         localStorage.setItem('token', res.data);
         message.success('登录成功');
+        loading.value = false;
         localStorage.removeItem('serial');
         // 重置错误显示状态
         store.dispatch("resetHasShownError");
@@ -379,8 +404,16 @@ async function async_loginWithCode() {
         // store.dispatch("login");
     } else {
         message.error(res.message || '登录失败');
-
     }
+    }).
+    catch(err => {
+        console.log(err)
+        message.error(err.message || '登录失败');
+        refreshTurnstile();
+    }).finally(() => {
+        loading.value = false;
+    });
+    
 }
 
 // 注册提交
@@ -395,6 +428,7 @@ async function async_register() {
     if (res.status === '200') {
         message.success('注册成功');
         currentServiceType.value = '登录';
+        loading.value = false;
         // emit('close');
     } else {
         message.error(res.message || '注册失败');
@@ -431,16 +465,20 @@ const handleGetVerificationCode = async () => {
 
         const channel = currentServiceType.value === '登录' ? '1008' : '1021';
         const phone = codeLoginForm.value.phone || registerForm.value.phone;
-        const res = await sendVerificationCode({ phone, channel });
-        if (res.status === '200') {
-            message.success('验证码已发送');
-            serial.value = res.data.serial;
-            // 存储到localStorage
-            localStorage.setItem('serial', res.data.serial);
-            startCodeButtonCountdown();
-        } else {
-            message.error(res.message || '获取验证码失败');
-        }
+        const res = await sendVerificationCode({ phone, channel }).then(res => {
+            if (res.status === '200') {
+                message.success('验证码已发送');
+                serial.value = res.data.serial;
+                // 存储到localStorage
+                localStorage.setItem('serial', res.data.serial);
+                startCodeButtonCountdown();
+                return res;
+            } else {
+                message.error(res.message || '获取验证码失败');
+                throw new Error('Validation failed');
+            }
+        });
+        return res;
     } catch (error) {
         if (error.message !== 'Validation failed') {
             message.error('获取验证码时出错');
@@ -488,75 +526,89 @@ const closeModal = () => {
 };
 
 // 统一提交处理
-const validateForm = (formRef) => {
-    return new Promise((resolve) => {
-        formRef.value.validate((valid) => {
-            resolve(!valid); // validate返回false说明验证成功，我们取反
-        });
-    });
-};
-
-const verifyTurnstile = async () => {
+const safeVerifyTurnstile = async () => {
     try {
         const res = await async_verifyTurnstile();
-        return res.data.success;
-    } catch (err) {
-        console.error('Turnstile 验证异常', err);
-        message.error('人机验证请求异常，请稍后重试');
-        return false;
+        return res?.data?.success ?? false; // 判断验证是否成功
+    } catch (e) {
+        console.warn('PAT 验证失败，已忽略:', e);
+        return false; // 发生异常时返回 false，表示验证未通过
     }
 };
 
-const handleSubmit = async () => {
+const handleSubmit = debounce(async () => {
     if (currentServiceType.value === '登录') {
         if (useCodeLogin.value) {
             // 验证码登录
-            const valid = await validateForm(codeLoginFormRef);
-            const verified = await verifyTurnstile();
-            if (!valid && verified) {
-                await async_loginWithCode();
-                clearTurnstile();
-            } else if (!verified) {
-                message.error('请完成人机验证');
-            } else {
-                message.error('请填写完整的登录信息');
-            }
+            codeLoginFormRef.value.validate((valid) => {
+                if (!valid) {
+                    safeVerifyTurnstile().then((passed) => {
+                        if (passed) {
+                            async_loginWithCode();
+                            loading.value = true;
+                            clearTurnstile();
+                        } else {
+                            message.error('请完成人机验证');
+                        }
+                    }).catch((error) => {
+                        message.error('人机验证未通过');
+                    });
+                } else {
+                    message.error('请填写完整的登录信息');
+                }
+            });
         } else if (isTwoFactor.value) {
-            // 两步验证
-            const valid = await validateForm(twoFactorFormRef);
-            if (!valid) {
-                await async_twoFactor();
-                clearTurnstile();
-            } else {
-                message.error('请填写完整的一次性验证码');
-            }
+            // 二次验证登录
+            twoFactorFormRef.value.validate((valid) => {
+                if (!valid) {
+                    async_twoFactor();
+                    loading.value = true;
+                    clearTurnstile();
+                } else {
+                    message.error('请填写完整的一次性验证码');
+                }
+            });
         } else {
-            // 普通账号密码登录
-            const valid = await validateForm(loginFormRef);
-            const verified = await verifyTurnstile();
-            if (!valid && verified) {
-                await async_login();
-                clearTurnstile();
-            } else if (!verified) {
-                message.error('请完成人机验证');
-            } else {
-                message.error('请填写完整的登录信息');
-            }
+            // 普通登录
+            loginFormRef.value.validate((valid) => {
+                if (!valid) {
+                    safeVerifyTurnstile().then((passed) => {
+                        if (passed) {
+                            async_login();
+                            loading.value = true;
+                            clearTurnstile();
+                        } else {
+                            message.error('请完成人机验证');
+                        }
+                    }).catch((error) => {
+                        message.error('人机验证未通过');
+                    });
+                } else {
+                    message.error('请填写完整的登录信息');
+                }
+            });
         }
     } else {
         // 注册
-        const valid = await validateForm(registerFormRef);
-        const verified = await verifyTurnstile();
-        if (!valid && verified) {
-            await async_register();
-            clearTurnstile();
-        } else if (!verified) {
-            message.error('请完成人机验证');
-        } else {
-            message.error('请填写完整的注册信息');
-        }
+        registerFormRef.value.validate((valid) => {
+            if (!valid) {
+                safeVerifyTurnstile().then((passed) => {
+                    if (passed) {
+                        async_register();
+                        loading.value = true;
+                        clearTurnstile();
+                    } else {
+                        message.error('请完成人机验证');
+                    }
+                }).catch((error) => {
+                    message.error('人机验证未通过');
+                });
+            } else {
+                message.error('请填写完整的注册信息');
+            }
+        });
     }
-};
+}, 1000, { leading: true, trailing: false });
 
 
 watch(

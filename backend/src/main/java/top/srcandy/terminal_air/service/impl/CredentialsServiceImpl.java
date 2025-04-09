@@ -111,6 +111,16 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
+    public Credential getCredentialByUuidSkipAuth(String uuid) throws Exception {
+        // no auth check
+        Credential credential = credentialsMapper.selectCredentialByUuid(uuid);
+        if (credential == null) {
+            throw new ServiceException("凭据不存在");
+        }
+        return credential;
+    }
+
+    @Override
     public void updateCredentialStatus(CredentialStatusRequest request) throws Exception {
         Long userId = SecurityUtils.getUserId();
         Credential credential = credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid());
@@ -139,9 +149,8 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Override
     public String generateInstallShell(String token, String uuid, String endpoint) throws Exception {
-        User user = SecurityUtils.getUser();
-        Long userId = SecurityUtils.getUserId();
-        String publicKey = credentialsMapper.selectCredentialByUidAndUuid(userId, uuid).getPublicKey();
+        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
+        String publicKey = credentialsMapper.selectCredentialByUidAndUuid(user.getUid(), uuid).getPublicKey();
 
         // Base64 编码公钥，避免 Shell 解析问题
         String encodedPublicKey = Base64.getEncoder().encodeToString(publicKey.getBytes());

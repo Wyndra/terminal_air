@@ -20,6 +20,8 @@ public interface CredentialsService {
 
     Credential selectCredentialByUuid(String uuid) throws Exception;
 
+    Credential getCredentialByUuidSkipAuth(String uuid) throws Exception;
+
     void updateCredentialStatus(CredentialStatusRequest request) throws Exception;
 
     CredentialVO updateCredentialConnectId(CredentialConnectionRequest request) throws Exception;

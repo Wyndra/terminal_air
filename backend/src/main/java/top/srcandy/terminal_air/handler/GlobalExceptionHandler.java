@@ -1,6 +1,7 @@
 package top.srcandy.terminal_air.handler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,6 +19,12 @@ public class GlobalExceptionHandler {
     public ResponseResult<String> handleServiceException(ServiceException e) {
         // 返回一个json格式的错误信息
         log.error("ServiceException: {}", e.getMessage());
+        return ResponseResult.fail(null, e.getMessage());
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseResult<String> handleBadCredentialsException(BadCredentialsException e) {
+        log.error("登录异常: 错误信息={}", e.getMessage());
         return ResponseResult.fail(null, e.getMessage());
     }
 

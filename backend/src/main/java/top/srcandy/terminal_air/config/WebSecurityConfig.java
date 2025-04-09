@@ -116,16 +116,28 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .formLogin(AbstractHttpConfigurer::disable) // 禁用 Spring Security 默认表单
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.setCharacterEncoding("UTF-8");
-                            response.setContentType("application/json;charset=UTF-8");
-                            response.setStatus(401);
+                            if (authException instanceof BadCredentialsException) {
+                                response.setCharacterEncoding("UTF-8");
+                                response.setContentType("application/json;charset=UTF-8");
+                                response.setStatus(401);
+                                log.warn("登录失败：{}", request.getRequestURI());
+                                ObjectMapper mapper = new ObjectMapper();
+                                ResponseResult<?> result = ResponseResult.fail("用户名或密码错误");
+                                response.getWriter().write(mapper.writeValueAsString(result));
+                            }else {
+                                response.setCharacterEncoding("UTF-8");
+                                response.setContentType("application/json;charset=UTF-8");
+                                response.setStatus(401);
+                                log.warn("未认证请求：{}", request.getRequestURI());
+                                ObjectMapper mapper = new ObjectMapper();
+                                ResponseResult<?> result = ResponseResult.unauthorized("未登录，请先登录");
+                                response.getWriter().write(mapper.writeValueAsString(result));
+                            }
 
-                            log.warn("未认证请求：{}", request.getRequestURI());
-                            ObjectMapper mapper = new ObjectMapper();
-                            ResponseResult<?> result = ResponseResult.unauthorized("未登录，请先登录");
-                            response.getWriter().write(mapper.writeValueAsString(result));
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setCharacterEncoding("UTF-8");
@@ -196,6 +208,13 @@ public class WebSecurityConfig {
                 "/swagger-ui/**"
         );
     }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        // 只是防止 Spring 报错，你可以不使用它
+        return new Md5PasswordEncoder(); // 或 new Sha512PasswordEncoder()
+    }
+
 
 
 }
