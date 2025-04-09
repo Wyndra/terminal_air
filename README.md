@@ -1,7 +1,7 @@
 
 
 <p align="center"><img src="https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/shell.png" alt="MeterSphere" width="50" /></p>
-<h3 align="center">你的下一个终端</h3>
+<h3 align="center">下一代终端，或许就是你的浏览器。</h3>
 <hr />
 
 **Terminal Air** 致力于打造一款**高效、安全、智能**的云服务器远程连接与管理平台，让云运维更简单，不再因工具复杂而效率低下。
