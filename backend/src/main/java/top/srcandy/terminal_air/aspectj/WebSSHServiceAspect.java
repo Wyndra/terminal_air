@@ -35,10 +35,10 @@ public class WebSSHServiceAspect {
                 String username = (String) webSocketSession.getAttributes().get("username");
                 String salt = authService.getSaltByUsername(username);
                 String decryptedPassword = AESUtils.decryptFromHex(webSSHData.getPassword(), salt);
-                log.info("Decrypted password: {}", decryptedPassword);
+                log.info("密码解析成功 {} ,已注入", decryptedPassword);
                 args[3] = decryptedPassword;
             }else if (webSSHData.getMethod().equals(1)) {
-                log.info("认证信息已注入");
+                log.info("凭证信息已注入");
                 args[4] = credentialsService.getCredentialByUuidSkipAuth(webSSHData.getCredentialUUID()).getPrivateKey();
                 args[5] = credentialsService.getCredentialByUuidSkipAuth(webSSHData.getCredentialUUID()).getPublicKey();
             }

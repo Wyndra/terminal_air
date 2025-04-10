@@ -27,6 +27,7 @@ import { getTwoFactorAuthTokenByCurrentUser, verifyTwoFactorAuthCode } from '@/a
 import VerifationCodeInput from '@/components/VerifationCodeInput.vue';
 import { LockClosed } from '@vicons/ionicons5';
 import { useMessage } from 'naive-ui';
+import { debounce } from 'lodash';
 
 const props = defineProps({
     lockByTotpModalVisible: Boolean, // 这里是弹窗的显示控制
@@ -53,7 +54,7 @@ const getTwoFactorToken = async () => {
     }
 }
 // 点击解锁按钮时调用
-const handleUnlockByTotp = async () => {  // 注意加上 async
+const handleUnlockByTotp = debounce(async () => {
     const tokenResult = await getTwoFactorToken();
     if (!tokenResult) {
         emit('unlockByTotpEvent', false);
@@ -80,9 +81,8 @@ const handleUnlockByTotp = async () => {  // 注意加上 async
         }, 500);
 
     }
-    // 清除本地存储的两步验证密钥
     localStorage.removeItem('twoFactorAuthToken');
-};
+},1000, { leading: true, trailing: false });
 
 </script>
 <style scoped>

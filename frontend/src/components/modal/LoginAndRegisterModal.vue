@@ -429,7 +429,6 @@ async function async_register() {
         message.success('注册成功');
         currentServiceType.value = '登录';
         loading.value = false;
-        // emit('close');
     } else {
         message.error(res.message || '注册失败');
     }
@@ -439,12 +438,11 @@ async function async_verifyTurnstile() {
     const res = await verifyTurnstile({
         token: turnstileToken.value
     });
-    // console.log(res);
     return res;
 }
 
 // 获取验证码
-const handleGetVerificationCode = async () => {
+const handleGetVerificationCode = debounce(async () => {
     // 手动触发verifyPhoneNumber
     try {
         if (currentServiceType.value === "登录" && useCodeLogin.value) {
@@ -484,7 +482,7 @@ const handleGetVerificationCode = async () => {
             message.error('获取验证码时出错');
         }
     }
-};
+},1000,{ leading: true, trailing: false });
 
 // 验证码按钮倒计时
 const startCodeButtonCountdown = () => {
