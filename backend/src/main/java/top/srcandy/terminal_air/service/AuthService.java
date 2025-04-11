@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.service;
 import top.srcandy.terminal_air.pojo.vo.LoginResultVO;
 import top.srcandy.terminal_air.pojo.vo.UserProfileVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
-import top.srcandy.terminal_air.model.User;
+import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.request.*;
 
 import java.io.UnsupportedEncodingException;

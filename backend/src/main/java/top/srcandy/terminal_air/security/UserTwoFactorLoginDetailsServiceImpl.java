@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import top.srcandy.terminal_air.mapper.UserMapper;
-import top.srcandy.terminal_air.model.User;
+import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.pojo.LoginUser;
 
 @Service

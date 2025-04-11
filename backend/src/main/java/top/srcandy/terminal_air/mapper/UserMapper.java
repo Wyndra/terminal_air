@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.mapper;
 
 import org.apache.ibatis.annotations.*;
 import top.srcandy.terminal_air.pojo.dto.RegisterDTO;
-import top.srcandy.terminal_air.model.User;
+import top.srcandy.terminal_air.pojo.model.User;
 
 @Mapper
 public interface UserMapper {

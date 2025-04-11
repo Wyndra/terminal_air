@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.srcandy.terminal_air.mapper.UserMapper;
-import top.srcandy.terminal_air.model.User;
+import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.request.VerifyTwoFactorAuthCodeRequest;
 import top.srcandy.terminal_air.service.MultiFactorAuthenticationService;
 import top.srcandy.terminal_air.utils.AESUtils;

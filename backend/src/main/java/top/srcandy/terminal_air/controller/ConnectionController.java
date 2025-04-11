@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import top.srcandy.terminal_air.pojo.vo.ConnectionVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
-import top.srcandy.terminal_air.model.Connection;
+import top.srcandy.terminal_air.pojo.model.Connection;
 import top.srcandy.terminal_air.request.AddConnectionRequest;
 import top.srcandy.terminal_air.request.DeleteConnectRequest;
 import top.srcandy.terminal_air.request.UpdateConnectionRequest;

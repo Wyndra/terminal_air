@@ -1,9 +1,8 @@
 package top.srcandy.terminal_air.utils;
 
-import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import top.srcandy.terminal_air.model.User;
+import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.pojo.LoginUser;
 
 import java.util.Optional;

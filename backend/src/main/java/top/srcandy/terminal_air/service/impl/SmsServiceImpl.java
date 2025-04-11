@@ -10,11 +10,10 @@ import top.srcandy.terminal_air.enums.SMSChannel;
 import top.srcandy.terminal_air.exception.ServiceException;
 import top.srcandy.terminal_air.exception.TooManyRequestsException;
 import top.srcandy.terminal_air.mapper.UserMapper;
-import top.srcandy.terminal_air.model.User;
+import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.request.SendVerificationCodeRequest;
 import top.srcandy.terminal_air.service.RedisService;
 import top.srcandy.terminal_air.service.SmsService;
-import top.srcandy.terminal_air.utils.JWTUtil;
 import top.srcandy.terminal_air.utils.SMSUtils;
 import top.srcandy.terminal_air.utils.SecurityUtils;
 

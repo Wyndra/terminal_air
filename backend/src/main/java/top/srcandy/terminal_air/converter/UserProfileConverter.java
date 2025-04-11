@@ -2,7 +2,7 @@ package top.srcandy.terminal_air.converter;
 
 import org.mapstruct.*;
 import top.srcandy.terminal_air.pojo.vo.UserProfileVO;
-import top.srcandy.terminal_air.model.User;
+import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.request.UpdateProfileRequest;
 
 @Mapper(componentModel = "spring")

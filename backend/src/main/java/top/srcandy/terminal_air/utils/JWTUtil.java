@@ -10,7 +10,7 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.extern.slf4j.Slf4j;
 import top.srcandy.terminal_air.exception.ServiceException;
-import top.srcandy.terminal_air.model.User;
+import top.srcandy.terminal_air.pojo.model.User;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;

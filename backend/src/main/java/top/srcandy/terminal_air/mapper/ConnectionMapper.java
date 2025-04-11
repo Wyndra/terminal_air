@@ -1,8 +1,7 @@
 package top.srcandy.terminal_air.mapper;
 
 import org.apache.ibatis.annotations.*;
-import org.checkerframework.checker.guieffect.qual.UIPackage;
-import top.srcandy.terminal_air.model.Connection;
+import top.srcandy.terminal_air.pojo.model.Connection;
 
 import java.util.List;
 

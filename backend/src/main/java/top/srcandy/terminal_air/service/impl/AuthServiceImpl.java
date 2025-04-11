@@ -1,7 +1,6 @@
 package top.srcandy.terminal_air.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.mapstruct.control.MappingControl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,7 +20,7 @@ import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.converter.UserProfileConverter;
 import top.srcandy.terminal_air.exception.ServiceException;
 import top.srcandy.terminal_air.mapper.UserMapper;
-import top.srcandy.terminal_air.model.User;
+import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.request.*;
 import top.srcandy.terminal_air.service.AuthService;
 import top.srcandy.terminal_air.service.MinioService;

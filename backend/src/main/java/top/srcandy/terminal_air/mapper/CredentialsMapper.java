@@ -1,7 +1,7 @@
 package top.srcandy.terminal_air.mapper;
 
 import org.apache.ibatis.annotations.*;
-import top.srcandy.terminal_air.model.Credential;
+import top.srcandy.terminal_air.pojo.model.Credential;
 import top.srcandy.terminal_air.request.CredentialConnectionRequest;
 import top.srcandy.terminal_air.request.CredentialStatusRequest;
 
