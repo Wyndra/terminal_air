@@ -1,6 +1,6 @@
 
 
-<p align="center"><img src="https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/shell.png" alt="MeterSphere" width="50" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/Wyndra/terminal_air/refs/heads/master/asserts/sloge.png" alt="MeterSphere" width="50" /></p>
 <h3 align="center">下一代终端，或许就是你的浏览器。</h3>
 <hr />
 
