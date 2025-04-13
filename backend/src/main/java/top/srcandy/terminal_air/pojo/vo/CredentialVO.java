@@ -5,8 +5,6 @@ import lombok.Data;
 
 @Data
 public class CredentialVO {
-    @Schema(description = "凭据ID")
-    private Long id;
     @Schema(description = "凭据UUID")
     private String uuid;
     @Schema(description = "凭据名称")
@@ -23,6 +21,4 @@ public class CredentialVO {
     private Long connectId;
     @Schema(description = "创建时间")
     private String createTime;
-    @Schema(description = "更新时间")
-    private String updateTime;
 }

@@ -69,7 +69,7 @@ public class CredentialsController {
 
     @GetMapping("/get/bound/{uuid}")
     @Operation(summary = "获取当前Connection的已绑定凭据", description = "获取当前Connection的已绑定凭据")
-    public ResponseResult<List<Credential>> selectBoundCredentialsByConnectionId(@PathVariable String uuid) throws Exception {
+    public ResponseResult<List<CredentialVO>> selectBoundCredentialsByConnectionId(@PathVariable String uuid) throws Exception {
         return ResponseResult.success(credentialsService.selectBoundCredentialsByConnectionId(uuid));
     }
 

@@ -3,6 +3,8 @@ package top.srcandy.terminal_air.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -147,5 +149,17 @@ public class RedisServiceImpl implements RedisService {
         }
 
         throw new IllegalStateException("Redis 返回的对象类型不匹配，实际类型: " + value.getClass());
+    }
+
+    public <T> T execute(RedisCallback<T> callback) {
+        // 获取 Redis 连接对象
+        RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
+
+        try {
+            // 执行回调，传入连接对象
+            return callback.doInRedis(connection);
+        } finally {
+            connection.close();
+        }
     }
 }

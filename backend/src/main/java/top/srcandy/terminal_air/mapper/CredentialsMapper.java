@@ -80,6 +80,7 @@ public interface CredentialsMapper {
      * 根据Connection ID查询已绑定的凭据
      */
     @Select("SELECT * FROM Credentials WHERE cid = (SELECT cid from Connection where connect_uuid = #{connectionUuid}) AND status = 2 AND uid = #{userId}")
+    @ResultMap("credentialResultMap")
     List<Credential> selectBoundCredentialsByConnectionUuid(Long userId,String connectionUuid);
 
     /**

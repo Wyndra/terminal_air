@@ -260,9 +260,10 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public List<Credential> selectBoundCredentialsByConnectionId(String uuid) throws Exception {
+    public List<CredentialVO> selectBoundCredentialsByConnectionId(String uuid) throws Exception {
         Long userId = SecurityUtils.getUserId();
-        return credentialsMapper.selectBoundCredentialsByConnectionUuid(userId, uuid);
+        List<Credential> credentials = credentialsMapper.selectBoundCredentialsByConnectionUuid(userId, uuid);
+        return credentialConverter.credentialList2VOList(credentials);
     }
 
 

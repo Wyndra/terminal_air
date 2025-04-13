@@ -28,7 +28,7 @@ public interface CredentialsService {
 
     String generateInstallShell(String token,String uuid,String endpoint) throws Exception;
 
-    List<Credential> selectBoundCredentialsByConnectionId(String connectionUuid) throws Exception;
+    List<CredentialVO> selectBoundCredentialsByConnectionId(String connectionUuid) throws Exception;
 
     void deleteCredential(Long id) throws Exception;
 

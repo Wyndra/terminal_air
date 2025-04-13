@@ -1,5 +1,7 @@
 package top.srcandy.terminal_air.service;
 
+import org.springframework.data.redis.core.RedisCallback;
+
 import java.util.concurrent.TimeUnit;
 
 
@@ -48,5 +50,7 @@ public interface RedisService {
     Object getObject(String key);
 
     <T> T getObject(String key, Class<T> clazz);
+
+    <T> T execute(RedisCallback<T> callback);
 }
 

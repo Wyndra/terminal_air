@@ -178,6 +178,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/auth/loginRequireTwoFactorAuth").permitAll()
                         .requestMatchers("/api/mfa/verifyTwoFactorAuthCode").permitAll()
                         .requestMatchers("/api/credentials/installation/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 添加 JWT 认证过滤器
@@ -205,8 +206,7 @@ public class WebSecurityConfig {
                 "/v3/api-docs/**",
                 "/v2/api-docs/**",
                 "/swagger-ui.html",
-                "/swagger-ui/**"
-        );
+                "/swagger-ui/**");
     }
 
     @Bean

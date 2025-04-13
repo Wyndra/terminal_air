@@ -35,7 +35,7 @@ public class WebSSHServiceAspect {
                 String username = (String) webSocketSession.getAttributes().get("username");
                 String salt = authService.getSaltByUsername(username);
                 String decryptedPassword = AESUtils.decryptFromHex(webSSHData.getPassword(), salt);
-                log.info("密码解析成功 {} ,已注入", decryptedPassword);
+                log.info("密码信息已注入");
                 args[3] = decryptedPassword;
             }else if (webSSHData.getMethod().equals(1)) {
                 log.info("凭证信息已注入");
