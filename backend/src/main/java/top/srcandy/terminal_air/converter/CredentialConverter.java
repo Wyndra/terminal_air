@@ -12,6 +12,7 @@ import java.util.List;
 public interface CredentialConverter {
 
     @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "uuid", source = "uuid")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "tags", source = "tags")
@@ -19,7 +20,7 @@ public interface CredentialConverter {
     @Mapping(target = "fingerprint", source = "fingerprint")
     @Mapping(target = "publicKey", source = "publicKey")
     @Mapping(target = "connectId", source = "connectId")
-    @Mapping(target = "createTime", source = "createTime")
+    @Mapping(target = "createTime", dateFormat = "yyyy-MM-dd HH:mm:ss", source = "createTime")
     CredentialVO credential2VO(Credential credential);
 
     List<CredentialVO> credentialList2VOList(List<Credential> credentials);

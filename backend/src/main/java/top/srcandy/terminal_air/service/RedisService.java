@@ -52,5 +52,12 @@ public interface RedisService {
     <T> T getObject(String key, Class<T> clazz);
 
     <T> T execute(RedisCallback<T> callback);
+
+    /**
+     * 存储对象到Redis（支持嵌套子对象，无过期时间）
+     * @param key 键
+     * @param value 值（可以是包含子对象的复杂对象）
+     */
+    void setObject(String key, Object value);
 }
 

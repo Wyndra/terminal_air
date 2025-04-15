@@ -97,6 +97,9 @@ public interface CredentialsMapper {
     @Delete("DELETE FROM Credentials WHERE id = #{id}")
     void deleteCredential(Long id);
 
+    @Delete("DELETE FROM Credentials WHERE uuid = #{uuid}")
+    void deleteCredentialByUuid(String uuid);
+
     @Update("UPDATE Credentials SET status = #{status} WHERE uuid = #{uuid}")
     void updateCredentialStatus(CredentialStatusRequest request);
 

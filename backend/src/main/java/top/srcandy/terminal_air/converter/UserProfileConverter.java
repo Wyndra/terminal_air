@@ -17,10 +17,12 @@ public interface UserProfileConverter {
     @Mapping(target = "password", source = "password")
     @Mapping(target = "phone", source = "phone")
     @Mapping(target = "avatar", source = "avatar")
-    @Mapping(target = "isTwoFactorAuth", source = "isTwoFactorAuth")
+    @Mapping(target = "isTwoFactorAuth", expression = "java(request.getTwoFactorAuth() == null ? user.getIsTwoFactorAuth() : (request.getTwoFactorAuth() ? \"1\" : \"0\"))")
     @Mapping(target = "twoFactorAuthSecret", source = "twoFactorAuthSecret")
     void updateUserProfileRequestToUser(UpdateProfileRequest request, @MappingTarget User user);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "twoFactorAuth",expression = "java(user.getIsTwoFactorAuth() == \"0\" ? false : true)")
+    @Mapping(target = "createTime", dateFormat = "yyyy-MM-dd HH:mm:ss", source = "createTime")
     UserProfileVO user2UserProfileVO(User user);
 }

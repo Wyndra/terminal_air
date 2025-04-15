@@ -9,10 +9,9 @@ import top.srcandy.terminal_air.pojo.vo.ConnectionVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.pojo.model.Connection;
 import top.srcandy.terminal_air.request.AddConnectionRequest;
-import top.srcandy.terminal_air.request.DeleteConnectRequest;
 import top.srcandy.terminal_air.request.UpdateConnectionRequest;
 import top.srcandy.terminal_air.service.ConnectionService;
-import top.srcandy.terminal_air.utils.SecurityUtils;
+import top.srcandy.terminal_air.utils.SecuritySessionUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -28,7 +27,7 @@ public class ConnectionController {
     @GetMapping("/list")
     @Operation(summary = "获取用户的连接列表")
     public ResponseResult<List<ConnectionVO>> selectByConnectCreaterUid() {
-        return connectManageService.list(SecurityUtils.getUserId());
+        return connectManageService.list(SecuritySessionUtils.getUserId());
     }
 
     @PostMapping("/add")
@@ -43,10 +42,10 @@ public class ConnectionController {
         return connectManageService.updateConnect(request);
     }
 
-    @PostMapping ("/deleteConnect")
+    @PostMapping ("/delete/{uuid}")
     @Operation(summary = "删除连接")
-    public ResponseResult<Connection> deleteConnect(@RequestBody DeleteConnectRequest request) {
-        return connectManageService.deleteConnect(request.getUuid());
+    public ResponseResult<Connection> deleteConnect(@PathVariable String uuid) {
+        return connectManageService.deleteConnect(uuid);
     }
 
 }

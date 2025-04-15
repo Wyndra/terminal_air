@@ -6,7 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 
 public interface MultiFactorAuthenticationService {
-    String switchTwoFactorAuth();
+    Boolean switchTwoFactorAuth();
 
     String getTwoFactorAuthSecretQRCode();
 

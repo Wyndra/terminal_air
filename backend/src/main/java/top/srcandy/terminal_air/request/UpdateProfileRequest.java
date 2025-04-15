@@ -35,7 +35,7 @@ public class UpdateProfileRequest {
     private String avatar;
 
     @Nullable
-    private String isTwoFactorAuth;
+    private Boolean twoFactorAuth;
 
     @Nullable
     private String twoFactorAuthSecret;

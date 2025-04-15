@@ -7,7 +7,7 @@ import top.srcandy.terminal_air.pojo.LoginUser;
 
 import java.util.Optional;
 
-public class SecurityUtils {
+public class SecuritySessionUtils {
 
     /**
      * 获取当前登录用户的认证信息

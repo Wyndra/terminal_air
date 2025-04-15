@@ -63,7 +63,6 @@ import { useStore } from 'vuex';
 import { useMessage, useNotification } from 'naive-ui';
 import { useRouter } from 'vue-router';
 import { getUserInfo, logoutInService } from '@/api/auth';
-import { list } from '@/api/connection';
 import LoginAndRegisterModal from '@/components/modal/LoginAndRegisterModal.vue';
 
 const store = useStore();
@@ -149,8 +148,15 @@ async function fetchUserInfo() {
     });
 }
 
+// const beforeunloadHandler = async (event) => {
+//     event.preventDefault();
+//     event.returnValue = '';
+// };
+
 onMounted(() => {
     fetchUserInfo();
+    window.addEventListener('beforeunload', () => {
+    });
 });
 </script>
 <style scoped lang="less">

@@ -15,7 +15,7 @@ import top.srcandy.terminal_air.request.SendVerificationCodeRequest;
 import top.srcandy.terminal_air.service.RedisService;
 import top.srcandy.terminal_air.service.SmsService;
 import top.srcandy.terminal_air.utils.SMSUtils;
-import top.srcandy.terminal_air.utils.SecurityUtils;
+import top.srcandy.terminal_air.utils.SecuritySessionUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -90,8 +90,8 @@ public class SmsServiceImpl implements SmsService {
      */
     @Override
     public ResponseResult<SmsCodeVO> sendSmsCodeByToken() throws Exception {
-        String username = SecurityUtils.getUsername();
-        User user = SecurityUtils.getUser();
+        String username = SecuritySessionUtils.getUsername();
+        User user = SecuritySessionUtils.getUser();
         String phone = user.getPhone();
 
         // Apply rate-limiting for requests within a 5-minute window

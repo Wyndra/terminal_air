@@ -74,7 +74,7 @@
                 <n-form :model="userInfo" label-placement="left" label-width="120px" label-align="left">
                   <n-form-item label="双重认证">
                     <div class="two-factor-wrapper">
-                      <n-button @click="showTwoFactorAuthLockByPasswordModal = true">{{ userInfo.isTwoFactorAuth ?
+                      <n-button @click="showTwoFactorAuthLockByPasswordModal = true">{{ userInfo.twoFactorAuth ?
                         "更改验证方法" : "添加验证方法" }}</n-button>
                       <span class="description-text">使用一次性代码验证你的身份，以确保你的帐号安全。</span>
                     </div>
@@ -196,7 +196,6 @@ import { getUserInfo, updateUserInfo, getUserAvatar } from '@/api/auth';
 import { switchTwoFactorAuth, getTwoFactorAuthSecretQRCode } from '@/api/mfa';
 import { sendSmsCodeByToken, sendVerificationCode, verifyCode } from '@/api/sms';
 import { generatePresignUrl } from "@/api/avatar"
-import { LockClosed, LockOpen } from '@vicons/ionicons5';
 import axios from 'axios';
 import router from '@/router';
 import { userInfoRules } from '@/constant/rules';
@@ -224,7 +223,7 @@ const userInfo = ref({
   nickname: '',
   phone: '',
   avatar: '',
-  isTwoFactorAuth: '',
+  twoFactorAuth: '',
 });
 
 const safeSettingForm = ref({
@@ -257,11 +256,6 @@ const InLogin = ref(store.getters.isLoggedIn);
 const hasShownError = ref(store.getters.hasShownError);
 const isLoading = ref(true);  // 添加一个加载状态
 
-// 打开登录模态框
-const openLoginModal = () => {
-  showLoginOrRegisterModal.value = true;
-};
-
 const handleBeforeLeave = (tabName) => {
   if (tabName === '安全设置') {
     saltLockStatus.value = false;
@@ -270,27 +264,16 @@ const handleBeforeLeave = (tabName) => {
   return true;
 };
 
-function formatDate(input) {
-  const [year, month, dayTime] = input.split("/");
-  const [day, time] = dayTime.split(" ");
-  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
-}
-
 async function fetchUserInfo() {
   try {
     const res = await getUserInfo();
     if (res.status === '200') {
       const userData = res.data;
-      userData.isTwoFactorAuth = userData.isTwoFactorAuth === '1';
       userInfo.value = userData;
-      userInfo.value.createTime = formatDate(new Date(userInfo.value.createTime).toLocaleString())
-      safeSettingForm.value = {
-        salt: res.data.salt || ''
-      };
       localStorage.removeItem('userAvatar');
       localStorage.setItem('userAvatar', userInfo.value.avatar);
       // 如果开启了双重认证，获取二维码
-      if (userData.isTwoFactorAuth) {
+      if (userData.twoFactorAuth) {
         await fetchQRCode();
       }
     } else {
@@ -361,7 +344,7 @@ const handleLockByPassword = () => {
   if (saltLockStatus.value) {
     saltLockStatus.value = false;
   } else {
-    if (userInfo.value.isTwoFactorAuth) {
+    if (userInfo.value.twoFactorAuth) {
       showLockByTotpModal.value = true;
     } else {
       showLockByPasswordModal.value = true;

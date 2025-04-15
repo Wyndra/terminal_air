@@ -12,12 +12,11 @@ import top.srcandy.terminal_air.pojo.model.Credential;
 import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.request.AddConnectionRequest;
 import top.srcandy.terminal_air.request.UpdateConnectionRequest;
-import top.srcandy.terminal_air.service.AuthService;
 import top.srcandy.terminal_air.service.ConnectionService;
 import top.srcandy.terminal_air.service.CredentialsService;
 import top.srcandy.terminal_air.utils.AESUtils;
 import top.srcandy.terminal_air.utils.KeyUtils;
-import top.srcandy.terminal_air.utils.SecurityUtils;
+import top.srcandy.terminal_air.utils.SecuritySessionUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -29,9 +28,6 @@ import java.util.Optional;
 public class ConnectionServiceImpl implements ConnectionService {
     @Autowired
     private ConnectionMapper connectionMapper;
-
-    @Autowired
-    private AuthService authService;
 
     @Autowired
     private ConnectionConverter connectConverter;
@@ -61,7 +57,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     @Override
     public ResponseResult<Connection> insertConnect(AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
-        User user = SecurityUtils.getUser();
+        User user = SecuritySessionUtils.getUser();
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
@@ -94,7 +90,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     @Override
     public ResponseResult<ConnectionVO> updateConnect(UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
-        User user = SecurityUtils.getUser();
+        User user = SecuritySessionUtils.getUser();
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
@@ -152,7 +148,8 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     @Override
     public ResponseResult<Connection> deleteConnect(String connectionUuid) {
-        Long userId = SecurityUtils.getUserId();
+        Long userId = SecuritySessionUtils.getUserId();
+        // 判断用户是否有这个连接
         Optional<Connection> optionalConnectInfo = connectionMapper
                 .selectByConnectCreaterUid(userId)
                 .stream()

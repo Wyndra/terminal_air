@@ -1,11 +1,13 @@
 package top.srcandy.terminal_air.pojo.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
 import java.sql.Timestamp;
 
 @Data
+@Builder
 public class Credential {
     @Schema(description = "凭据ID")
     private Long id;

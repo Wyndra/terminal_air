@@ -40,10 +40,10 @@ public class CredentialsController {
         return ResponseResult.success(credentials);
     }
 
-    @GetMapping("/delete/{id}")
+    @GetMapping("/delete/{uuid}")
     @Operation(summary = "删除凭据", description = "删除指定凭据")
-    public ResponseResult<List<Credential>> deleteCredential(@PathVariable Long id) throws Exception {
-        credentialsService.deleteCredential(id);
+    public ResponseResult<List<Credential>> deleteCredential(@PathVariable String uuid) throws Exception {
+        credentialsService.deleteCredential(uuid);
         return ResponseResult.success();
     }
 
@@ -74,7 +74,7 @@ public class CredentialsController {
     }
 
     @GetMapping(value ="/installation/{uuid}", produces = "text/plain;charset=UTF-8")
-    @Operation(summary = "安装脚本", description = "生成安装脚本")
+    @Operation(summary = "安装脚本", description = "动态安装脚本")
     public String generateInstallShell(@RequestParam String token, @RequestParam String endpoint,@PathVariable String uuid) throws Exception {
         return credentialsService.generateInstallShell(token,uuid, endpoint);
     }

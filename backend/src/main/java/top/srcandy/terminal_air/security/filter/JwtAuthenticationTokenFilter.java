@@ -34,11 +34,11 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = request.getHeader("Authorization");
         if (StringUtils.isBlank(token)){
-            // 放行。因为还未登录
+            // 放行，因为还未登录
             filterChain.doFilter(request, response);
             return;
         }
-        // 判断是否是两步验证的请求
+        // 如果是两步验证的请求，验证并放行。
         if (twoFactorAuthTokenWhiteList.contains(request.getRequestURI())) {
             JWTUtil.validateTwoFactorAuthSecretToken(token.substring(7));
             filterChain.doFilter(request, response);

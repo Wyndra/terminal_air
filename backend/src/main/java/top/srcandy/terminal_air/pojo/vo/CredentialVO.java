@@ -1,10 +1,14 @@
 package top.srcandy.terminal_air.pojo.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class CredentialVO {
+    @Schema(description = "凭据ID")
+    private Long id;
     @Schema(description = "凭据UUID")
     private String uuid;
     @Schema(description = "凭据名称")

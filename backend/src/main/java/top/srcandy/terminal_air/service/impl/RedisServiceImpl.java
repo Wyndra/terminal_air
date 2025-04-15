@@ -162,4 +162,10 @@ public class RedisServiceImpl implements RedisService {
             connection.close();
         }
     }
+
+    @Override
+    public void setObject(String key, Object value) {
+        // 直接调用带过期时间的方法，传入0表示永不过期
+        setObject(key, value, 0, TimeUnit.SECONDS);
+    }
 }

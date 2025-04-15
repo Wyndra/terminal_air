@@ -82,7 +82,7 @@ public class WebSecurityConfig {
                         log.error("密码错误");
                         throw new BadCredentialsException("用户名或密码错误");
                     }
-                }else {
+                } else {
                     // 如果password_hash不为空，说明是原先的用户
                     if (!md5PasswordEncoder.matches(password, password_hash)) {
                         log.error("密码错误");
@@ -128,7 +128,7 @@ public class WebSecurityConfig {
                                 ObjectMapper mapper = new ObjectMapper();
                                 ResponseResult<?> result = ResponseResult.fail("用户名或密码错误");
                                 response.getWriter().write(mapper.writeValueAsString(result));
-                            }else {
+                            } else {
                                 response.setCharacterEncoding("UTF-8");
                                 response.setContentType("application/json;charset=UTF-8");
                                 response.setStatus(401);
@@ -179,6 +179,17 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/mfa/verifyTwoFactorAuthCode").permitAll()
                         .requestMatchers("/api/credentials/installation/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/css/**",
+                                "/js/**",
+                                "/index.html",
+                                "/favicon.ico",
+                                "/doc.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/v3/api-docs/**",
+                                "/v2/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 添加 JWT 认证过滤器
@@ -187,34 +198,11 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-
-
-    /**
-     * 对 knife4j 的资源进行放行
-     * @return
-     */
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers(
-                "/css/**",
-                "/js/**",
-                "/index.html",
-                "/favicon.ico",
-                "/doc.html",
-                "/swagger-resources/**",
-                "/webjars/**",
-                "/v3/api-docs/**",
-                "/v2/api-docs/**",
-                "/swagger-ui.html",
-                "/swagger-ui/**");
-    }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         // 只是防止 Spring 报错，你可以不使用它
-        return new Md5PasswordEncoder(); // 或 new Sha512PasswordEncoder()
+        return new Md5PasswordEncoder();
     }
-
 
 
 }

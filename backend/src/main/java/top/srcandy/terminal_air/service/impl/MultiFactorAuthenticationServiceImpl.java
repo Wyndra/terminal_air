@@ -8,7 +8,7 @@ import top.srcandy.terminal_air.request.VerifyTwoFactorAuthCodeRequest;
 import top.srcandy.terminal_air.service.MultiFactorAuthenticationService;
 import top.srcandy.terminal_air.utils.AESUtils;
 import top.srcandy.terminal_air.utils.JWTUtil;
-import top.srcandy.terminal_air.utils.SecurityUtils;
+import top.srcandy.terminal_air.utils.SecuritySessionUtils;
 import top.srcandy.terminal_air.utils.TwoFactorAuthUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -24,26 +24,26 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
     private MicrosoftAuth microsoftAuth;
 
     @Override
-    public String switchTwoFactorAuth() {
-        User user = SecurityUtils.getUser();
-        if (user == null) {
-            return null;
-        }
+    public Boolean switchTwoFactorAuth() {
+        User user = SecuritySessionUtils.getUser();
         if (user.getIsTwoFactorAuth().equals("0")) {
             user.setIsTwoFactorAuth("1");
         } else {
             user.setIsTwoFactorAuth("0");
         }
         userMapper.update(user);
-        return user.getIsTwoFactorAuth();
+        return user.getIsTwoFactorAuth().equals("1");
     }
 
     @Override
     public String getTwoFactorAuthSecretQRCode() {
-        User user = SecurityUtils.getUser();
-        String username = SecurityUtils.getUsername();
-        if (user == null) {
-            return null;
+        User user = SecuritySessionUtils.getUser();
+        String username = SecuritySessionUtils.getUsername();
+        // 如果用户的twoFactorAuthSecret为空，则生成一个新的twoFactorAuthSecret
+        if (user.getTwoFactorAuthSecret() == null || user.getTwoFactorAuthSecret().isEmpty()) {
+            String twoFactorAuthSecret = microsoftAuth.getSecretKey();
+            user.setTwoFactorAuthSecret(twoFactorAuthSecret);
+            userMapper.update(user);
         }
         return new TwoFactorAuthUtil().getQrCode(username, user.getTwoFactorAuthSecret());
     }
@@ -52,9 +52,6 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
     public boolean verifyTwoFactorAuthCode(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         String username = JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("username").asString();
         User user = userMapper.selectByUserName(username);
-        if (user == null) {
-            return false;
-        }
         // 判断token中的twoFactorAuthSecret是否与用户的twoFactorAuthSecret一致
         if (!AESUtils.decryptFromHex(JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("twoFactorAuthSecret").asString(),user.getSalt()).equals(user.getTwoFactorAuthSecret())) {
             return false;

@@ -13,13 +13,6 @@
             </template>
             <span class="virtual_button" @click="handleEditButton">编辑</span>
             <span class="virtual_button warn_button" @click="openDeleteWindows">删除</span>
-            <!-- <div> -->
-            <n-flex>
-                <!-- <div class="virtual_button" @click="handleEditButton">编辑</div> -->
-                <!-- <div class="line"></div> -->
-                <!-- <div class="virtual_button warn_button" @click="openDeleteWindows">删除</div> -->
-            </n-flex>
-            <!-- </div> -->
         </n-popover>
     </div>
     <EditConnectionDrawer v-model:show="showEditConnectionDrawer" :editConnectionInfo="connection"
@@ -97,17 +90,13 @@ const openDeleteWindows = () => {
             handleDelete();
         },
         onNegativeClick: () => {
-            // message.info("已取消操作");
         }
     });
 }
 
 async function deleteConnection() {
     try {
-        const tdata = {
-            uuid: connection.value.connectionUuid,
-        };
-        const res = await del(tdata);
+        const res = await del(connection.value.connectionUuid);
         if (res.status === '200') {
             message.success('删除成功');
             store.commit('setHasShownError', false); // 更新 Vuex 状态，标记未显示错误

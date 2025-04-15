@@ -2,6 +2,7 @@ package top.srcandy.terminal_air.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,7 +30,7 @@ import top.srcandy.terminal_air.service.SmsService;
 import top.srcandy.terminal_air.utils.AESUtils;
 import top.srcandy.terminal_air.utils.JWTUtil;
 import top.srcandy.terminal_air.utils.SaltUtils;
-import top.srcandy.terminal_air.utils.SecurityUtils;
+import top.srcandy.terminal_air.utils.SecuritySessionUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -54,12 +55,6 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-//    @Autowired
-//    private AuthenticationProvider authenticationProvider;
-//
-//    @Autowired
-//    private SmsCodeAuthenticationProvider smsCodeAuthenticationProvider;
-
     @Autowired
     private SmsService smsService;
 
@@ -69,9 +64,6 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private MicrosoftAuth microsoftAuth;
 
-//    public AuthServiceImpl(UserDao userDao) {
-//        this.userDao = userDao;
-//    }
 
     @Override
     @Deprecated
@@ -179,7 +171,7 @@ public class AuthServiceImpl implements AuthService {
                     .build());
         } else {
             // 直接登录
-            redisService.setObject("security:" + user.getUsername(), principal, 24, TimeUnit.HOURS);
+            redisService.setObject("security:" + user.getUsername(), principal, 12, TimeUnit.HOURS);
             log.info("登录成功，token:{}", JWTUtil.generateToken(user));
             return ResponseResult.success(LoginResultVO.builder()
                     .token(JWTUtil.generateToken(user))
@@ -190,7 +182,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout() {
-        String username = SecurityUtils.getUsername();
+        String username = SecuritySessionUtils.getUsername();
         redisService.delete("security:" + username);
         SecurityContextHolder.clearContext();
         ResponseResult.success("Logout success");
@@ -231,7 +223,7 @@ public class AuthServiceImpl implements AuthService {
         }
         LoginUser principal = (LoginUser) authentication.getPrincipal();
         User currentUser = principal.getUser();
-        redisService.setObject("security:" + currentUser.getUsername(), principal, 24, TimeUnit.HOURS);
+        redisService.setObject("security:" + currentUser.getUsername(), principal, 12, TimeUnit.HOURS);
         // 将认证信息存入 SecurityContextHolder
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return ResponseResult.success(JWTUtil.generateToken(currentUser));
@@ -262,7 +254,7 @@ public class AuthServiceImpl implements AuthService {
         // 获取登录用户信息
         LoginUser principal = (LoginUser) authentication.getPrincipal();
         User user = principal.getUser();
-        redisService.setObject("security:" + user.getUsername(), principal, 24, TimeUnit.HOURS);
+        redisService.setObject("security:" + user.getUsername(), principal, 12, TimeUnit.HOURS);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return ResponseResult.success(JWTUtil.generateToken(user));
     }
@@ -297,7 +289,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseResult<UserProfileVO> getUserProfile() {
-        User user = SecurityUtils.getUser();
+        String username = SecuritySessionUtils.getUsername();
+        User user = userMapper.selectByUserName(username);
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
@@ -340,13 +333,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String getSaltByUsername(String username) {
-//        String username = SecurityUtils.getUsername();
         return userMapper.selectByUserName(username).getSalt();
     }
 
     @Override
     public boolean verifyUserPassword(String password) {
-        User user = SecurityUtils.getUser();
+        User user = SecuritySessionUtils.getUser();
         assert user != null;
         Optional<String> passwordHashOptional = Optional.ofNullable(user.getPassword_hash());
         if (passwordHashOptional.isEmpty()) {
@@ -373,7 +365,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseResult<String> updatePassword(UpdatePasswordRequest request) {
-        User user = SecurityUtils.getUser();
+        User user = SecuritySessionUtils.getUser();
         // 如果Password_hash为null
         Optional<String> passwordHashOptional = Optional.ofNullable(user.getPassword_hash());
         if (passwordHashOptional.isEmpty()) {
@@ -381,19 +373,23 @@ public class AuthServiceImpl implements AuthService {
             if (user.getPassword().equals(Sha512DigestUtils.shaHex(request.getOldPassword() + user.getSalt()))) {
                 user.setPassword(Sha512DigestUtils.shaHex(request.getNewPassword() + user.getSalt()));
                 userMapper.update(user);
-                return ResponseResult.success(null);
+                // 退出登录
+                redisService.delete("security:" + user.getUsername());
+                return ResponseResult.success("修改成功");
             } else {
                 return ResponseResult.fail(null, "修改失败");
             }
         }else {
-            // 如果Password_hash不为null
+            log.info("用户 {} 的密码为低安全性密码，正在升级", user.getUsername());
             if (user.getPassword_hash().equals(DigestUtils.md5DigestAsHex(request.getOldPassword().getBytes()))) {
                 // 说明是低安全性密码
                 user.setPassword(Sha512DigestUtils.shaHex(request.getNewPassword() + user.getSalt()));
                 // 原密码作废
                 user.setPassword_hash(null);
                 userMapper.update(user);
-                return ResponseResult.success(null);
+                // 退出登录
+                redisService.delete("security:" + user.getUsername());
+                return ResponseResult.success("修改成功");
             } else {
                 return ResponseResult.fail(null, "修改失败");
             }
@@ -402,18 +398,18 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseResult<UserProfileVO> updateProfile(UpdateProfileRequest request) {
-        User user = SecurityUtils.getUser();
-        String username = SecurityUtils.getUsername();
-
+        // 从会话信息中获取当前用户的用户名
+        String username = SecuritySessionUtils.getUsername();
+        // 查询用户信息
+        User user = userMapper.selectByUserName(username);
         // 校验新的手机号是否已经被注册
         if (request.getPhone() != null) {
             User existingUserWithPhone = userMapper.selectByUserPhone(request.getPhone());
             if (existingUserWithPhone != null && !existingUserWithPhone.getUsername().equals(username)) {
+                log.info("手机号 {} 已被注册", request.getPhone());
                 return ResponseResult.fail(null, "手机号已被注册");
             }
         }
-
-        // 更新用户资料
         try {
             userProfileConverter.updateUserProfileRequestToUser(request, user);
             userMapper.update(user);
@@ -422,8 +418,6 @@ public class AuthServiceImpl implements AuthService {
             return ResponseResult.fail(null, "更新资料失败");
         }
 
-
-
         // 返回更新后的用户资料
         UserProfileVO profileVO = UserProfileVO.builder()
                 .uid(user.getUid())
@@ -431,8 +425,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .nickname(user.getNickname())
-//                .salt(user.getSalt())
-                .isTwoFactorAuth(user.getIsTwoFactorAuth())
+                .twoFactorAuth(!Objects.equals(user.getIsTwoFactorAuth(), "0"))
                 .build();
 
         return ResponseResult.success(profileVO);

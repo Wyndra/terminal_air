@@ -10,7 +10,7 @@ import top.srcandy.terminal_air.pojo.vo.AvatarUploadVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.exception.ServiceException;
 import top.srcandy.terminal_air.service.MinioService;
-import top.srcandy.terminal_air.utils.SecurityUtils;
+import top.srcandy.terminal_air.utils.SecuritySessionUtils;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -38,7 +38,7 @@ public class MinioServiceImpl implements MinioService {
 
     @Override
     public ResponseResult<AvatarUploadVO> generatePresignedUrl() {
-        String extra = SecurityUtils.getUsername();
+        String extra = SecuritySessionUtils.getUsername();
         try {
             String randomString = UUID.randomUUID().toString().replace("-", "");
             String filePath = "/avatar/%s-%s.png".formatted(randomString, extra);

@@ -24,8 +24,7 @@ export const list = () => {
 
 export const del = (data) => {
     return serviceAxios({
-        url: "/api/connection/deleteConnect",
+        url: "/api/connection/delete/" + data,
         method: "post",
-        data,
     });
 }

@@ -30,6 +30,6 @@ public interface CredentialsService {
 
     List<CredentialVO> selectBoundCredentialsByConnectionId(String connectionUuid) throws Exception;
 
-    void deleteCredential(Long id) throws Exception;
+    void deleteCredential(String uuid) throws Exception;
 
 }
