@@ -634,7 +634,7 @@ const handleTwoFactorChange = async (value) => {
   try {
     const res = await switchTwoFactorAuth();
     if (res.status === '200') {
-      userInfo.value.twoFactorAuth = !userInfo.value.twoFactorAuth;
+      userInfo.value.twoFactorAuth = res.data;
       message.success(userInfo.value.twoFactorAuth ? '双重认证已开启' : '双重认证已关闭');
 
       // 如果开启了双重认证，获取二维码
