@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import top.srcandy.terminal_air.pojo.LoginUser;
 import top.srcandy.terminal_air.service.RedisService;
@@ -27,8 +28,11 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     @Autowired
     private RedisService redisService;
 
-    private List<String> twoFactorAuthTokenWhiteList = List.of("/api/auth/getUserAvatar","/api/auth/loginRequireTwoFactorAuth", "/api/mfa/verifyTwoFactorAuthCode");
+    private final List<String> twoFactorAuthTokenWhiteList = List.of("/api/auth/getUserAvatar","/api/auth/loginRequireTwoFactorAuth", "/api/mfa/verifyTwoFactorAuthCode");
 
+    private final List<String> shortTokenWhiteList = List.of("/api/credentials/update/status/shortToken","/api/credentials/get/status/shortToken/**");
+
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -38,9 +42,24 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+        log.info(("访问了接口: " + request.getRequestURI()));
         // 如果是两步验证的请求，验证并放行。
         if (twoFactorAuthTokenWhiteList.contains(request.getRequestURI())) {
             JWTUtil.validateTwoFactorAuthSecretToken(token.substring(7));
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String requestUri = request.getRequestURI();
+        boolean shortTokenWhiteListMatch = shortTokenWhiteList.stream()
+                .anyMatch(pattern -> pathMatcher.match(pattern, requestUri));
+        if (shortTokenWhiteListMatch) {
+            // 放行，短令牌请求
+            String user = redisService.get("install_shell_token_" + token.substring(7));
+            if (Objects.isNull(user)) {
+                log.error("短令牌已失效或不存在");
+                throw new AuthenticationException("短令牌已失效或不存在");
+            }
             filterChain.doFilter(request, response);
             return;
         }

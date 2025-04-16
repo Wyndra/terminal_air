@@ -25,7 +25,8 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
 
     @Override
     public Boolean switchTwoFactorAuth() {
-        User user = SecuritySessionUtils.getUser();
+        String username = SecuritySessionUtils.getUsername();
+        User user = userMapper.selectByUserName(username);
         if (user.getIsTwoFactorAuth().equals("0")) {
             user.setIsTwoFactorAuth("1");
         } else {

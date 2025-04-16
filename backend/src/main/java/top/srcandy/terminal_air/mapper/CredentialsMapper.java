@@ -17,7 +17,7 @@ public interface CredentialsMapper {
             @Result(property = "id", column = "id"),
             @Result(property = "uuid", column = "uuid"),
             @Result(property = "name", column = "name"),
-            @Result(property = "tags", column = "tags"),
+            @Result(property = "tags", column = "tags", javaType = String.class),
             @Result(property = "userId", column = "uid"),
             @Result(property = "status", column = "status"),
             @Result(property = "fingerprint", column = "fingerprint"),
@@ -27,28 +27,28 @@ public interface CredentialsMapper {
             @Result(property = "createTime", column = "created_at"),
             @Result(property = "updateTime", column = "updated_at")
     })
-    @Select("SELECT * FROM Credentials WHERE uid = #{userId}")
+    @Select("SELECT id,uuid,name,tags,uid,status,fingerprint,public_key,private_key,cid,created_at,updated_at FROM Credentials WHERE uid = #{userId}")
     List<Credential> selectCredentialsByUserId(Long userId);
 
-    @Select("SELECT * FROM Credentials WHERE id = #{id}")
+    @Select("SELECT id,uuid,name,tags,uid,status,fingerprint,public_key,private_key,cid,created_at,updated_at FROM Credentials WHERE id = #{id}")
     @ResultMap("credentialResultMap")
     Credential selectCredentialById(Long id);
 
     /**
      * 根据用户ID和凭据ID查询凭据
      */
-    @Select("SELECT * FROM Credentials WHERE id = #{id} AND uid = #{uid}")
+    @Select("SELECT id,uuid,name,tags,uid,status,fingerprint,public_key,private_key,cid,created_at,updated_at FROM Credentials WHERE id = #{id} AND uid = #{uid}")
     @ResultMap("credentialResultMap")
     Credential selectCredentialByUidAndId(Long uid, Long id);
 
     /**
      * 根据用户ID和凭据UUID查询凭据
      */
-    @Select("SELECT * FROM Credentials WHERE uuid = #{uuid} AND uid = #{uid}")
+    @Select("SELECT id,uuid,name,tags,uid,status,fingerprint,public_key,private_key,cid,created_at,updated_at FROM Credentials WHERE uuid = #{uuid} AND uid = #{uid}")
     @ResultMap("credentialResultMap")
     Credential selectCredentialByUidAndUuid(Long uid, String uuid);
 
-    @Select("SELECT * FROM Credentials WHERE uuid = #{uuid}")
+    @Select("SELECT id,uuid,name,tags,uid,status,fingerprint,public_key,private_key,cid,created_at,updated_at FROM Credentials WHERE uuid = #{uuid}")
     @ResultMap("credentialResultMap")
     Credential selectCredentialByUuid(String uuid);
 
@@ -67,19 +67,19 @@ public interface CredentialsMapper {
     /**
      * 根据连接ID查询凭据
      */
-    @Select("SELECT * FROM Credentials WHERE cid = #{connectId}")
+    @Select("SELECT id,uuid,name,tags,uid,status,fingerprint,public_key,private_key,cid,created_at,updated_at FROM Credentials WHERE cid = #{connectId}")
     @ResultMap("credentialResultMap")
     List<Credential> selectCredentialsByConnectId(Long connectId);
 
 
-    @Select("SELECT * FROM Credentials WHERE cid = #{connectId} AND status = 2 AND uid = #{userId}")
+    @Select("SELECT id,uuid,name,tags,uid,status,fingerprint,public_key,private_key,cid,created_at,updated_at FROM Credentials WHERE cid = #{connectId} AND status = 2 AND uid = #{userId}")
     @ResultMap("credentialResultMap")
     List<Credential> selectBoundCredentialsByConnectionId(Long userId, Long connectId);
 
     /**
      * 根据Connection ID查询已绑定的凭据
      */
-    @Select("SELECT * FROM Credentials WHERE cid = (SELECT cid from Connection where connect_uuid = #{connectionUuid}) AND status = 2 AND uid = #{userId}")
+    @Select("SELECT id,uuid,name,tags,uid,status,fingerprint,public_key,private_key,cid,created_at,updated_at FROM Credentials WHERE cid = (SELECT cid from Connection where connect_uuid = #{connectionUuid}) AND status = 2 AND uid = #{userId}")
     @ResultMap("credentialResultMap")
     List<Credential> selectBoundCredentialsByConnectionUuid(Long userId,String connectionUuid);
 
@@ -102,6 +102,9 @@ public interface CredentialsMapper {
 
     @Update("UPDATE Credentials SET status = #{status} WHERE uuid = #{uuid}")
     void updateCredentialStatus(CredentialStatusRequest request);
+
+    @Update("UPDATE Credentials SET status = #{status} WHERE uuid = #{uuid}")
+    void updateCredentialStatusByParams(@Param("uuid") String uuid, @Param("status") Integer status);
 
     /**
      * 更新凭据连接ID

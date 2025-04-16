@@ -48,6 +48,7 @@ const props = defineProps({
 const message = useMessage();
 
 const emit = defineEmits(["close","twoFactorAuthResultEvent"]);
+const isShaking = ref(false);  // 用于控制抖动效果
 
 const qrcodeImage = ref("");
 
@@ -152,5 +153,31 @@ onMounted(() => {
     /* 增大尺寸，使白色边缘超出可视区域 */
     height: 200px;
     object-fit: cover;
+}
+
+.shake {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    50% {
+        transform: translateX(5px);
+    }
+
+    75% {
+        transform: translateX(-5px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
 }
 </style>
