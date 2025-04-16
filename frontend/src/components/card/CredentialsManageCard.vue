@@ -107,6 +107,7 @@ const credentialsColumns = [
                 NTag,
                 {
                     type: status === 0 ? 'info' : status === 1 ? 'warning' : 'success',
+                    size: 'small',
                 },
                 () => (status === 0 ? '未绑定' : status === 1 ? '服务端绑定' : '绑定成功')
             )
@@ -119,7 +120,7 @@ const credentialsColumns = [
         className: 'columns',
         render(row) {
             if (!row.tags) return h('div', '')
-            const tags = row.tags.split(',')
+            const tags = row.tags.split('|') 
             return h(
                 'div',
                 tags.map((tag) =>
@@ -127,6 +128,7 @@ const credentialsColumns = [
                         NTag,
                         {
                             type: 'primary',
+                            size: 'small',
                             style: { marginRight: '4px' },
                         },
                         () => tag
@@ -206,22 +208,12 @@ const handleTableAction = async (event, row) => {
     }
 };
 
-function formatDate(input) {
-    const [year, month, dayTime] = input.split("/");
-    const [day, time] = dayTime.split(" ");
-    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
-}
-
 const credentialsData = ref([]);
 const fetchCredentials = async () => {
     try {
         await listCredentials().then(res => {
             if (res.status === '200') {
                 credentialsData.value = res.data
-                credentialsData.value.forEach(item => {
-                    // 时间转换
-                    item.createTime = formatDate(new Date(item.createTime).toLocaleString())
-                });
             } else {
                 message.error(res.message || '获取密钥列表失败');
             }

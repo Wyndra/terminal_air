@@ -12,16 +12,19 @@ import top.srcandy.terminal_air.pojo.model.Credential;
 import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.request.CredentialConnectionRequest;
 import top.srcandy.terminal_air.request.CredentialStatusRequest;
+import top.srcandy.terminal_air.request.CredentialStatusShortTokenRequest;
 import top.srcandy.terminal_air.service.CredentialsService;
-import top.srcandy.terminal_air.utils.JWTUtil;
-import top.srcandy.terminal_air.utils.KeyUtils;
-import top.srcandy.terminal_air.utils.RSAKeyUtils;
-import top.srcandy.terminal_air.utils.SecuritySessionUtils;
+import top.srcandy.terminal_air.service.RedisService;
+import top.srcandy.terminal_air.utils.*;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -29,6 +32,9 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Autowired
     private CredentialsMapper credentialsMapper;
+
+    @Autowired
+    private RedisService redisService;
 
     @Autowired
     private CredentialConverter credentialConverter;
@@ -43,13 +49,13 @@ public class CredentialsServiceImpl implements CredentialsService {
 
         // 检查凭据名称是否已存在
         if (credentialsMapper.countCredentialsByUserIdAndName(userId, name) > 0) {
-            log.info("{} 凭据名称已存在",username);
+            log.info("{} 凭据名称已存在", username);
             throw new ServiceException("凭据名称已存在");
         }
         // 最大允许凭据数量
         int MAX_CREDENTIALS = 10;
         if (credentialsMapper.countCredentialsByUserId(userId) >= MAX_CREDENTIALS) {
-            log.info("{} 凭据数量已达上限",username);
+            log.info("{} 凭据数量已达上限", username);
             throw new ServiceException("凭据数量已达上限");
         }
 
@@ -79,7 +85,9 @@ public class CredentialsServiceImpl implements CredentialsService {
 
     @Override
     public List<CredentialVO> listCredentials() {
-        return credentialConverter.credentialList2VOList(credentialsMapper.selectCredentialsByUserId(SecuritySessionUtils.getUserId()));
+        log.info("用户 {} 获取凭据列表", SecuritySessionUtils.getUserId());
+        Long userId = SecuritySessionUtils.getUserId();
+        return credentialConverter.credentialList2VOList(credentialsMapper.selectCredentialsByUserId(userId));
     }
 
     @Override
@@ -116,6 +124,30 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
+    public void updateCredentialStatusByShortToken(CredentialStatusShortTokenRequest request) throws Exception {
+        String token = request.getShort_token();
+        String redisKey = "install_shell_token_" + token;
+        String redisValue = redisService.get(redisKey);
+        if (redisValue == null) {
+            log.error("短令牌已失效或不存在");
+            throw new ServiceException("短令牌已失效或不存在");
+        }
+        String[] redisParts = redisValue.split(":");
+        User user = userMapper.selectByUserName(redisParts[0]);
+        Long userId = user.getUid();
+        log.info("用户 {} 更新凭据状态，UUID: {}", user.getUsername(), request.getUuid());
+        if (request.getUuid().equals(redisParts[1])) {
+            log.info("短令牌UUID与凭据UUID一致");
+        } else {
+            log.info("验证失败，短令牌UUID与凭据UUID不一致");
+            throw new ServiceException("短令牌无权限操作该凭据");
+        }
+        Optional.ofNullable(credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid()))
+                .orElseThrow(() -> new ServiceException("凭据不存在"));
+        credentialsMapper.updateCredentialStatusByParams(request.getUuid(),request.getStatus());
+    }
+
+    @Override
     public CredentialVO updateCredentialConnectId(CredentialConnectionRequest request) throws Exception {
         Long userId = SecuritySessionUtils.getUserId();
         Credential credential = credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid());
@@ -123,7 +155,7 @@ public class CredentialsServiceImpl implements CredentialsService {
             throw new ServiceException("凭据不存在");
         }
         // 如果凭据未与服务器绑定，则不允许更新连接ID
-        if (credential.getStatus().equals(0)){
+        if (credential.getStatus().equals(0)) {
             throw new ServiceException("凭据未绑定");
         }
         credentialsMapper.updateCredentialConnectId(request);
@@ -133,116 +165,59 @@ public class CredentialsServiceImpl implements CredentialsService {
 
 
     @Override
-    public String generateInstallShell(String token, String uuid, String endpoint) throws Exception {
-        User user = userMapper.selectByUserName(JWTUtil.getTokenClaimMap(token).get("username").asString());
-        String publicKey = credentialsMapper.selectCredentialByUidAndUuid(user.getUid(), uuid).getPublicKey();
+    public String getInstallShellUrl(String endpoint, String uuid) throws Exception {
+        User user = SecuritySessionUtils.getUser();
 
-        // Base64 编码公钥，避免 Shell 解析问题
+        // 生成随机 token
+        String randomToken = SaltUtils.generateSalt(10);
+        String key = "install_shell_token_" + randomToken;
+        String value = user.getUsername() + ":" + uuid;
+        redisService.set(key, value, 10, TimeUnit.MINUTES);
+
+        log.info("用户 {} 生成安装脚本下载链接，UUID: {}", user.getUsername(), uuid);
+        String extraMessage = String.format("%s;%s", endpoint, randomToken);
+        String extra = Base64.getEncoder().encodeToString(extraMessage.getBytes(StandardCharsets.UTF_8));
+        String link = String.format("%s/api/credentials/installation/%s?extra=%s", endpoint, uuid, extra);
+        log.info("安装脚本下载链接: {}", link);
+        return link;
+    }
+
+    @Override
+    public String generateInstallShell(String uuid,String extra) throws Exception {
+        // extra是Base64编码的字符串，解码后是 endpoint;token
+        String extraInfo = new String(Base64.getDecoder().decode(extra), StandardCharsets.UTF_8);
+        String[] extraParts = extraInfo.split(";");
+        String token = extraParts[1];
+        String endpoint = extraParts[0];
+        log.info("临时token {}, endpoint {}", token, endpoint);
+        String redisKey = "install_shell_token_" + token;
+        String redisValue = redisService.get(redisKey);
+        if (redisValue == null) {
+            log.error("安装脚本下载链接已失效");
+            throw new ServiceException("安装脚本下载链接已失效");
+        }
+        String[] redisParts = redisValue.split(":");
+        User user = userMapper.selectByUserName(redisParts[0]);
+        String publicKey = credentialsMapper.selectCredentialByUidAndUuid(user.getUid(), uuid).getPublicKey();
         String encodedPublicKey = Base64.getEncoder().encodeToString(publicKey.getBytes());
 
-        return String.format("#!/bin/bash\n" +
-                        "set -e\n" +
-                        "\n" +
-                        "RED='\\033[0;31m'\n" +
-                        "GREEN='\\033[0;32m'\n" +
-                        "BLUE='\\033[0;34m'\n" +
-                        "NC='\\033[0m'\n" +
-                        "\n" +
-                        "UUID=\"%s\"\n" +
-                        "TOKEN=\"%s\"\n" +
-                        "ENCODED_PUBLIC_KEY=\"%s\"\n" +
-                        "ENDPOINT=\"%s\"\n" +
-                        "\n" +
-                        "STATUS_URL=\"$ENDPOINT/api/credentials/get/status/%s\"\n" +
-                        "AUTH_HEADER=\"Authorization: Bearer $TOKEN\"\n" +
-                        "\n" +
-                        "echo -e \"${BLUE}Checking credential status...${NC}\"\n" +
-                        "RESPONSE=$(curl -s -X POST \"$STATUS_URL\" -H \"Content-Type: application/json\" -H \"$AUTH_HEADER\")\n" +
-                        "\n" +
-                        "# Extract 'data' field from JSON response\n" +
-                        "if command -v jq >/dev/null 2>&1; then\n" +
-                        "    DATA=$(echo \"$RESPONSE\" | jq -r '.data // empty')\n" +
-                        "else\n" +
-                        "    DATA=$(echo \"$RESPONSE\" | grep -o '\"data\":[0-9]*' | awk -F':' '{print $2}')\n" +
-                        "fi\n" +
-                        "\n" +
-                        "# Validate DATA\n" +
-                        "if [[ -z \"$DATA\" ]]; then\n" +
-                        "    echo -e \"${RED}Error: Failed to retrieve credential status. Please check the API server or token validity.${NC}\"\n" +
-                        "    echo -e \"  - Possible causes: API is down, incorrect URL, or expired token.\"\n" +
-                        "    exit 1\n" +
-                        "fi\n" +
-                        "\n" +
-                        "if ! [[ \"$DATA\" =~ ^[0-9]+$ ]]; then\n" +
-                        "    echo -e \"${RED}Error: Invalid response format: 'data=$DATA'. Please check the API response structure.${NC}\"\n" +
-                        "    exit 1\n" +
-                        "fi\n" +
-                        "\n" +
-                        "if [[ \"$DATA\" -ne 0 ]]; then\n" +
-                        "    echo -e \"${RED}Error: Credential status indicates it is already bound (data=$DATA). Aborting installation.${NC}\"\n" +
-                        "    exit 1\n" +
-                        "fi\n" +
-                        "\n" +
-                        "echo -e \"${GREEN}Credential status is valid. Proceeding with installation...${NC}\"\n" +
-                        "\n" +
-                        "OS_TYPE=$(uname)\n" +
-                        "\n" +
-                        "echo -e \"${BLUE}Decoding SSH public key...${NC}\"\n" +
-                        "for i in {1..5}; do\n" +
-                        "    echo -n \".\"\n" +
-                        "    sleep 0.3\n" +
-                        "done\n" +
-                        "echo \"\"\n" +
-                        "\n" +
-                        "if [ \"$OS_TYPE\" == \"Darwin\" ]; then\n" +
-                        "    PUBLIC_KEY=$(echo \"$ENCODED_PUBLIC_KEY\" | base64 -D)\n" +
-                        "else\n" +
-                        "    PUBLIC_KEY=$(echo \"$ENCODED_PUBLIC_KEY\" | base64 -d)\n" +
-                        "fi\n" +
-                        "\n" +
-                        "if [ \"$EUID\" -eq 0 ]; then\n" +
-                        "    TARGET_HOME=\"/root\"\n" +
-                        "else\n" +
-                        "    TARGET_HOME=\"$HOME\"\n" +
-                        "fi\n" +
-                        "\n" +
-                        "SSH_DIR=\"$TARGET_HOME/.ssh\"\n" +
-                        "AUTHORIZED_KEYS=\"$SSH_DIR/authorized_keys\"\n" +
-                        "\n" +
-                        "if [ ! -d \"$SSH_DIR\" ]; then\n" +
-                        "    echo -e \"${RED}Error: SSH directory ($SSH_DIR) does not exist.${NC}\"\n" +
-                        "    exit 1\n" +
-                        "fi\n" +
-                        "\n" +
-                        "if [ ! -f \"$AUTHORIZED_KEYS\" ]; then\n" +
-                        "    echo -e \"${RED}Error: SSH authorized_keys file not found at $AUTHORIZED_KEYS.${NC}\"\n" +
-                        "    exit 1\n" +
-                        "fi\n" +
-                        "\n" +
-                        "echo \"$PUBLIC_KEY\" >> \"$AUTHORIZED_KEYS\"\n" +
-                        "\n" +
-                        "echo -e \"${GREEN}SSH key installed successfully.${NC}\"\n" +
-                        "echo -e \"${GREEN}Public key added to: ${AUTHORIZED_KEYS}${NC}\"\n" +
-                        "echo -e \"${GREEN}You can now SSH into the system using the private key.${NC}\"\n" +
-                        "\n" +
-                        "# Update API server credential status\n" +
-                        "UPDATE_URL=\"$ENDPOINT/api/credentials/update/status\"\n" +
-                        "JSON_DATA=\"{\\\"uuid\\\":\\\"$UUID\\\",\\\"status\\\":1}\"\n" +
-                        "AUTH_HEADER=\"Authorization: Bearer $TOKEN\"\n" +
-                        "\n" +
-                        "echo -e \"${BLUE}Updating credentials status...${NC}\"\n" +
-                        "RESPONSE=$(curl -s -o /dev/null -w \"%%{http_code}\" -X POST \"$UPDATE_URL\" \\\n" +
-                        "    -H \"Content-Type: application/json\" \\\n" +
-                        "    -H \"$AUTH_HEADER\" \\\n" +
-                        "    -d \"$JSON_DATA\")\n" +
-                        "\n" +
-                        "if [ \"$RESPONSE\" -eq 200 ]; then\n" +
-                        "    echo -e \"${GREEN}Credentials status updated successfully.${NC}\"\n" +
-                        "else\n" +
-                        "    echo -e \"${RED}Failed to update credentials status. HTTP Code: $RESPONSE. Please check the API server.${NC}\"\n" +
-                        "fi\n",
-                uuid, token, encodedPublicKey, endpoint, uuid);
+        // 加载脚本模板
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/install_template.sh");
+        if (inputStream == null) {
+            log.error("脚本模板未找到");
+            throw new FileNotFoundException("Shell script template not found.");
+        }
+
+        String template = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+
+        // 替换占位符
+        return template
+                .replace("{{UUID}}", uuid)
+                .replace("{{TOKEN}}", token)
+                .replace("{{ENCODED_PUBLIC_KEY}}", encodedPublicKey)
+                .replace("{{ENDPOINT}}", endpoint);
     }
+
 
     @Override
     public List<CredentialVO> selectBoundCredentialsByConnectionId(String uuid) throws Exception {

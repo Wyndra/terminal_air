@@ -1,5 +1,6 @@
 import serviceAxios from "@/utils/request";
 import { Connect } from "@vicons/carbon";
+import { dataTableDark } from "naive-ui";
 export const listCredentials = () => {
     return serviceAxios({
         url: "/api/credentials/list",
@@ -32,6 +33,13 @@ export const bindCredentials = (data) => {
         url: "/api/credentials/bind",
         method: "post",
         data,
+    });
+}
+
+export const getBindCredentialsInstallScript = (data) => {
+    return serviceAxios({
+        url: "/api/credentials/get/installation/url/" + data,
+        method: "get",
     });
 }
 

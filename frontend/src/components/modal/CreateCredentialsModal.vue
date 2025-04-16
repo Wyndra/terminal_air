@@ -77,7 +77,7 @@ const handleCreateCredentials = debounce(async () => {
             createLoading.value = true;
             await generateCredentials({
                 name: credentialsForm.value.name,
-                tags: credentialsForm.value.tags.join(','),
+                tags: credentialsForm.value.tags.join('|'),
             }).then((res) => {
                 if (res.status === '200') {
                     message.success('凭证创建成功');

@@ -12,6 +12,10 @@
             </span>
             <span style="width:90%" class="description-text">
                 <span class="warning">服务器端执行以下命令，需要 bash 和 curl 命令支持</span>
+                <br>
+                <span class="primary"><n-countdown ref="countdownRef" :duration="600000" :active="isActive"
+                        :render="countdownRender" /></span>
+
             </span>
             <n-code :code="curlCode" language="bash" word-wrap></n-code>
             <div style="width: 100%;margin-top: 20px">
@@ -19,11 +23,13 @@
                     <n-button type="primary" style="flex: 1" :loading="onloading" @click="handleCompletedSuccess">
                         {{ buttonText }}
                     </n-button>
-                    <n-button secondary style="flex:1" @click="handleCopy">
+                    <n-button strong secondary type="primary" style="flex:1" @click="handleCopy">
                         复制到剪贴板
                     </n-button>
                 </div>
-
+                <n-button strong secondary type="info" style="width: 100%;margin-top: 10px;" @click="handleRefresh">
+                    刷新一下
+                </n-button>
                 <n-button tertiary style="width: 100%;margin-top: 10px;" color="#7f7e7a" @click="handleIssue">
                     无法执行命令？
                 </n-button>
@@ -54,25 +60,37 @@
 </template>
 
 <script setup>
-import { computed,ref,defineEmits,defineProps } from "vue";
+import { ref, defineEmits, defineProps,watch } from "vue";
 import { IosLink } from "@vicons/ionicons4";
 import serverConfig from "@/utils/config";
 import { list } from "@/api/connection"
-import { getCredentialsStatus,bindCredentials } from "@/api/credentials";
+import { getCredentialsStatus, bindCredentials, getBindCredentialsInstallScript } from "@/api/credentials";
 import { useMessage } from "naive-ui";
-import { debounce } from "lodash";
+import { debounce, last } from "lodash";
 import store from "@/store";
 
 const message = useMessage();
 const hasShownError = ref(store.getters.hasShownError);
+
+const curlCode = ref("");
+const countdownRef = ref(null)
+
+const countdownRender = (time) => {
+    const minutes = String(time.minutes).padStart(2, "0");
+    const seconds = String(time.seconds).padStart(2, "0");
+
+    // 判断是否已经失效
+    if (time.minutes === 0 && time.seconds === 0) {
+        return "命令 已失效";
+    }
+    return `命令将于 ${minutes}:${seconds} 后失效`;
+};
 
 
 const bindCredentialFormRef = ref(null);
 const bindCredentialForm = ref({
     cid: '',
 });
-
-
 
 const bindCredentialFormRules = {
     cid: [
@@ -91,6 +109,7 @@ const bindCredentialFormRules = {
         }
     ]
 };
+const isActive = ref(false);
 
 const emit = defineEmits(["close", "refresh"]);
 const currentStep = ref(0);
@@ -137,7 +156,7 @@ const handleBindCredential = debounce(async () => {
                 uuid: props.row.uuid
             }).then(async (res) => {
                 if (res.status === '200') {
-                    setTimeout(()=>{
+                    setTimeout(() => {
                         onloading.value = false
                         message.success('凭证绑定成功');
                         currentStep.value = 0;
@@ -202,30 +221,36 @@ const handleIssue = () => {
     message.info("请 联系我们 或 查看文档 以获取帮助");
 };
 
+const handleRefresh = () => {
+    countdownRef.value.reset()
+    fetchCurlCode()
+    message.info("刷新成功");
+}
+
 const handleCompletedSuccess = debounce(async () => {
     onloading.value = true
     buttonText.value = "正在检查..."
     await getCredentialsStatus(props.row.uuid).then(async (res) => {
-        if (res.data === 1){
+        if (res.data === 1) {
             // 凭证服务端绑定成功的情况
-            setTimeout(()=>{
+            setTimeout(() => {
                 onloading.value = false
                 currentStep.value++;
                 message.success("凭证服务端绑定成功");
                 buttonText.value = "绑定凭证"
             }, Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000)
             await fetchConnectionList()
-        } else if(res.data === 2){
+        } else if (res.data === 2) {
             // 凭证已被绑定的情况
-            setTimeout(()=>{
+            setTimeout(() => {
                 onloading.value = false
                 buttonText.value = "我已执行命令"
                 message.error("凭证已被绑定，无法重复绑定");
                 currentStep.value = 0;
                 emit('close');
             }, Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000)
-        }else {
-            setTimeout(()=>{
+        } else {
+            setTimeout(() => {
                 onloading.value = false
                 buttonText.value = "我已执行命令"
                 message.error("凭证服务端未绑定，请确认命令是否执行成功");
@@ -242,15 +267,42 @@ const props = defineProps({
     row: Object
 });
 
-const token = localStorage.getItem("token") || "";
+const lastRow = ref(null);
 
-const curlCode = computed(() => {
-    if (!token || !props.row?.id) {
-        return "# Error: Missing token or credential ID";
+watch(
+    () => props.row,
+    (newRow) => {
+        if (newRow && newRow.name) {
+            isActive.value = true
+            // 当凭证行改变的时候，请求安装脚本
+            if (lastRow.value && lastRow.value.uuid === newRow.uuid) {
+                return;
+            }
+            fetchCurlCode()
+            lastRow.value = newRow
+        }
+    },
+    { immediate: true, deep: true } // immediate 保证第一次也触发
+);
+
+
+
+async function fetchCurlCode(){
+
+    try {
+        const res = await getBindCredentialsInstallScript(props.row.uuid + "?endpoint=" + serverConfig.baseURL);
+        if (res.status == "200") {
+            curlCode.value = `curl -sSL "${res.data}" | bash`;
+        } else {
+            message.error(res.message || "获取安装脚本失败");
+            curlCode.value = "# 获取安装脚本失败";
+        }
+    } catch (e) {
+        message.error(e.response.data.message || "请求安装脚本时出错");
+        curlCode.value = "# 请求安装脚本时出错";
     }
-    const url = `${serverConfig.baseURL}/api/credentials/installation/${props.row.uuid}?endpoint=${serverConfig.baseURL}&token=${encodeURIComponent(token)}`;
-    return `curl -sSL "${url}" | bash`;
-});
+}
+
 </script>
 
 <style scoped>
@@ -279,6 +331,13 @@ const curlCode = computed(() => {
 
     .warning {
         color: #e4a441;
+        font-size: 15px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .primary {
+        color: #0472e8;
         font-size: 15px;
         text-align: center;
         font-weight: bold;

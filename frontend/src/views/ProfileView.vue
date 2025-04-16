@@ -223,7 +223,7 @@ const userInfo = ref({
   nickname: '',
   phone: '',
   avatar: '',
-  twoFactorAuth: '',
+  twoFactorAuth: false,
 });
 
 const safeSettingForm = ref({
@@ -634,25 +634,23 @@ const handleTwoFactorChange = async (value) => {
   try {
     const res = await switchTwoFactorAuth();
     if (res.status === '200') {
-      const isTwoFactorEnabled = res.data === '1';
-      // 根据服务器返回值设置状态，而不是用传入的value
-      userInfo.value.isTwoFactorAuth = isTwoFactorEnabled;
-      message.success(isTwoFactorEnabled ? '双重认证已开启' : '双重认证已关闭');
+      userInfo.value.twoFactorAuth = !userInfo.value.twoFactorAuth;
+      message.success(userInfo.value.twoFactorAuth ? '双重认证已开启' : '双重认证已关闭');
 
       // 如果开启了双重认证，获取二维码
-      if (isTwoFactorEnabled) {
+      if (userInfo.value.twoFactorAuth) {
         fetchQRCode();
       } else {
         qrcodeImage.value = '';
       }
     } else {
       // 如果失败，回滚开关状态为原来的状态
-      userInfo.value.isTwoFactorAuth = !value;
+      userInfo.value.twoFactorAuth = value;
       message.error(res.message || '操作失败');
     }
   } catch (error) {
     // 发生错误时保持原状态
-    userInfo.value.isTwoFactorAuth = !value;
+    userInfo.value.twoFactorAuth = value;
     message.error('操作失败');
   }
 };

@@ -2,6 +2,7 @@ package top.srcandy.terminal_air.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +11,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authorization.AuthenticatedAuthorizationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,6 +26,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -32,8 +37,10 @@ import top.srcandy.terminal_air.security.filter.JwtAuthenticationTokenFilter;
 import top.srcandy.terminal_air.pojo.LoginUser;
 import top.srcandy.terminal_air.security.provider.SmsCodeAuthenticationProvider;
 import top.srcandy.terminal_air.security.provider.TwoFactorAuthenticationProvider;
+import top.srcandy.terminal_air.service.RedisService;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 @Slf4j
 @Configuration
@@ -51,6 +58,9 @@ public class WebSecurityConfig {
 
     @Autowired
     private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+
+    @Autowired
+    private RedisService redisService;
 
     @Autowired
     private JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter;
@@ -178,6 +188,30 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/auth/loginRequireTwoFactorAuth").permitAll()
                         .requestMatchers("/api/mfa/verifyTwoFactorAuthCode").permitAll()
                         .requestMatchers("/api/credentials/installation/**").permitAll()
+                        .requestMatchers(
+                                "/api/credentials/get/status/shortToken/**",
+                                "/api/credentials/update/status/shortToken/**"
+                        ).access(new AuthorizationManager<>() {
+                            // 短令牌认证
+                            @Override
+                            public AuthorizationDecision check(Supplier<Authentication> authentication, RequestAuthorizationContext context) {
+                                return checkShortToken(context);
+                            }
+
+                            private AuthorizationDecision checkShortToken(RequestAuthorizationContext context) {
+                                String token = context.getRequest().getHeader("Authorization");
+                                if (StringUtils.isBlank(token) || !token.startsWith("Bearer ")) {
+                                    return new AuthorizationDecision(false);
+                                }
+                                String tokenKey = token.substring(7);
+                                String user = redisService.get("install_shell_token_" + tokenKey);
+                                if (Objects.isNull(user)) {
+                                    log.error("短令牌已失效或不存在");
+                                    return new AuthorizationDecision(false);
+                                }
+                                return new AuthorizationDecision(true);
+                            }
+                        })
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/css/**",
                                 "/js/**",

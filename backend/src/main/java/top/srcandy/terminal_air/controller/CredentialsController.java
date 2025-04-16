@@ -12,6 +12,7 @@ import top.srcandy.terminal_air.pojo.vo.CredentialVO;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.pojo.model.Credential;
 import top.srcandy.terminal_air.request.CredentialConnectionRequest;
+import top.srcandy.terminal_air.request.CredentialStatusShortTokenRequest;
 import top.srcandy.terminal_air.request.GenerateKeyPairRequest;
 import top.srcandy.terminal_air.request.CredentialStatusRequest;
 import top.srcandy.terminal_air.service.CredentialsService;
@@ -35,9 +36,8 @@ public class CredentialsController {
 
     @GetMapping("/list")
     @Operation(summary = "凭据列表", description = "列出用户当前凭据")
-    public ResponseResult<List<CredentialVO>> listCredentials(@RequestHeader("Authorization") String token) throws Exception {
-        List<CredentialVO> credentials = credentialsService.listCredentials();
-        return ResponseResult.success(credentials);
+    public ResponseResult<List<CredentialVO>> listCredentials() throws Exception {
+        return ResponseResult.success(credentialsService.listCredentials());
     }
 
     @GetMapping("/delete/{uuid}")
@@ -54,10 +54,25 @@ public class CredentialsController {
         return ResponseResult.success(null);
     }
 
+    @PostMapping("/update/status/shortToken")
+    @Operation(summary = "shortToken更新凭据状态", description = "通过shortToken更新凭据状态")
+    public ResponseResult<Null> updateCredentialStatusByShortToken(@RequestBody CredentialStatusShortTokenRequest request) throws Exception {
+        credentialsService.updateCredentialStatusByShortToken(request);
+        return ResponseResult.success(null);
+    }
+
     @PostMapping("/get/status/{uuid}")
     @Operation(summary = "获取凭据状态", description = "获取凭据状态")
     public ResponseResult<Integer> selectCredentialByUuid(@PathVariable String uuid) throws Exception {
         Integer status = credentialsService.selectCredentialByUuid(uuid).getStatus();
+        return ResponseResult.success(status);
+    }
+
+    @PostMapping("/get/status/shortToken/{uuid}")
+    @Operation(summary = "shortToken获取凭据状态", description = "通过shortToken获取凭据状态")
+    public ResponseResult<Integer> selectCredentialByUuidSkipAuth(@RequestHeader("Authorization") String shortToken,@PathVariable String uuid) throws Exception {
+        String token = shortToken.substring(7);
+        Integer status = credentialsService.getCredentialByUuidSkipAuth(uuid).getStatus();
         return ResponseResult.success(status);
     }
 
@@ -73,10 +88,17 @@ public class CredentialsController {
         return ResponseResult.success(credentialsService.selectBoundCredentialsByConnectionId(uuid));
     }
 
+    @GetMapping("/get/installation/url/{uuid}")
+    @Operation(summary = "获取安装脚本", description = "获取安装脚本下载链接")
+    public ResponseResult<String> getInstallShellUrl(@RequestParam String endpoint,@PathVariable String uuid) throws Exception {
+        return ResponseResult.success(credentialsService.getInstallShellUrl(endpoint,uuid));
+    }
+
+
     @GetMapping(value ="/installation/{uuid}", produces = "text/plain;charset=UTF-8")
-    @Operation(summary = "安装脚本", description = "动态安装脚本")
-    public String generateInstallShell(@RequestParam String token, @RequestParam String endpoint,@PathVariable String uuid) throws Exception {
-        return credentialsService.generateInstallShell(token,uuid, endpoint);
+    @Operation(summary = "安装脚本动态渲染", description = "动态安装脚本")
+    public String generateInstallShell(@RequestParam String extra,@PathVariable String uuid) throws Exception {
+        return credentialsService.generateInstallShell(uuid, extra);
     }
 
 }
