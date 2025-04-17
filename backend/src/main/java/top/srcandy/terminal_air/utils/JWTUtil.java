@@ -31,34 +31,34 @@ public class JWTUtil {
     private static final JWTVerifier twoFactorAuthSecretVerifier = JWT.require(algorithm).withIssuer("Terminal Air TwoFactorAuth").acceptExpiresAt(300).build();
     private static final long EXPIRATION = 86400L; //单位为秒
 
-    public static String generateToken(User user){
+    public static String generateToken(User user) {
         Date expireDate = new Date(System.currentTimeMillis() + EXPIRATION * 1000);
-        try{
+        try {
             return JWT.create()
                     .withIssuer("Terminal Air")
                     .withIssuedAt(new Date())
                     .withExpiresAt(expireDate)
                     .withClaim("username", user.getUsername())
                     .sign(algorithm);
-        } catch (JWTCreationException e){
+        } catch (JWTCreationException e) {
             log.info(e.getMessage());
         }
         return null;
     }
 
-    public static String generateTwoFactorAuthSecretToken(User user){
+    public static String generateTwoFactorAuthSecretToken(User user) {
         // 5分钟过期
         Date expireDate = new Date(System.currentTimeMillis() + 600 * 1000);
-        try{
+        try {
             return JWT.create()
                     .withIssuer("Terminal Air TwoFactorAuth")
                     .withIssuedAt(new Date())
                     .withExpiresAt(expireDate)
                     .withClaim("username", user.getUsername())
                     // 签发带有两步验证密钥的token，密钥使用用户的私有密钥进行加密
-                    .withClaim("twoFactorAuthSecret",AESUtils.encryptToHex(user.getTwoFactorAuthSecret(),user.getSalt()))
+                    .withClaim("twoFactorAuthSecret", AESUtils.encryptToHex(user.getTwoFactorAuthSecret(), user.getSalt()))
                     .sign(algorithm);
-        } catch (JWTCreationException e){
+        } catch (JWTCreationException e) {
             log.info(e.getMessage());
         } catch (GeneralSecurityException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);
@@ -70,12 +70,11 @@ public class JWTUtil {
         try {
             DecodedJWT jwt = verifier.verify(token);
             log.info("JWT validation passed");
-
-        } catch (InvalidClaimException e){
-            if (e.getMessage().contains("issuer")){
+        } catch (InvalidClaimException e) {
+            if (e.getMessage().contains("issuer")) {
                 throw new ServiceException("非法登录");
             }
-        }catch (TokenExpiredException e){
+        } catch (TokenExpiredException e) {
             throw new ServiceException("登录已过期，请重新登录");
         }
     }
@@ -85,11 +84,11 @@ public class JWTUtil {
             DecodedJWT jwt = twoFactorAuthSecretVerifier.verify(token);
             log.info("TwoFactorAuthSecret JWT validation passed");
         } catch (InvalidClaimException e) {
-            if (e.getMessage().contains("issuer")){
+            if (e.getMessage().contains("issuer")) {
                 log.error("Invalid issuer", e);
                 throw new ServiceException("非法登录");
             }
-        } catch (TokenExpiredException e){
+        } catch (TokenExpiredException e) {
             log.error("Token expired", e);
             throw new ServiceException("登录已过期，请重新登录");
         }
@@ -100,16 +99,15 @@ public class JWTUtil {
             DecodedJWT jwt = publicAccessVerifier.verify(token);
             log.info("Both JWT validation passed");
         } catch (InvalidClaimException e) {
-            if (e.getMessage().contains("issuer")){
+            if (e.getMessage().contains("issuer")) {
                 log.error("Invalid issuer", e);
                 throw new ServiceException("非法登录");
             }
-        } catch (TokenExpiredException e){
+        } catch (TokenExpiredException e) {
             log.error("Token expired", e);
             throw new ServiceException("登录已过期，请重新登录");
         }
     }
-
 
 
     public static Map<String, Claim> getTokenClaimMap(String token) {
