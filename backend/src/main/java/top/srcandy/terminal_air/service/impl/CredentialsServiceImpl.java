@@ -49,13 +49,11 @@ public class CredentialsServiceImpl implements CredentialsService {
 
         // 检查凭据名称是否已存在
         if (credentialsMapper.countCredentialsByUserIdAndName(userId, name) > 0) {
-            log.info("{} 凭据名称已存在", username);
             throw new ServiceException("凭据名称已存在");
         }
         // 最大允许凭据数量
         int MAX_CREDENTIALS = 10;
         if (credentialsMapper.countCredentialsByUserId(userId) >= MAX_CREDENTIALS) {
-            log.info("{} 凭据数量已达上限", username);
             throw new ServiceException("凭据数量已达上限");
         }
 
@@ -77,8 +75,7 @@ public class CredentialsServiceImpl implements CredentialsService {
                 .fingerprint(fingerprint)
                 .build();
 
-        log.info("用户 {} 创建了凭据 {}", username, credential.getUuid());
-        log.info("凭据指纹 {}", fingerprint);
+        log.info("用户 {} 创建了凭据 {},凭据指纹:{}", username, credential.getUuid(),fingerprint);
         credentialsMapper.insertCredential(credential);
         return credentialConverter.credential2VO(credential);
     }
@@ -174,7 +171,7 @@ public class CredentialsServiceImpl implements CredentialsService {
         String value = user.getUsername() + ":" + uuid;
         redisService.set(key, value, 10, TimeUnit.MINUTES);
 
-        log.info("用户 {} 生成安装脚本下载链接，UUID: {}", user.getUsername(), uuid);
+        log.info("用户 {} 生成了安装脚本下载链接，UUID: {}, 预签名token: {}", user.getUsername(), uuid,randomToken);
         String extraMessage = String.format("%s;%s", endpoint, randomToken);
         String extra = Base64.getEncoder().encodeToString(extraMessage.getBytes(StandardCharsets.UTF_8));
         String link = String.format("%s/api/credentials/installation/%s?extra=%s", endpoint, uuid, extra);
@@ -189,7 +186,7 @@ public class CredentialsServiceImpl implements CredentialsService {
         String[] extraParts = extraInfo.split(";");
         String token = extraParts[1];
         String endpoint = extraParts[0];
-        log.info("临时token {}, endpoint {}", token, endpoint);
+        log.info("预签名token:{}", token);
         String redisKey = "install_shell_token_" + token;
         String redisValue = redisService.get(redisKey);
         if (redisValue == null) {
@@ -202,9 +199,10 @@ public class CredentialsServiceImpl implements CredentialsService {
         String encodedPublicKey = Base64.getEncoder().encodeToString(publicKey.getBytes());
 
         // 加载脚本模板
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/install_template.sh");
+        String scriptFilePath = "templates/install_template.sh";
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(scriptFilePath);
         if (inputStream == null) {
-            log.error("脚本模板未找到");
+            log.error("{} 脚本模板未找到",scriptFilePath);
             throw new FileNotFoundException("Shell script template not found.");
         }
 

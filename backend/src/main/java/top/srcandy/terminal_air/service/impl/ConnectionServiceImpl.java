@@ -58,14 +58,9 @@ public class ConnectionServiceImpl implements ConnectionService {
     @Override
     public ResponseResult<Connection> insertConnect(AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         User user = SecuritySessionUtils.getUser();
-        if (user == null) {
-            return ResponseResult.fail(null, "用户不存在");
-        }
 
-        // 获取用户的连接信息
         List<Connection> userConnects = connectionMapper.selectByConnectCreaterUid(user.getUid());
 
-        // 判断新增的连接是否已经存在
         for (Connection userConnect : userConnects) {
             if (userConnect.getConnectHost().equals(request.getHost())) {
                 return ResponseResult.fail(null, "连接已存在");

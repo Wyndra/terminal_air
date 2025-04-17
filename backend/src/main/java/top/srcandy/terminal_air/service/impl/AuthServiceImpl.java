@@ -136,7 +136,7 @@ public class AuthServiceImpl implements AuthService {
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
         if (Objects.isNull(authentication)) {
-            log.error("登录失败");
+            log.warn("{} 登录失败", request.getUsername());
             throw new BadCredentialsException("访问拒绝：用户名或密码错误！");
         }
 
@@ -172,7 +172,7 @@ public class AuthServiceImpl implements AuthService {
         } else {
             // 直接登录
             redisService.setObject("security:" + user.getUsername(), principal, 12, TimeUnit.HOURS);
-            log.info("登录成功，token:{}", JWTUtil.generateToken(user));
+            log.info("{} 登录成功", user.getUsername());
             return ResponseResult.success(LoginResultVO.builder()
                     .token(JWTUtil.generateToken(user))
                     .requireTwoFactorAuth(false)
@@ -183,6 +183,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void logout() {
         String username = SecuritySessionUtils.getUsername();
+        log.info("{} 退出登录", username);
         redisService.delete("security:" + username);
         SecurityContextHolder.clearContext();
         ResponseResult.success("Logout success");

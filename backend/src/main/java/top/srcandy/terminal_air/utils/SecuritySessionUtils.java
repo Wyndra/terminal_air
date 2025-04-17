@@ -21,7 +21,7 @@ public class SecuritySessionUtils {
      */
     public static LoginUser getLoginUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Optional.ofNullable(authentication).orElseThrow(() -> new RuntimeException("未登录,请登录"));
+        Optional.ofNullable(authentication).orElseThrow(() -> new RuntimeException("未登录,请先登录"));
         return (LoginUser) authentication.getPrincipal();
     }
 

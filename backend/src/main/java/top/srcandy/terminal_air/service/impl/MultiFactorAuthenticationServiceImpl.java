@@ -1,5 +1,6 @@
 package top.srcandy.terminal_air.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.srcandy.terminal_air.mapper.UserMapper;
@@ -15,6 +16,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 
 @Service
+@Slf4j
 public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenticationService {
 
     @Autowired
@@ -29,8 +31,10 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
         User user = userMapper.selectByUserName(username);
         if (user.getIsTwoFactorAuth().equals("0")) {
             user.setIsTwoFactorAuth("1");
+            log.info("用户 {} 开启了二次验证", username);
         } else {
             user.setIsTwoFactorAuth("0");
+            log.info("用户 {} 关闭了二次验证", username);
         }
         userMapper.update(user);
         return user.getIsTwoFactorAuth().equals("1");
@@ -40,7 +44,6 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
     public String getTwoFactorAuthSecretQRCode() {
         User user = SecuritySessionUtils.getUser();
         String username = SecuritySessionUtils.getUsername();
-        // 如果用户的twoFactorAuthSecret为空，则生成一个新的twoFactorAuthSecret
         if (user.getTwoFactorAuthSecret() == null || user.getTwoFactorAuthSecret().isEmpty()) {
             String twoFactorAuthSecret = microsoftAuth.getSecretKey();
             user.setTwoFactorAuthSecret(twoFactorAuthSecret);
@@ -53,8 +56,8 @@ public class MultiFactorAuthenticationServiceImpl implements MultiFactorAuthenti
     public boolean verifyTwoFactorAuthCode(String twoFactorAuthToken, VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         String username = JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("username").asString();
         User user = userMapper.selectByUserName(username);
-        // 判断token中的twoFactorAuthSecret是否与用户的twoFactorAuthSecret一致
         if (!AESUtils.decryptFromHex(JWTUtil.getTokenClaimMap(twoFactorAuthToken).get("twoFactorAuthSecret").asString(),user.getSalt()).equals(user.getTwoFactorAuthSecret())) {
+            log.warn("用户 {} 的二次验证密钥不匹配", username);
             return false;
         }
         return microsoftAuth.checkCode(user.getTwoFactorAuthSecret(), request.getCode(), request.getTime());

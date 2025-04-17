@@ -18,10 +18,11 @@ public class TurnstileServiceImpl implements TurnstileService {
     public ResponseResult<Map<String, Objects>> verifyTurnstile(String token) {
         String secretKey = System.getenv("CLOUDFLARE_SECRET_KEY");
         if (secretKey == null || secretKey.isEmpty()) {
+            log.error("缺少环境变量 CLOUDFLARE_SECRET_KEY");
             return null;
         }
-        log.info("CLOUDFLARE_SECRET_KEY:{}", secretKey);
         if (token == null || token.isEmpty()) {
+            log.warn("缺少token，无法验证");
             return ResponseResult.fail(null, "缺少 Token");
         }
 
@@ -35,7 +36,7 @@ public class TurnstileServiceImpl implements TurnstileService {
 
         // 发送请求
         Map<String, Objects> response = restTemplate.postForObject(url, params, Map.class);
-
+        log.info("Turnstile 验证结果: {}", response);
         return ResponseResult.success(response);
     }
 }

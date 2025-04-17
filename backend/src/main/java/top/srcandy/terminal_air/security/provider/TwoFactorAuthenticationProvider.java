@@ -48,18 +48,18 @@ public class TwoFactorAuthenticationProvider implements AuthenticationProvider {
         // 校验验证码
         long code = token.getCode();
         long time = token.getTime();
-        log.info("用户 [{}] 正在进行二次认证，验证码：{}，时间戳：{}", username, code, time);
+        log.info("用户 {} 正在进行二次认证，验证码：{}，时间戳：{}", username, code, time);
 
         boolean valid = microsoftAuth.checkCode(decryptedSecret, code, time);
         if (!valid) {
-            log.warn("用户 [{}] 二次认证失败：验证码错误", username);
+            log.warn("用户 {} 二次认证失败：验证码错误", username);
             throw new BadCredentialsException("二次认证失败，验证码错误");
         }
 
         // 构造已认证的 token
         TwoFactorAuthenticationToken authenticatedToken = new TwoFactorAuthenticationToken(loginUser, loginUser.getTwoFactorAuthSecret(),  // ⚠️ 建议避免再存密钥，可考虑改为 null
                 code, time, loginUser.getAuthorities());
-        log.info("用户 [{}] 二次认证成功，登录完成", username);
+        log.info("用户 {} 二次认证成功，登录完成", username);
         return authenticatedToken;
     }
 

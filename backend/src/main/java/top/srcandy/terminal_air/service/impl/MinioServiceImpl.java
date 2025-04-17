@@ -46,15 +46,16 @@ public class MinioServiceImpl implements MinioService {
             minioClient.ignoreCertCheck();
             String url = minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
-                            .method(Method.PUT) // 生成 PUT 上传 URL
+                            .method(Method.PUT)
                             .bucket(bucketName)
                             .object(filePath.substring(1))
-                            .expiry(60 * 10) // 10 分钟的上传有效期
+                            .expiry(60 * 10)
                             .build()
             );
+            log.info("{} 创建了头像上传的预签名连接", extra);
             return ResponseResult.success(AvatarUploadVO.builder().fileName(fileName).filePath(filePath).url(url).build());
         } catch (Exception e) {
-            throw new ServiceException("Failed to generate presigned URL");
+            throw new ServiceException("预签名生成失败");
         }
     }
 
@@ -64,15 +65,15 @@ public class MinioServiceImpl implements MinioService {
             minioClient.ignoreCertCheck();
             return minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
-                            .method(Method.GET) // 生成 GET 下载 URL
+                            .method(Method.GET)
                             .bucket(bucketName)
                             .object(filePath.substring(1))
-                            .expiry(60 * 60 * 24) // 24小时的下载有效期
+                            .expiry(60 * 60 * 24)
                             .build()
             );
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            throw new ServiceException("Failed to generate display signed URL");
+            throw new ServiceException("预签名生成失败");
         }
     }
 }
