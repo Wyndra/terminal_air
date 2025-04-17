@@ -16,7 +16,7 @@ public class WebSSHWebSocketHandler implements WebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        log.info("用户 {} 连接成功", session.getAttributes().get("username"));
+        log.info("{} 连接成功", session.getAttributes().get("username"));
         // 调用初始化连接
         webSSHService.initConnection(session);
     }
@@ -33,17 +33,16 @@ public class WebSSHWebSocketHandler implements WebSocketHandler {
         if (message instanceof TextMessage){
             String buffer = message.getPayload().toString();
             if (buffer.contains("pong")){
-//                log.info("接收到用户 {} 的pong消息{}", session.getAttributes().get("username"), message.getPayload());
                 return;
             }
-            log.info("接收到用户 {} 的消息{}", session.getAttributes().get("username"), message.getPayload());
+            log.debug("接收到用户 {} 的消息 {}", session.getAttributes().get("username"), message.getPayload());
             webSSHService.receiveHandle(session, message.getPayload().toString());
         }else if (message instanceof BinaryMessage){
-            log.info("接收到用户 {} 的二进制消息{}", session.getAttributes().get("username"), message.getPayload());
+            log.debug("接收到用户 {} 的二进制消息{}", session.getAttributes().get("username"), message.getPayload());
         }else if (message instanceof PongMessage){
-            log.info("接收到用户 {} 的pong消息{}", session.getAttributes().get("username"), message.getPayload());
+            log.debug("接收到用户 {} 的pong消息{}", session.getAttributes().get("username"), message.getPayload());
         }else {
-            log.info("接收到用户 {} 的其他消息{}", session.getAttributes().get("username"), message.getPayload());
+            log.debug("接收到用户 {} 的其他消息{}", session.getAttributes().get("username"), message.getPayload());
         }
 
     }
@@ -57,7 +56,7 @@ public class WebSSHWebSocketHandler implements WebSocketHandler {
      */
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-        log.error("用户 {} 连接发生错误", session.getAttributes().get("username"));
+        log.error("{} 连接发生错误", session.getAttributes().get("username"));
     }
 
     /**
@@ -69,7 +68,7 @@ public class WebSSHWebSocketHandler implements WebSocketHandler {
      */
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-        log.info("用户 {} 连接关闭", session.getAttributes().get("username"));
+        log.info("{} 连接关闭", session.getAttributes().get("username"));
         webSSHService.close(session);
     }
 

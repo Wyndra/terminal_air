@@ -27,7 +27,7 @@ public class WebSocketInterceptor implements HandshakeInterceptor {
                 JWTUtil.validateToken(token);
                 String username = JWTUtil.getTokenClaimMap(token).get("username").asString();
                 attributes.put("username", username);
-                log.info("用户{}建立连接", username);
+                log.info("{} 建立WebSocket连接", username);
             }catch (Exception e) {
                 return false;
             }

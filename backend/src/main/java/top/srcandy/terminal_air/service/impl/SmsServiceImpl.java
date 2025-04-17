@@ -34,6 +34,7 @@ public class SmsServiceImpl implements SmsService {
 
     /**
      * Sends an SMS code based on the request details.
+     *
      * @param request The SendVerificationCodeRequest containing the phone number and other details.
      * @return The response containing phone and serial number, or failure if the phone number is already registered.
      * @throws Exception if there are any issues during SMS sending.
@@ -50,6 +51,7 @@ public class SmsServiceImpl implements SmsService {
             Optional<User> userOptional = Optional.ofNullable(existingUser);
             if (userOptional.isPresent()) {
                 // Return failure response if phone is already registered
+                log.warn("频道:{},手机号:{} 请求验证码失败，手机号已注册", request.getChannel(), phone);
                 return ResponseResult.fail(null, "该手机号已注册，请尝试登录");
             }
         }
@@ -59,6 +61,7 @@ public class SmsServiceImpl implements SmsService {
             Optional<User> userOptional = Optional.ofNullable(existingUser);
             if (userOptional.isEmpty()) {
                 // Return failure response if phone is already registered
+                log.warn("频道:{},手机号:{} 请求验证码失败，手机号未注册", request.getChannel(), phone);
                 return ResponseResult.fail(null, "该手机号未注册，请先注册");
             }
         }
@@ -84,7 +87,7 @@ public class SmsServiceImpl implements SmsService {
 
     /**
      * Sends an SMS code based on the token provided.
-     * @param token_no_bearer The token containing the username.
+     *
      * @return The response containing phone and serial number, or failure if the phone number is not found.
      * @throws Exception if there are any issues during SMS sending.
      */
@@ -116,6 +119,7 @@ public class SmsServiceImpl implements SmsService {
 
     /**
      * Generates a random verification code, stores it in Redis, and sends it via SMS.
+     *
      * @param phone The phone number to send the verification code to.
      * @return The SmsCodeVO object containing the phone and serial number.
      * @throws Exception if the SMS sending fails.
@@ -135,14 +139,15 @@ public class SmsServiceImpl implements SmsService {
         // Call the SMSUtils.sendSms method to send the verification code via SMS
         try {
             SendSmsResponse smsResponse = SMSUtils.sendSms(phone, code);
-            log.info("SMS Response: " + smsResponse.getBody().getMessage());
+            log.info("短信请求响应: " + smsResponse.getBody().getMessage());
             if (smsResponse.getBody().getCode().equals("isv.BUSINESS_LIMIT_CONTROL")) {
                 // If the response contains "BUSINESS_LIMIT_CONTROL", it means the SMS sending limit has been reached
-                log.error(smsResponse.getBody().getMessage());
+                log.warn("短信发送频率过快，请稍后再试");
                 throw new ServiceException("短信发送失败，请稍后重试");
             }
         } catch (Exception e) {
             // Handle SMS sending failure
+            log.error("短信发送失败: " + e.getMessage());
             throw new ServiceException("短信发送失败，请稍后重试");
         }
 
@@ -152,9 +157,10 @@ public class SmsServiceImpl implements SmsService {
 
     /**
      * Verify the SMS code entered by the user.
-     * @param phone The phone number to check.
+     *
+     * @param phone  The phone number to check.
      * @param serial The serial number sent with the code.
-     * @param code The verification code entered by the user.
+     * @param code   The verification code entered by the user.
      * @return true if the code is correct and has not expired, false otherwise.
      */
     @Override
@@ -176,11 +182,9 @@ public class SmsServiceImpl implements SmsService {
 
         // Validate the entered serial and code
         if (storedSerial.equals(serial) && storedCode.equals(code)) {
-            // If correct, delete the verification code from Redis to prevent reuse
             redisService.delete(redisKey);
             return true;
         } else {
-            // If serial or code is incorrect, return false
             return false;
         }
     }

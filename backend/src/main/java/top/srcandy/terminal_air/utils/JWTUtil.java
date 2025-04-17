@@ -16,6 +16,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public class JWTUtil {
@@ -55,7 +56,6 @@ public class JWTUtil {
                     .withIssuedAt(new Date())
                     .withExpiresAt(expireDate)
                     .withClaim("username", user.getUsername())
-                    // 签发带有两步验证密钥的token，密钥使用用户的私有密钥进行加密
                     .withClaim("twoFactorAuthSecret", AESUtils.encryptToHex(user.getTwoFactorAuthSecret(), user.getSalt()))
                     .sign(algorithm);
         } catch (JWTCreationException e) {
@@ -69,12 +69,15 @@ public class JWTUtil {
     public static void validateToken(String token) {
         try {
             DecodedJWT jwt = verifier.verify(token);
-            log.info("JWT validation passed");
         } catch (InvalidClaimException e) {
             if (e.getMessage().contains("issuer")) {
+                String username = Optional.ofNullable(getTokenClaimMap(token).get("username")).map(Claim::asString).orElse("匿名用户");
+                log.error("{} 非法登录 {}", username,e.getMessage());
                 throw new ServiceException("非法登录");
             }
         } catch (TokenExpiredException e) {
+            String username = Optional.ofNullable(getTokenClaimMap(token).get("username")).map(Claim::asString).orElse("匿名用户");
+            log.error("{} token已过期 {}", username,e.getMessage());
             throw new ServiceException("登录已过期，请重新登录");
         }
     }
@@ -82,29 +85,15 @@ public class JWTUtil {
     public static void validateTwoFactorAuthSecretToken(String token) {
         try {
             DecodedJWT jwt = twoFactorAuthSecretVerifier.verify(token);
-            log.info("TwoFactorAuthSecret JWT validation passed");
         } catch (InvalidClaimException e) {
             if (e.getMessage().contains("issuer")) {
-                log.error("Invalid issuer", e);
+                String username = Optional.ofNullable(getTokenClaimMap(token).get("username")).map(Claim::asString).orElse("匿名用户");
+                log.error("{} 非法登录 {}", username,e.getMessage());
                 throw new ServiceException("非法登录");
             }
         } catch (TokenExpiredException e) {
-            log.error("Token expired", e);
-            throw new ServiceException("登录已过期，请重新登录");
-        }
-    }
-
-    public static void validateBothToken(String token) {
-        try {
-            DecodedJWT jwt = publicAccessVerifier.verify(token);
-            log.info("Both JWT validation passed");
-        } catch (InvalidClaimException e) {
-            if (e.getMessage().contains("issuer")) {
-                log.error("Invalid issuer", e);
-                throw new ServiceException("非法登录");
-            }
-        } catch (TokenExpiredException e) {
-            log.error("Token expired", e);
+            String username = Optional.ofNullable(getTokenClaimMap(token).get("username")).map(Claim::asString).orElse("匿名用户");
+            log.error("{} 二步验证密钥token已过期 {}", username,e.getMessage());
             throw new ServiceException("登录已过期，请重新登录");
         }
     }

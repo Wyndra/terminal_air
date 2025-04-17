@@ -21,6 +21,7 @@ import javax.security.sasl.AuthenticationException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -38,11 +39,12 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, ServiceException {
         String token = request.getHeader("Authorization");
-        log.info("{} 访问了接口: {}",JWTUtil.getTokenClaimMap(token.substring(7)).get("username"),request.getRequestURI());
+
         if (StringUtils.isBlank(token)){
             filterChain.doFilter(request, response);
             return;
         }
+        log.info("{} 访问了接口: {}", Optional.ofNullable(JWTUtil.getTokenClaimMap(token.substring(7)).get("username").asString()).orElse("匿名用户"), request.getRequestURI());
         if (twoFactorAuthTokenWhiteList.contains(request.getRequestURI())) {
             JWTUtil.validateTwoFactorAuthSecretToken(token.substring(7));
             filterChain.doFilter(request, response);
@@ -54,7 +56,6 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         if (shortTokenWhiteListMatch) {
             String user = redisService.get("install_shell_token_" + token.substring(7));
             if (Objects.isNull(user)) {
-                log.error("短令牌已失效或不存在");
                 throw new AuthenticationException("短令牌已失效或不存在");
             }
             filterChain.doFilter(request, response);
@@ -64,8 +65,8 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         JWTUtil.validateToken(token.substring(7));
         String username = JWTUtil.getTokenClaimMap(token.substring(7)).get("username").asString();
         LoginUser loginUser = redisService.getObject("security:" + username,LoginUser.class);
+        // 如果用户不存在，说明用户已经退出登录
         if (Objects.isNull(loginUser)) {
-            log.error("用户未登录");
             throw new AuthenticationException("用户未登录");
         }
 
