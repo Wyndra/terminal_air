@@ -9,7 +9,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAspectJAutoProxy(exposeProxy = true)
 @EnableScheduling
 public class CandyTerminalApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(CandyTerminalApplication.class, args);
     }

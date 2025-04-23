@@ -1,9 +1,6 @@
 <template>
     <div class="add_border" @click="handleTaggleConnect">
-        <n-ellipsis style="max-width: 160px">
-            <n-h5 style="margin: 0px;cursor: pointer;">{{ connection.connectName }}</n-h5>
-        </n-ellipsis>
-
+        <n-h5 style="margin: 0px;cursor: pointer;">{{ connection.connectName }}</n-h5>
         <div style="flex: 1;"></div>
         <n-popover placement="right" trigger="hover">
             <template #trigger>

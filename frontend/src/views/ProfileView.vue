@@ -11,7 +11,7 @@
                   <div class="profile-header">
                     <div class="avatar-section"
                       style="display: flex;justify-content: center !important;align-items: center;">
-                      <n-avatar round :size="120" :src="userInfo.avatar || ''" class="main-avatar" />
+                      <n-avatar round :size="120" :src="userInfo.avatar || ''" class="main-avatar"></n-avatar>
                       <n-upload :action="uploadUrl" :max-size="2097152" accept="image/*"
                         @before-upload="handleBeforeUpload" @error="handleUploadError" :custom-request="customUpload">
                         <n-button type="text" size="small" class="change-avatar-btn">创建你的头像</n-button>

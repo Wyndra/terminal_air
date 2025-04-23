@@ -11,15 +11,14 @@
 
       <!-- 已登录状态 -->
       <div v-else style="width: 100%; text-align: center;">
-        <ConnectionNewItemButton @new-connection="handleNewConnection" />
-
-        <!-- 判断是否有连接 -->
+        <div>
+          <CreateConnectionButton @new-connection="handleNewConnection" />
+        </div>
         <div
           style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center;"
           v-if="connect_list.length === 0">
           <p>请添加连接</p>
         </div>
-
         <!-- 有连接时显示连接列表 -->
         <div v-else>
           <div v-for="(item, index) in connect_list" :key="item">
@@ -36,7 +35,8 @@
       <!-- 判断是否未登录 -->
       <div v-if="!InLogin"
         style="background: #000000; height: 100%; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative;">
-        <img src="@/assets/svg/signature.svg" alt="Terminal Air" style="margin-bottom: 2rem; max-width: 80%; height: auto;" />
+        <img src="@/assets/svg/signature.svg" alt="Terminal Air"
+          style="margin-bottom: 2rem; max-width: 80%; height: auto;" />
       </div>
       <!-- 已登录状态，显示正常内容 -->
       <div style="height: 100%;" v-else>
@@ -60,7 +60,7 @@ import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
 import { list } from '@/api/connection';
 
-import ConnectionNewItemButton from '@/components/ConnectionNewItemButton.vue';
+import CreateConnectionButton from '@/components/CreateConnectionButton.vue';
 import ConnectionItem from '@/components/ConnectionItem.vue';
 import AddNewConnectionDrawer from '@/components/drawer/AddConnectionDrawer.vue';
 import SshDisplay from '@/components/SshDisplay.vue';

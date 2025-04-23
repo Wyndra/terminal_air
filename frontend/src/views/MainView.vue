@@ -9,9 +9,17 @@
                 <div style="flex: 1;"></div>
                 <div style="height: 100%; display: flex; align-items: center; margin-right: 16px;"
                     v-if="InLogin && router.currentRoute.value.path === '/'">
-                    <n-icon size="24" style="cursor: pointer; margin-right: 8px;" @click="openTerminalSettings">
-                        <Terminal />
-                    </n-icon>
+                    <n-tooltip trigger="hover" placement="top">
+                        <template #trigger>
+                            <n-button size="large" @click="openTerminalSettings" circle>
+                                <n-icon size="20">
+                                    <Terminal />
+                                </n-icon>
+                            </n-button>
+                        </template>
+                        终端设置
+                    </n-tooltip>
+
                 </div>
                 <div style="height: 100%; display: flex; align-items: center">
                     <n-button v-if="!InLogin" style="margin-right: 24px;" @click="openLoginModal">
@@ -71,7 +79,6 @@ const notification = useNotification();
 
 const router = useRouter();
 import { Terminal } from '@vicons/ionicons5';
-
 watch(() => store.getters.isLoggedIn, (value) => {
     InLogin.value = value;
 });

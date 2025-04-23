@@ -6,7 +6,7 @@ import io.minio.http.Method;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import top.srcandy.terminal_air.pojo.vo.AvatarUploadVO;
+import top.srcandy.terminal_air.pojo.vo.AvatarUploadVo;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.exception.ServiceException;
 import top.srcandy.terminal_air.service.MinioService;
@@ -37,7 +37,7 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @Override
-    public ResponseResult<AvatarUploadVO> generatePresignedUrl() {
+    public ResponseResult<AvatarUploadVo> generatePresignedUrl() {
         String extra = SecuritySessionUtils.getUsername();
         try {
             String randomString = UUID.randomUUID().toString().replace("-", "");
@@ -53,7 +53,7 @@ public class MinioServiceImpl implements MinioService {
                             .build()
             );
             log.info("{} 创建了头像上传的预签名连接", extra);
-            return ResponseResult.success(AvatarUploadVO.builder().fileName(fileName).filePath(filePath).url(url).build());
+            return ResponseResult.success(AvatarUploadVo.builder().fileName(fileName).filePath(filePath).url(url).build());
         } catch (Exception e) {
             throw new ServiceException("预签名生成失败");
         }

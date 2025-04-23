@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import top.srcandy.terminal_air.pojo.vo.CredentialVO;
+import top.srcandy.terminal_air.pojo.vo.CredentialVo;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.pojo.model.Credential;
 import top.srcandy.terminal_air.request.CredentialConnectionRequest;
@@ -30,13 +30,13 @@ public class CredentialsController {
 
     @PostMapping("/generate")
     @Operation(summary = "生成密钥对", description = "生成密钥对")
-    public ResponseResult<CredentialVO> generateKeyPair(@RequestHeader("Authorization") String token, @RequestBody(required = false) @NonNull GenerateKeyPairRequest request) throws Exception {
+    public ResponseResult<CredentialVo> generateKeyPair(@RequestHeader("Authorization") String token, @RequestBody(required = false) @NonNull GenerateKeyPairRequest request) throws Exception {
         return ResponseResult.success(credentialsService.generateKeyPair(request.getName(), request.getTags()));
     }
 
     @GetMapping("/list")
     @Operation(summary = "凭据列表", description = "列出用户当前凭据")
-    public ResponseResult<List<CredentialVO>> listCredentials() throws Exception {
+    public ResponseResult<List<CredentialVo>> listCredentials() throws Exception {
         return ResponseResult.success(credentialsService.listCredentials());
     }
 
@@ -78,13 +78,13 @@ public class CredentialsController {
 
     @PostMapping("/bind")
     @Operation(summary = "绑定凭据", description = "绑定凭据")
-    public ResponseResult<CredentialVO> updateCredentialConnectId(@RequestBody CredentialConnectionRequest request) throws Exception {
+    public ResponseResult<CredentialVo> updateCredentialConnectId(@RequestBody CredentialConnectionRequest request) throws Exception {
         return ResponseResult.success(credentialsService.updateCredentialConnectId(request));
     }
 
     @GetMapping("/get/bound/{uuid}")
     @Operation(summary = "获取当前Connection的已绑定凭据", description = "获取当前Connection的已绑定凭据")
-    public ResponseResult<List<CredentialVO>> selectBoundCredentialsByConnectionId(@PathVariable String uuid) throws Exception {
+    public ResponseResult<List<CredentialVo>> selectBoundCredentialsByConnectionId(@PathVariable String uuid) throws Exception {
         return ResponseResult.success(credentialsService.selectBoundCredentialsByConnectionId(uuid));
     }
 

@@ -4,11 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
 @Builder
-public class CredentialVO {
+public class CredentialVo {
     @Schema(description = "凭据ID")
     private Long id;
     @Schema(description = "凭据UUID")

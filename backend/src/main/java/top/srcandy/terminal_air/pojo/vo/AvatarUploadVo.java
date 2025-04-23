@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class AvatarUploadVO {
+public class AvatarUploadVo {
     public String url;
     public String fileName;
     public String filePath;

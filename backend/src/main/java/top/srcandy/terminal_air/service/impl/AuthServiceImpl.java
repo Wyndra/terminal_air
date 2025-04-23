@@ -2,7 +2,6 @@ package top.srcandy.terminal_air.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,9 +13,9 @@ import org.springframework.util.DigestUtils;
 import top.srcandy.terminal_air.pojo.LoginUser;
 import top.srcandy.terminal_air.security.token.SmsCodeAuthenticationToken;
 import top.srcandy.terminal_air.security.token.TwoFactorAuthenticationToken;
-import top.srcandy.terminal_air.pojo.dto.RegisterDTO;
-import top.srcandy.terminal_air.pojo.vo.LoginResultVO;
-import top.srcandy.terminal_air.pojo.vo.UserProfileVO;
+import top.srcandy.terminal_air.pojo.dto.RegisterDto;
+import top.srcandy.terminal_air.pojo.vo.LoginResultVo;
+import top.srcandy.terminal_air.pojo.vo.UserProfileVo;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.converter.UserProfileConverter;
 import top.srcandy.terminal_air.exception.ServiceException;
@@ -67,16 +66,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Deprecated
-    public ResponseResult<LoginResultVO> login(LoginRequest request) {
+    public ResponseResult<LoginResultVo> login(LoginRequest request) {
         User result = userMapper.selectByUserName(request.getUsername());
         if (result == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
         if (result.getPassword().equals(request.getPassword())) {
             if (result.getIsTwoFactorAuth().equals("1")) {
-                return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
+                return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
             } else {
-                return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
+                return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
             }
         }else {
             return ResponseResult.fail(null, "用户名或密码错误");
@@ -87,7 +86,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Deprecated
-    public ResponseResult<LoginResultVO> loginAndChangePassword(LoginRequest request) {
+    public ResponseResult<LoginResultVo> loginAndChangePassword(LoginRequest request) {
         User result = userMapper.selectByUserName(request.getUsername());
         Optional<User> userOptional = Optional.ofNullable(result);
         if (userOptional.isEmpty()) {
@@ -100,11 +99,11 @@ public class AuthServiceImpl implements AuthService {
             if (result.getPassword().equals(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()))) {
                 if (result.getIsTwoFactorAuth().equals("1")) {
                     // 生成两步验证的Token
-                    return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
+                    return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
                 } else {
                     // 直接生成token
                     redisService.setObject("security:" + result.getUsername(), result, 24, TimeUnit.HOURS);
-                    return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
+                    return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
                 }
             } else {
                 return ResponseResult.fail(null, "用户名或密码错误");
@@ -119,10 +118,10 @@ public class AuthServiceImpl implements AuthService {
                 userMapper.update(result);
                 if (result.getIsTwoFactorAuth().equals("1")) {
                     // 生成两步验证的Token
-                    return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
+                    return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
                 } else {
                     // 直接生成token
-                    return ResponseResult.success(LoginResultVO.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
+                    return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
                 }
             } else {
                 return ResponseResult.fail(null, "用户名或密码错误");
@@ -131,7 +130,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseResult<LoginResultVO> loginSecurity(LoginRequest request) {
+    public ResponseResult<LoginResultVo> loginSecurity(LoginRequest request) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
@@ -165,7 +164,7 @@ public class AuthServiceImpl implements AuthService {
         if ("1".equals(user.getIsTwoFactorAuth())) {
             // 开启两步验证
             log.info("用户 {} 进入了两步验证流程", user.getUsername());
-            return ResponseResult.success(LoginResultVO.builder()
+            return ResponseResult.success(LoginResultVo.builder()
                     .token(JWTUtil.generateTwoFactorAuthSecretToken(user))
                     .requireTwoFactorAuth(true)
                     .build());
@@ -173,7 +172,7 @@ public class AuthServiceImpl implements AuthService {
             // 直接登录
             redisService.setObject("security:" + user.getUsername(), principal, 12, TimeUnit.HOURS);
             log.info("{} 登录成功", user.getUsername());
-            return ResponseResult.success(LoginResultVO.builder()
+            return ResponseResult.success(LoginResultVo.builder()
                     .token(JWTUtil.generateToken(user))
                     .requireTwoFactorAuth(false)
                     .build());
@@ -263,17 +262,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseResult<String> register(RegisterRequest request) {
         User result = userMapper.selectByUserName(request.getUsername());
-        // 通过用户名校验是否存在用户
-        if (result != null) {
+        Optional.ofNullable(result).ifPresent(user -> {
             throw new ServiceException("用户名已存在");
-        }
-        // 通过手机号校验是否存在用户
-        if (userMapper.selectByUserPhone(request.getPhone()) != null) {
-            throw new ServiceException("手机号已注册");
+        });
+        boolean isPhoneRegistered = userMapper.countByUserPhone(request.getPhone()) > 0;
+        if (isPhoneRegistered) {
+            return ResponseResult.fail(null, "手机号已被注册");
         }
         String salt = SaltUtils.generateSalt(16);   // 生成16位随机盐
-
-        RegisterDTO registerDTO = new RegisterDTO();
+        RegisterDto registerDTO = new RegisterDto();
         registerDTO.setUsername(request.getUsername());
         registerDTO.setPhone(request.getPhone());
         registerDTO.setSalt(salt);
@@ -289,13 +286,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseResult<UserProfileVO> getUserProfile() {
+    public ResponseResult<UserProfileVo> getUserProfile() {
         String username = SecuritySessionUtils.getUsername();
         User user = userMapper.selectByUserName(username);
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
         }
-        UserProfileVO userProfileVO = userProfileConverter.user2UserProfileVO(user);
+        UserProfileVo userProfileVO = userProfileConverter.user2UserProfileVO(user);
         try{
             userProfileVO.setAvatar(minioService.generateDisplaySignedUrl(user.getAvatar()));
         }catch (Exception e){
@@ -311,7 +308,6 @@ public class AuthServiceImpl implements AuthService {
         User user = userMapper.selectByUserName(username);
         if (user != null) {
             try {
-                // 生成头像的临时访问链接
                 String avatarUrl = minioService.generateDisplaySignedUrl(user.getAvatar());
                 return ResponseResult.success(avatarUrl);
             } catch (Exception e) {
@@ -343,7 +339,6 @@ public class AuthServiceImpl implements AuthService {
         assert user != null;
         Optional<String> passwordHashOptional = Optional.ofNullable(user.getPassword_hash());
         if (passwordHashOptional.isEmpty()) {
-            // 说明已经是高安全性密码
             if (user.getPassword().equals(Sha512DigestUtils.shaHex(password + user.getSalt()))) {
                 return Boolean.TRUE;
             } else {
@@ -354,7 +349,7 @@ public class AuthServiceImpl implements AuthService {
             if (user.getPassword_hash().equals(DigestUtils.md5DigestAsHex(password.getBytes()))) {
                 // 说明是低安全性密码
                 user.setPassword(Sha512DigestUtils.shaHex(password + user.getSalt()));
-                // 原密码作废
+                // 原密码置空
                 user.setPassword_hash(null);
                 userMapper.update(user);
                 return Boolean.TRUE;
@@ -398,7 +393,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseResult<UserProfileVO> updateProfile(UpdateProfileRequest request) {
+    public ResponseResult<UserProfileVo> updateProfile(UpdateProfileRequest request) {
         // 从会话信息中获取当前用户的用户名
         String username = SecuritySessionUtils.getUsername();
         // 查询用户信息
@@ -416,11 +411,11 @@ public class AuthServiceImpl implements AuthService {
             userMapper.update(user);
         } catch (Exception e) {
             log.error("更新用户资料出错", e);
-            return ResponseResult.fail(null, "更新资料失败");
+            return ResponseResult.fail(null, "资料更新失败");
         }
 
         // 返回更新后的用户资料
-        UserProfileVO profileVO = UserProfileVO.builder()
+        UserProfileVo profileVO = UserProfileVo.builder()
                 .uid(user.getUid())
                 .username(user.getUsername())
                 .email(user.getEmail())

@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.converter;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import top.srcandy.terminal_air.pojo.vo.ConnectionVO;
+import top.srcandy.terminal_air.pojo.vo.ConnectionVo;
 import top.srcandy.terminal_air.pojo.model.Connection;
 import top.srcandy.terminal_air.request.UpdateConnectionRequest;
 import top.srcandy.terminal_air.service.CredentialsService;
@@ -36,12 +36,12 @@ public abstract class ConnectionConverter {
     @Mapping(target = "connectMethod", source = "connectMethod")
     @Mapping(target = "connectionUuid", source = "connectionUuid")
     @Mapping(target = "connect_creater_uid", source = "connect_creater_uid")
-    public abstract ConnectionVO connection2ConnectionVO(Connection connection);
+    public abstract ConnectionVo connection2ConnectionVO(Connection connection);
 
-    public abstract List<ConnectionVO> connectionList2ConnectionVOList(List<Connection> connections);
+    public abstract List<ConnectionVo> connectionList2ConnectionVOList(List<Connection> connections);
 
     @AfterMapping
-    protected void mapCredentialUUID(@MappingTarget ConnectionVO connectionVO, Connection connection) {
+    protected void mapCredentialUUID(@MappingTarget ConnectionVo connectionVO, Connection connection) {
         if (connection.getCredentialId() != null) {
             try {
                 connectionVO.setCredentialUUID(credentialsService.selectCredentialById(connection.getCredentialId()).getUuid());

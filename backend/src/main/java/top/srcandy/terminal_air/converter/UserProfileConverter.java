@@ -1,7 +1,7 @@
 package top.srcandy.terminal_air.converter;
 
 import org.mapstruct.*;
-import top.srcandy.terminal_air.pojo.vo.UserProfileVO;
+import top.srcandy.terminal_air.pojo.vo.UserProfileVo;
 import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.request.UpdateProfileRequest;
 
@@ -27,5 +27,5 @@ public interface UserProfileConverter {
             expression = "java(!\"0\".equals(user.getIsTwoFactorAuth()))"
     )
     @Mapping(target = "createTime", dateFormat = "yyyy-MM-dd HH:mm:ss", source = "createTime")
-    UserProfileVO user2UserProfileVO(User user);
+    UserProfileVo user2UserProfileVO(User user);
 }
