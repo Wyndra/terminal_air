@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.pojo.vo;
 import lombok.Data;
 
 @Data
-public class ConnectionVO {
+public class ConnectionVo {
     private Long cid;
     private String connectionUuid;
     private String connectHost;

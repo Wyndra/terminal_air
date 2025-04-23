@@ -12,4 +12,5 @@ public class WebSSHData {
     private String password;
     private String credentialUUID;
     private String command = "";
+    private boolean silent;
 }

@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import top.srcandy.terminal_air.pojo.vo.ConnectionVO;
+import top.srcandy.terminal_air.pojo.vo.ConnectionVo;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.converter.ConnectionConverter;
 import top.srcandy.terminal_air.mapper.ConnectionMapper;
@@ -36,7 +36,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     private CredentialsService credentialsService;
 
 
-    public ResponseResult<List<ConnectionVO>> list(Long userid) {
+    public ResponseResult<List<ConnectionVo>> list(Long userid) {
         List<Connection> connections = connectionMapper.selectByConnectCreaterUid(userid);
         connections.forEach(connection -> {
             if (connection.getConnectionUuid() == null || connection.getConnectionUuid().isEmpty()) {
@@ -84,7 +84,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     @Override
-    public ResponseResult<ConnectionVO> updateConnect(UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<ConnectionVo> updateConnect(UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         User user = SecuritySessionUtils.getUser();
         if (user == null) {
             return ResponseResult.fail(null, "用户不存在");
@@ -136,7 +136,7 @@ public class ConnectionServiceImpl implements ConnectionService {
             }
 
             connectionMapper.updateConnect(updatedConnect);
-            ConnectionVO connectionVO = connectConverter.connection2ConnectionVO(updatedConnect);
+            ConnectionVo connectionVO = connectConverter.connection2ConnectionVO(updatedConnect);
             return ResponseResult.success(connectionVO);
         }).orElseGet(() -> ResponseResult.fail(null, "连接不存在"));
     }

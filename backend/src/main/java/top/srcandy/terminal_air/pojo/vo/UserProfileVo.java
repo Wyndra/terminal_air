@@ -6,11 +6,9 @@ import com.lzhpo.sensitive.annocation.SensitiveFilterWords;
 import lombok.Builder;
 import lombok.Data;
 
-import java.sql.Timestamp;
-
 @Data
 @Builder
-public class UserProfileVO {
+public class UserProfileVo {
     private Long uid;
     private String username;
     @Sensitive(strategy = SensitiveStrategy.MOBILE_PHONE)

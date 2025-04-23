@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class LoginResultVO {
+public class LoginResultVo {
     private String token;
     private boolean requireTwoFactorAuth;
 }

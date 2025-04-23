@@ -2,7 +2,7 @@ package top.srcandy.terminal_air.mapper;
 
 
 import org.apache.ibatis.annotations.*;
-import top.srcandy.terminal_air.pojo.dto.RegisterDTO;
+import top.srcandy.terminal_air.pojo.dto.RegisterDto;
 import top.srcandy.terminal_air.pojo.model.User;
 
 @Mapper
@@ -29,8 +29,11 @@ public interface UserMapper {
     @ResultMap("userResultMap")
     User selectByUserPhone(String phone);
 
+    @Select("SELECT COUNT(phone) FROM User WHERE phone = #{phone}")
+    int countByUserPhone(String phone);
+
     @Insert("insert into User (username,password,salt,phone,twoFactorAuthSecret) values (#{username},#{password},#{salt},#{phone},#{twoFactorSecret})")
-    int insertSelective(RegisterDTO request);
+    int insertSelective(RegisterDto request);
 
     @Update("update User set username = #{username},password = #{password},password_hash = #{password_hash},phone = #{phone},email = #{email},nickname = #{nickname},avatar = #{avatar},isTwoFactorAuth = #{isTwoFactorAuth},twoFactorAuthSecret = #{twoFactorAuthSecret} where uid = #{uid}")
     void update(User updateProfileRequest);

@@ -8,7 +8,7 @@ import org.springframework.web.socket.TextMessage;
 @Builder
 @Data
 @AllArgsConstructor
-public class WebSSHMessageResultVO{
+public class WebSSHMessageResultVo {
     private String type;
     private String msg;
     private String sessionId;

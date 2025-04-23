@@ -7,12 +7,11 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import top.srcandy.terminal_air.pojo.vo.SmsCodeVO;
+import top.srcandy.terminal_air.pojo.vo.SmsCodeVo;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.request.SendVerificationCodeRequest;
 import top.srcandy.terminal_air.request.VerifyCodeRequest;
 import top.srcandy.terminal_air.service.SmsService;
-import top.srcandy.terminal_air.aspectj.lang.annoations.AuthAccess;
 
 @Slf4j
 @RestController
@@ -25,7 +24,7 @@ public class SmsController {
 
     @PostMapping ("/sendVerificationCode")
     @Operation(summary = "发送验证码")
-    public ResponseResult<SmsCodeVO> sendVerifyCode(@Valid @RequestBody(required = false) @NotNull SendVerificationCodeRequest request) {
+    public ResponseResult<SmsCodeVo> sendVerifyCode(@Valid @RequestBody(required = false) @NotNull SendVerificationCodeRequest request) {
         try {
             return smsService.sendSmsCode(request);
         } catch (Exception e) {
@@ -42,7 +41,7 @@ public class SmsController {
 
     @GetMapping("/sendSmsCodeByToken")
     @Operation(summary = "通过token发送验证码")
-    public ResponseResult<SmsCodeVO> sendSmsCodeByToken() {
+    public ResponseResult<SmsCodeVo> sendSmsCodeByToken() {
         try {
             return smsService.sendSmsCodeByToken();
         } catch (Exception e) {

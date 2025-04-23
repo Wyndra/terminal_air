@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.converter;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import top.srcandy.terminal_air.pojo.vo.CredentialVO;
+import top.srcandy.terminal_air.pojo.vo.CredentialVo;
 import top.srcandy.terminal_air.pojo.model.Credential;
 
 import java.util.List;
@@ -21,7 +21,7 @@ public interface CredentialConverter {
     @Mapping(target = "publicKey", source = "publicKey")
     @Mapping(target = "connectId", source = "connectId")
     @Mapping(target = "createTime", dateFormat = "yyyy-MM-dd HH:mm:ss", source = "createTime")
-    CredentialVO credential2VO(Credential credential);
+    CredentialVo credential2VO(Credential credential);
 
-    List<CredentialVO> credentialList2VOList(List<Credential> credentials);
+    List<CredentialVo> credentialList2VOList(List<Credential> credentials);
 }

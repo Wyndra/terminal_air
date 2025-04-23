@@ -4,7 +4,7 @@ import com.aliyun.sdk.service.dysmsapi20170525.models.SendSmsResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import top.srcandy.terminal_air.pojo.vo.SmsCodeVO;
+import top.srcandy.terminal_air.pojo.vo.SmsCodeVo;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.enums.SMSChannel;
 import top.srcandy.terminal_air.exception.ServiceException;
@@ -40,7 +40,7 @@ public class SmsServiceImpl implements SmsService {
      * @throws Exception if there are any issues during SMS sending.
      */
     @Override
-    public ResponseResult<SmsCodeVO> sendSmsCode(SendVerificationCodeRequest request) throws Exception {
+    public ResponseResult<SmsCodeVo> sendSmsCode(SendVerificationCodeRequest request) throws Exception {
 
         String phone = request.getPhone();
 
@@ -81,7 +81,7 @@ public class SmsServiceImpl implements SmsService {
         }
 
         // Send the SMS verification code
-        SmsCodeVO smsCodeVO = sendVerificationCode(phone);
+        SmsCodeVo smsCodeVO = sendVerificationCode(phone);
         return ResponseResult.success(smsCodeVO); // Return success response with SMS code and serial number
     }
 
@@ -92,7 +92,7 @@ public class SmsServiceImpl implements SmsService {
      * @throws Exception if there are any issues during SMS sending.
      */
     @Override
-    public ResponseResult<SmsCodeVO> sendSmsCodeByToken() throws Exception {
+    public ResponseResult<SmsCodeVo> sendSmsCodeByToken() throws Exception {
         String username = SecuritySessionUtils.getUsername();
         User user = SecuritySessionUtils.getUser();
         String phone = user.getPhone();
@@ -112,7 +112,7 @@ public class SmsServiceImpl implements SmsService {
         }
 
         // Send the SMS verification code
-        SmsCodeVO smsCodeVO = sendVerificationCode(phone);
+        SmsCodeVo smsCodeVO = sendVerificationCode(phone);
         return ResponseResult.success(smsCodeVO); // Return success response with SMS code and serial number
 
     }
@@ -124,7 +124,7 @@ public class SmsServiceImpl implements SmsService {
      * @return The SmsCodeVO object containing the phone and serial number.
      * @throws Exception if the SMS sending fails.
      */
-    private SmsCodeVO sendVerificationCode(String phone) throws Exception {
+    private SmsCodeVo sendVerificationCode(String phone) throws Exception {
         // Generate a random 6-digit verification code
         String code = String.valueOf((int) ((Math.random() * 9 + 1) * 100000));
 
@@ -152,7 +152,7 @@ public class SmsServiceImpl implements SmsService {
         }
 
         // Return the response containing the phone number and serial number
-        return new SmsCodeVO(phone, serial);
+        return new SmsCodeVo(phone, serial);
     }
 
     /**

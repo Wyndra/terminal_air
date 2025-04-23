@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import top.srcandy.terminal_air.pojo.vo.ConnectionVO;
+import top.srcandy.terminal_air.pojo.vo.ConnectionVo;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.pojo.model.Connection;
 import top.srcandy.terminal_air.request.AddConnectionRequest;
@@ -26,7 +26,7 @@ public class ConnectionController {
     private ConnectionService connectManageService;
     @GetMapping("/list")
     @Operation(summary = "获取用户的连接列表")
-    public ResponseResult<List<ConnectionVO>> selectByConnectCreaterUid() {
+    public ResponseResult<List<ConnectionVo>> selectByConnectCreaterUid() {
         return connectManageService.list(SecuritySessionUtils.getUserId());
     }
 
@@ -38,7 +38,7 @@ public class ConnectionController {
 
     @PostMapping("/update")
     @Operation(summary = "更新连接")
-    public ResponseResult<ConnectionVO> updateConnect(@RequestBody UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<ConnectionVo> updateConnect(@RequestBody UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return connectManageService.updateConnect(request);
     }
 

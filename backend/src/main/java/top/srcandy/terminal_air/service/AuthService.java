@@ -1,7 +1,7 @@
 package top.srcandy.terminal_air.service;
 
-import top.srcandy.terminal_air.pojo.vo.LoginResultVO;
-import top.srcandy.terminal_air.pojo.vo.UserProfileVO;
+import top.srcandy.terminal_air.pojo.vo.LoginResultVo;
+import top.srcandy.terminal_air.pojo.vo.UserProfileVo;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.request.*;
@@ -10,11 +10,11 @@ import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 
 public interface AuthService {
-    ResponseResult<LoginResultVO> login(LoginRequest request);
+    ResponseResult<LoginResultVo> login(LoginRequest request);
 
-    ResponseResult<LoginResultVO> loginAndChangePassword(LoginRequest request);
+    ResponseResult<LoginResultVo> loginAndChangePassword(LoginRequest request);
 
-    ResponseResult<LoginResultVO> loginSecurity(LoginRequest request);
+    ResponseResult<LoginResultVo> loginSecurity(LoginRequest request);
 
     void logout();
 
@@ -28,7 +28,7 @@ public interface AuthService {
 
     ResponseResult<String> register(RegisterRequest request);
 
-    ResponseResult<UserProfileVO> getUserProfile();
+    ResponseResult<UserProfileVo> getUserProfile();
 
     ResponseResult<String> getUserAvatar(String token);
 
@@ -42,6 +42,6 @@ public interface AuthService {
 
     ResponseResult<String> updatePassword(UpdatePasswordRequest request);
 
-    ResponseResult<UserProfileVO> updateProfile(UpdateProfileRequest request);
+    ResponseResult<UserProfileVo> updateProfile(UpdateProfileRequest request);
 
 }

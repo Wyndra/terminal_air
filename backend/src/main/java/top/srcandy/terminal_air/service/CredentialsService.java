@@ -1,6 +1,6 @@
 package top.srcandy.terminal_air.service;
 
-import top.srcandy.terminal_air.pojo.vo.CredentialVO;
+import top.srcandy.terminal_air.pojo.vo.CredentialVo;
 import top.srcandy.terminal_air.pojo.model.Credential;
 import top.srcandy.terminal_air.request.CredentialConnectionRequest;
 import top.srcandy.terminal_air.request.CredentialStatusRequest;
@@ -10,10 +10,10 @@ import java.util.List;
 
 public interface CredentialsService {
 
-    CredentialVO generateKeyPair(String name, String tags) throws Exception;
+    CredentialVo generateKeyPair(String name, String tags) throws Exception;
 
 
-    List<CredentialVO> listCredentials() throws Exception;
+    List<CredentialVo> listCredentials() throws Exception;
 
     int countCredentialsByUserId();
 
@@ -27,13 +27,13 @@ public interface CredentialsService {
 
     void updateCredentialStatusByShortToken(CredentialStatusShortTokenRequest request) throws Exception;
 
-    CredentialVO updateCredentialConnectId(CredentialConnectionRequest request) throws Exception;
+    CredentialVo updateCredentialConnectId(CredentialConnectionRequest request) throws Exception;
 
     String generateInstallShell(String uuid,String extra) throws Exception;
 
     String getInstallShellUrl(String endpoint, String uuid) throws Exception;
 
-    List<CredentialVO> selectBoundCredentialsByConnectionId(String connectionUuid) throws Exception;
+    List<CredentialVo> selectBoundCredentialsByConnectionId(String connectionUuid) throws Exception;
 
     void deleteCredential(String uuid) throws Exception;
 

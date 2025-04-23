@@ -41,30 +41,30 @@ const refresh_fitAddon = () => {
 
 const initTerminal = () => {
     requestAnimationFrame(() => {
-    const terminalElement = document.getElementById("terminal");
-    if (!terminalElement) return;
+        const terminalElement = document.getElementById("terminal");
+        if (!terminalElement) return;
 
-    const webglAddon = new WebglAddon();
-    const fitAddon = new FitAddon();
+        const webglAddon = new WebglAddon();
+        const fitAddon = new FitAddon();
 
-    terminal.loadAddon(fitAddon);
-    terminal.loadAddon(webglAddon);
+        terminal.loadAddon(fitAddon);
+        terminal.loadAddon(webglAddon);
 
-    terminal.open(terminalElement);
-    fitAddon.fit();
-
-    terminal.onKey(({ key, domEvent }) => {
-        if (domEvent.isComposing) {
-            return;
-        }
-        sendCommand(key);
+        terminal.open(terminalElement);
         fitAddon.fit();
-    });
 
-    window.addEventListener('resize', () => {
-        fitAddon.fit();
+        terminal.onKey(({ key, domEvent }) => {
+            if (domEvent.isComposing) {
+                return;
+            }
+            sendCommand(key);
+            fitAddon.fit();
+        });
+
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+        });
     });
-});
 };
 
 const terminal = new Terminal({
@@ -77,6 +77,7 @@ const terminal = new Terminal({
 });
 
 let socket;
+let failureCount = 0;
 
 const initSocket = () => {
     socket = new WebSocket(socketURI);
@@ -96,7 +97,7 @@ const initSocket = () => {
             // pong back
             socket.send(JSON.stringify({ type: "pong", payload: "pong", timestamp: new Date().getTime() }));
             return;
-        } else {
+        }else {
             if (res.type === "error") {
                 // error message
                 message.error(res.msg);
@@ -112,11 +113,11 @@ const initSocket = () => {
     socket.onerror = (error) => {
         if (error.type === "error") {
             if (!hasShownError.value) {
-                message.error("WebSocket connection error");
+                message.error("连接错误，请检查连接信息");
                 hasShownError.value = true;
             }
         } else {
-            message.error("WebSocket connection error");
+            message.error("连接错误，请检查连接信息");
         }
         console.error("WebSocket error: " + error);
     };
@@ -126,9 +127,7 @@ const initSocket = () => {
             message.warning("连接已断开，正在尝试重新连接...");
             hasShownError.value = true;
         }
-        setTimeout(() => {
-            reconnect();
-        }, 1000);
+        reconnect();
     };
 };
 
@@ -153,7 +152,7 @@ const sendToggleConnect = () => {
             credentialUUID: connectionInfo.value.credential,
             command: "",
         };
-        if (isFirstConnection.value){
+        if (isFirstConnection.value) {
             terminal.write(`\r\n`)
         }
         terminal.write(`Connecting to ${datas.host} ...\n\r`);
@@ -162,12 +161,22 @@ const sendToggleConnect = () => {
 };
 
 const reconnect = () => {
-    initSocket();
+    const baseDelay = 2000; // 每次增加2秒
+    const delay = Math.min(baseDelay * failureCount, 30000); // 最多30秒
+
+    setTimeout(() => {
+        failureCount++;
+        if (failureCount > 5) {
+            message.error("连接失败，请检查连接信息");
+            return;
+        }
+        initSocket();
+    }, delay);
+
 };
 
 onMounted(() => {
     if (!token) {
-        console.error("Token is empty");
         return;
     }
     initSocket();

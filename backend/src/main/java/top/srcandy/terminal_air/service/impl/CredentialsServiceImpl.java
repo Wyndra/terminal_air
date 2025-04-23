@@ -3,7 +3,7 @@ package top.srcandy.terminal_air.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import top.srcandy.terminal_air.pojo.vo.CredentialVO;
+import top.srcandy.terminal_air.pojo.vo.CredentialVo;
 import top.srcandy.terminal_air.converter.CredentialConverter;
 import top.srcandy.terminal_air.exception.ServiceException;
 import top.srcandy.terminal_air.mapper.CredentialsMapper;
@@ -43,7 +43,7 @@ public class CredentialsServiceImpl implements CredentialsService {
     private UserMapper userMapper;
 
     @Override
-    public CredentialVO generateKeyPair(String name, String tags) throws ServiceException, Exception {
+    public CredentialVo generateKeyPair(String name, String tags) throws ServiceException, Exception {
         String username = SecuritySessionUtils.getUsername();
         Long userId = SecuritySessionUtils.getUserId();
 
@@ -81,7 +81,7 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public List<CredentialVO> listCredentials() {
+    public List<CredentialVo> listCredentials() {
         log.info("用户 {} 获取凭据列表", SecuritySessionUtils.getUserId());
         Long userId = SecuritySessionUtils.getUserId();
         return credentialConverter.credentialList2VOList(credentialsMapper.selectCredentialsByUserId(userId));
@@ -145,7 +145,7 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public CredentialVO updateCredentialConnectId(CredentialConnectionRequest request) throws Exception {
+    public CredentialVo updateCredentialConnectId(CredentialConnectionRequest request) throws Exception {
         Long userId = SecuritySessionUtils.getUserId();
         Credential credential = credentialsMapper.selectCredentialByUidAndUuid(userId, request.getUuid());
         if (credential == null) {
@@ -218,7 +218,7 @@ public class CredentialsServiceImpl implements CredentialsService {
 
 
     @Override
-    public List<CredentialVO> selectBoundCredentialsByConnectionId(String uuid) throws Exception {
+    public List<CredentialVo> selectBoundCredentialsByConnectionId(String uuid) throws Exception {
         Long userId = SecuritySessionUtils.getUserId();
         List<Credential> credentials = credentialsMapper.selectBoundCredentialsByConnectionUuid(userId, uuid);
         return credentialConverter.credentialList2VOList(credentials);

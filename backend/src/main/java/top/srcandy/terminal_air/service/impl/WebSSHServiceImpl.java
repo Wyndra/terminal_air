@@ -8,7 +8,7 @@ import org.springframework.aop.framework.AopContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
-import top.srcandy.terminal_air.pojo.vo.WebSSHMessageResultVO;
+import top.srcandy.terminal_air.pojo.vo.WebSSHMessageResultVo;
 import top.srcandy.terminal_air.enums.ANSIColor;
 import top.srcandy.terminal_air.enums.ANSIStyle;
 import top.srcandy.terminal_air.pojo.SSHConnectInfo;
@@ -147,7 +147,7 @@ public class WebSSHServiceImpl implements WebSSHService {
      */
     @Override
     public void sendMessage(WebSocketSession session, byte[] buffer, String type, String message) throws IOException {
-        WebSSHMessageResultVO result = WebSSHMessageResultVO.builder()
+        WebSSHMessageResultVo result = WebSSHMessageResultVo.builder()
                 .type(type)
                 .msg(message)
                 .timestamp(System.currentTimeMillis())
