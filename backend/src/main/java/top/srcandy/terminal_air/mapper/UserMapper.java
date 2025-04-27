@@ -22,10 +22,13 @@ public interface UserMapper {
             @Result(property = "twoFactorAuthSecret", column = "twoFactorAuthSecret"),
             @Result(property = "createTime", column = "create_time"),
     })
-    @Select("SELECT * FROM User WHERE username = #{username}")
+    @Select("SELECT uid,username,nickname,password_hash,password,salt,email,phone,avatar,isTwoFactorAuth,twoFactorAuthSecret,create_time FROM User WHERE username = #{username}")
     User selectByUserName(String username);
 
-    @Select("SELECT * FROM User WHERE phone = #{phone}")
+    @Select("SELECT isTwoFactorAuth FROM User WHERE uid = #{uid}")
+    String getUserTowFactorAuthStatus(Long uid);
+
+    @Select("SELECT uid,username,nickname,password_hash,password,salt,email,phone,avatar,isTwoFactorAuth,twoFactorAuthSecret,create_time FROM User WHERE phone = #{phone}")
     @ResultMap("userResultMap")
     User selectByUserPhone(String phone);
 

@@ -38,9 +38,12 @@ serviceAxios.interceptors.request.use(
     }
 );
 
-// === 响应拦截器 ===
 serviceAxios.interceptors.response.use(
     (response) => {
+        if (response.config.responseType === 'blob') {
+            return response;
+        }
+
         const data = response.data;
 
         // 假设后端统一返回格式 { status, message, data }

@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.token.Sha512DigestUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import top.srcandy.terminal_air.mapper.TwoFactorAuthMapper;
 import top.srcandy.terminal_air.pojo.LoginUser;
 import top.srcandy.terminal_air.security.token.SmsCodeAuthenticationToken;
 import top.srcandy.terminal_air.security.token.TwoFactorAuthenticationToken;
@@ -49,6 +50,9 @@ public class AuthServiceImpl implements AuthService {
     private UserMapper userMapper;
 
     @Autowired
+    private TwoFactorAuthMapper twoFactorAuthMapper;
+
+    @Autowired
     private RedisService redisService;
 
     @Autowired
@@ -62,72 +66,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private MicrosoftAuth microsoftAuth;
-
-
-    @Override
-    @Deprecated
-    public ResponseResult<LoginResultVo> login(LoginRequest request) {
-        User result = userMapper.selectByUserName(request.getUsername());
-        if (result == null) {
-            return ResponseResult.fail(null, "用户不存在");
-        }
-        if (result.getPassword().equals(request.getPassword())) {
-            if (result.getIsTwoFactorAuth().equals("1")) {
-                return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
-            } else {
-                return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
-            }
-        }else {
-            return ResponseResult.fail(null, "用户名或密码错误");
-        }
-    }
-
-
-
-    @Override
-    @Deprecated
-    public ResponseResult<LoginResultVo> loginAndChangePassword(LoginRequest request) {
-        User result = userMapper.selectByUserName(request.getUsername());
-        Optional<User> userOptional = Optional.ofNullable(result);
-        if (userOptional.isEmpty()) {
-            return ResponseResult.fail(null, "用户不存在");
-        }
-        // 如果Password_hash为null
-        Optional<String> passwordHashOptional = Optional.ofNullable(result.getPassword_hash());
-        if (passwordHashOptional.isEmpty()) {
-            // 说明已经是高安全性密码
-            if (result.getPassword().equals(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()))) {
-                if (result.getIsTwoFactorAuth().equals("1")) {
-                    // 生成两步验证的Token
-                    return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
-                } else {
-                    // 直接生成token
-                    redisService.setObject("security:" + result.getUsername(), result, 24, TimeUnit.HOURS);
-                    return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
-                }
-            } else {
-                return ResponseResult.fail(null, "用户名或密码错误");
-            }
-        }else {
-            // 如果Password_hash不为null
-            if (result.getPassword_hash().equals(DigestUtils.md5DigestAsHex(request.getPassword().getBytes()))) {
-                // 说明是低安全性密码
-                result.setPassword(Sha512DigestUtils.shaHex(request.getPassword() + result.getSalt()));
-                // 原密码作废
-                result.setPassword_hash(null);
-                userMapper.update(result);
-                if (result.getIsTwoFactorAuth().equals("1")) {
-                    // 生成两步验证的Token
-                    return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateTwoFactorAuthSecretToken(result)).requireTwoFactorAuth(true).build());
-                } else {
-                    // 直接生成token
-                    return ResponseResult.success(LoginResultVo.builder().token(JWTUtil.generateToken(result)).requireTwoFactorAuth(false).build());
-                }
-            } else {
-                return ResponseResult.fail(null, "用户名或密码错误");
-            }
-        }
-    }
 
     @Override
     public ResponseResult<LoginResultVo> loginSecurity(LoginRequest request) {
@@ -161,11 +99,12 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 登录流程
-        if ("1".equals(user.getIsTwoFactorAuth())) {
+        String isTwoFactorAuth = twoFactorAuthMapper.getUserTwoFactorAuthStatus(user.getUid());
+        if ("1".equals(isTwoFactorAuth)) {
             // 开启两步验证
             log.info("用户 {} 进入了两步验证流程", user.getUsername());
             return ResponseResult.success(LoginResultVo.builder()
-                    .token(JWTUtil.generateTwoFactorAuthSecretToken(user))
+                    .token(JWTUtil.generateTwoFactorAuthSecretToken(user,twoFactorAuthMapper.getUserTwoFactorAuthSecret(user.getUid())))
                     .requireTwoFactorAuth(true)
                     .build());
         } else {

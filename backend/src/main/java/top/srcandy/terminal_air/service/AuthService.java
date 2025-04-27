@@ -10,9 +10,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 
 public interface AuthService {
-    ResponseResult<LoginResultVo> login(LoginRequest request);
-
-    ResponseResult<LoginResultVo> loginAndChangePassword(LoginRequest request);
 
     ResponseResult<LoginResultVo> loginSecurity(LoginRequest request);
 

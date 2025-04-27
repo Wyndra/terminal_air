@@ -1,189 +1,188 @@
 <template>
-    <!-- Main Content -->
-      <n-layout style="height: 100%;">
-        <n-layout-content content-style="padding: 24px;display: flex;gap:20px">
-          <n-card :title="cardName" style="max-width: 800px;">
-            <n-tabs type="line" animated @before-leave="handleBeforeLeave">
-              <!-- 个人信息标签页 -->
-              <n-tab-pane name="个人信息" tab="个人信息">
-                <div class="profile-container">
-                  <!-- 头像和基本信息区域 -->
-                  <div class="profile-header">
-                    <div class="avatar-section"
-                      style="display: flex;justify-content: center !important;align-items: center;">
-                      <n-avatar round :size="120" :src="userInfo.avatar || ''" class="main-avatar"></n-avatar>
-                      <n-upload :action="uploadUrl" :max-size="2097152" accept="image/*"
-                        @before-upload="handleBeforeUpload" @error="handleUploadError" :custom-request="customUpload">
-                        <n-button type="text" size="small" class="change-avatar-btn">创建你的头像</n-button>
-                      </n-upload>
-                    </div>
-                    <div class="basic-info">
-                      <h2>{{ userInfo.nickname || userInfo.username }}</h2>
-                      <p class="user-id">ID: {{ userInfo.username }}</p>
-                    </div>
-                  </div>
-
-                  <!-- 信息展示/编辑区域 -->
-                  <div class="info-section">
-                    <div class="section-header">
-                      <h3>详细信息</h3>
-                    </div>
-                    <!-- 展示模式 -->
-                    <n-descriptions :column="2" label-align="left" style="margin-top: 16px">
-                      <n-descriptions-item v-for="(field, key) in editableFields" :key="field.key" :label="field.label"
-                        class="info-item">
-                        <div class="value-wrapper">
-                          <n-text>{{ userInfo[field.key] }}</n-text>
-                          <n-button v-if="field.editable" secondary size="small" text @click="openEditDialog(field)">
-                            <n-text style="color: cornflowerblue;">
-                              编辑
-                            </n-text>
-                          </n-button>
-                        </div>
-                      </n-descriptions-item>
-                    </n-descriptions>
-
-                    <!-- 编辑弹窗 -->
-                    <n-modal v-model:show="showEditModal" preset="card" :title="`修改${currentField?.label || ''}`"
-                      style="width:500px" :bordered="false" transform-origin="center">
-
-                      <n-form :model="editForm" ref="editFormRef" :rules="getFieldRules" label-placement="left">
-                        <n-form-item :path="currentField?.key || ''" :label="currentField?.label">
-                          <n-input v-model:value="editForm.value" :placeholder="`请输入${currentField?.label || ''}`" />
-                        </n-form-item>
-                      </n-form>
-                      <!-- <template #action> -->
-                      <n-space style="justify-content: flex-end;">
-                        <n-button size="small" @click="showEditModal = false">取消</n-button>
-                        <n-button size="small" type="primary" @click="handleFieldUpdate">确认</n-button>
-                      </n-space>
-                      <!-- </template> -->
-                    </n-modal>
-                  </div>
+  <!-- Main Content -->
+  <n-layout style="height: 100%;">
+    <n-layout-content content-style="padding: 24px;display: flex;gap:20px">
+      <n-card :title="cardName" style="max-width: 800px;">
+        <n-tabs type="line" animated @before-leave="handleBeforeLeave">
+          <!-- 个人信息标签页 -->
+          <n-tab-pane name="个人信息" tab="个人信息">
+            <div class="profile-container">
+              <!-- 头像和基本信息区域 -->
+              <div class="profile-header">
+                <div class="avatar-section"
+                  style="display: flex;justify-content: center !important;align-items: center;">
+                  <n-avatar round :size="120" :src="userInfo.avatar || ''" class="main-avatar"></n-avatar>
+                  <n-upload :action="uploadUrl" :max-size="2097152" accept="image/*" @before-upload="handleBeforeUpload"
+                    @error="handleUploadError" :custom-request="customUpload">
+                    <n-button type="text" size="small" class="change-avatar-btn">创建你的头像</n-button>
+                  </n-upload>
                 </div>
-              </n-tab-pane>
-              <n-tab-pane name="帐号安全" tab="帐号安全">
-                <n-form label-placement="left" label-width="120px" label-align="left">
-                  <n-form-item label="登录密码">
-                    <div class="two-factor-wrapper">
-                      <n-button @click="showChangePasswordModal = true">更改密码</n-button>
-                      <span class="description-text">当发现自己密码泄露，应立即更改密码。</span>
+                <div class="basic-info">
+                  <h2>{{ userInfo.nickname || userInfo.username }}</h2>
+                  <p class="user-id">ID: {{ userInfo.username }}</p>
+                </div>
+              </div>
+
+              <!-- 信息展示/编辑区域 -->
+              <div class="info-section">
+                <div class="section-header">
+                  <h3>详细信息</h3>
+                </div>
+                <!-- 展示模式 -->
+                <n-descriptions :column="2" label-align="left" style="margin-top: 16px">
+                  <n-descriptions-item v-for="(field, key) in editableFields" :key="field.key" :label="field.label"
+                    class="info-item">
+                    <div class="value-wrapper">
+                      <n-text>{{ userInfo[field.key] }}</n-text>
+                      <n-button v-if="field.editable" secondary size="small" text @click="openEditDialog(field)">
+                        <n-text style="color: cornflowerblue;">
+                          编辑
+                        </n-text>
+                      </n-button>
                     </div>
-                  </n-form-item>
-                </n-form>
-                <n-form :model="userInfo" label-placement="left" label-width="120px" label-align="left">
-                  <n-form-item label="双重认证">
-                    <div class="two-factor-wrapper">
-                      <n-button @click="showTwoFactorAuthLockByPasswordModal = true">{{ userInfo.twoFactorAuth ?
-                        "更改验证方法" : "添加验证方法" }}</n-button>
-                      <span class="description-text">使用一次性代码验证你的身份，以确保你的帐号安全。</span>
-                    </div>
-                  </n-form-item>
-                </n-form>
-              </n-tab-pane>
-            </n-tabs>
-          </n-card>
-          <CredentialsManage />
-        </n-layout-content>
-      </n-layout>
+                  </n-descriptions-item>
+                </n-descriptions>
+
+                <!-- 编辑弹窗 -->
+                <n-modal v-model:show="showEditModal" preset="card" :title="`修改${currentField?.label || ''}`"
+                  style="width:500px" :bordered="false" transform-origin="center">
+
+                  <n-form :model="editForm" ref="editFormRef" :rules="getFieldRules" label-placement="left">
+                    <n-form-item :path="currentField?.key || ''" :label="currentField?.label">
+                      <n-input v-model:value="editForm.value" :placeholder="`请输入${currentField?.label || ''}`" />
+                    </n-form-item>
+                  </n-form>
+                  <!-- <template #action> -->
+                  <n-space style="justify-content: flex-end;">
+                    <n-button size="small" @click="showEditModal = false">取消</n-button>
+                    <n-button size="small" type="primary" @click="handleFieldUpdate">确认</n-button>
+                  </n-space>
+                  <!-- </template> -->
+                </n-modal>
+              </div>
+            </div>
+          </n-tab-pane>
+          <n-tab-pane name="帐号安全" tab="帐号安全">
+            <n-form label-placement="left" label-width="120px" label-align="left">
+              <n-form-item label="登录密码">
+                <div class="two-factor-wrapper">
+                  <n-button @click="showChangePasswordModal = true">更改密码</n-button>
+                  <span class="description-text">当发现自己密码泄露，应立即更改密码。</span>
+                </div>
+              </n-form-item>
+            </n-form>
+            <n-form :model="userInfo" label-placement="left" label-width="120px" label-align="left">
+              <n-form-item label="双重认证">
+                <div class="two-factor-wrapper">
+                  <n-button @click="handleTwoFactorAuthClick">{{ twoFactorAuthStatus ?
+                    "更改验证方法" : "添加验证方法" }}</n-button>
+                  <span class="description-text">使用一次性代码验证你的身份，以确保你的帐号安全。</span>
+                </div>
+              </n-form-item>
+            </n-form>
+          </n-tab-pane>
+        </n-tabs>
+      </n-card>
+      <CredentialsManage />
+    </n-layout-content>
+  </n-layout>
 
 
-    <!-- 密钥 密码解锁弹出框 -->
-    <UseLockByPasswordModal v-model:show="showLockByPasswordModal"
-      @unlockByPasswordEvent="handleVerifyUserPasswordResult" />
+  <!-- 密钥 密码解锁弹出框 -->
+  <UseLockByPasswordModal v-model:show="showLockByPasswordModal"
+    @unlockByPasswordEvent="handleVerifyUserPasswordResult" />
 
-    <!-- 双重认证密码解锁弹出框 -->
-    <UseLockByPasswordModal v-model:show="showTwoFactorAuthLockByPasswordModal"
-      @unlockByPasswordEvent="handleTwoFactorAuthVerifyResult" />
+  <!-- 双重认证密码解锁弹出框 -->
+  <UseLockByPasswordModal v-model:show="showTwoFactorAuthLockByPasswordModal"
+    @unlockByPasswordEvent="handleTwoFactorAuthVerifyResult" />
 
-    <!-- 双重认证管理弹出框 -->
-    <TwoFactorAuthManageModal v-model:show="showTwoFactorAuthManageModal" @close="showTwoFactorAuthManageModal = false"
-      @twoFactorAuthResultEvent="handleTwoFactorAuthResult" />
+  <!-- 双重认证管理弹出框 -->
+  <TwoFactorAuthManageModal v-model:show="showTwoFactorAuthManageModal" @close="showTwoFactorAuthManageModal = false"
+    @twoFactorAuthResultEvent="handleTwoFactorAuthResult" />
 
-    <!-- 密码修改弹出框 -->
-    <ChangePasswordModal v-model:show="showChangePasswordModal" @close="showChangePasswordModal = false" />
+  <TwoFactorAuthVerifyModal @verifySuccess="handleTwoFactorAuthSuccess" v-model:show="showSelectVerifyMethodModal"
+    @close="showSelectVerifyMethodModal = false" />
 
-    <!-- TOTP 解锁弹出框 -->
-    <UseLockByTotpModal v-model:show="showLockByTotpModal" @unlockByTotpEvent="handleVerifyUserTotpResult" />
+  <!-- 密码修改弹出框 -->
+  <ChangePasswordModal v-model:show="showChangePasswordModal" @close="showChangePasswordModal = false" />
 
-    <!-- 登录/注册模态框 -->
-    <n-modal v-model:show="showLoginOrRegisterModal">
-      <LoginAndRegisterModal @close="showLoginOrRegisterModal = false" />
-    </n-modal>
+  <!-- TOTP 解锁弹出框 -->
+  <UseLockByTotpModal v-model:show="showLockByTotpModal" @unlockByTotpEvent="handleVerifyUserTotpResult" />
 
-    <!-- 验证码弹窗 -->
-    <n-modal v-model:show="showVerifyModal" preset="card" :title="`验证${currentField?.label || ''}`"
-      style="width: 500px">
-      <n-form>
-        <n-form-item label="验证码">
-          <n-input v-model:value="phone" placeholder="请输入手机号" />
-          <n-input-group>
-            <n-input v-model:value="verifyCode" placeholder="请输入验证码" />
-            <n-button type="primary" ghost>获取验证码</n-button>
-          </n-input-group>
-        </n-form-item>
-      </n-form>
-      <template #footer>
-        <n-space justify="end">
-          <n-button size="small" @click="showVerifyModal = false">取消</n-button>
-          <n-button size="small" type="primary" :disabled="!verifyCode" @click="handleVerifySubmit">
-            确认
+  <!-- 登录/注册模态框 -->
+  <n-modal v-model:show="showLoginOrRegisterModal">
+    <LoginAndRegisterModal @close="showLoginOrRegisterModal = false" />
+  </n-modal>
+
+  <!-- 验证码弹窗 -->
+  <n-modal v-model:show="showVerifyModal" preset="card" :title="`验证${currentField?.label || ''}`" style="width: 500px">
+    <n-form>
+      <n-form-item label="验证码">
+        <n-input v-model:value="phone" placeholder="请输入手机号" />
+        <n-input-group>
+          <n-input v-model:value="verifyCode" placeholder="请输入验证码" />
+          <n-button type="primary" ghost>获取验证码</n-button>
+        </n-input-group>
+      </n-form-item>
+    </n-form>
+    <template #footer>
+      <n-space justify="end">
+        <n-button size="small" @click="showVerifyModal = false">取消</n-button>
+        <n-button size="small" type="primary" :disabled="!verifyCode" @click="handleVerifySubmit">
+          确认
+        </n-button>
+      </n-space>
+    </template>
+  </n-modal>
+
+  <!-- 新手机号验证弹窗 -->
+  <n-modal v-model:show="showVerifyModal" preset="card" :title="`验证${currentField?.label || ''}`" style="width: 500px">
+    <n-form :model="phoneForm" :rules="phoneRules" ref="phoneFormRef">
+      <n-form-item label="新手机号" path="newPhone">
+        <n-input v-model:value="phoneForm.newPhone" placeholder="请输入新手机号" />
+      </n-form-item>
+      <n-form-item label="验证码" path="verifyCode">
+        <n-input-group>
+          <n-input v-model:value="phoneForm.verifyCode" placeholder="请输入验证码" />
+          <n-button :disabled="!canSendCode" type="primary" ghost @click="handleSendCode">
+            {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
           </n-button>
-        </n-space>
-      </template>
-    </n-modal>
-
-    <!-- 新手机号验证弹窗 -->
-    <n-modal v-model:show="showVerifyModal" preset="card" :title="`验证${currentField?.label || ''}`"
-      style="width: 500px">
-      <n-form :model="phoneForm" :rules="phoneRules" ref="phoneFormRef">
-        <n-form-item label="新手机号" path="newPhone">
-          <n-input v-model:value="phoneForm.newPhone" placeholder="请输入新手机号" />
-        </n-form-item>
-        <n-form-item label="验证码" path="verifyCode">
-          <n-input-group>
-            <n-input v-model:value="phoneForm.verifyCode" placeholder="请输入验证码" />
-            <n-button :disabled="!canSendCode" type="primary" ghost @click="handleSendCode">
-              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
-            </n-button>
-          </n-input-group>
-        </n-form-item>
-      </n-form>
-      <template #footer>
-        <n-space justify="end">
-          <n-button size="small" @click="showPhoneVerifyModal = false">取消</n-button>
-          <n-button size="small" type="primary" :disabled="!phoneForm.verifyCode" @click="handlePhoneUpdate">
-            确认
+        </n-input-group>
+      </n-form-item>
+    </n-form>
+    <template #footer>
+      <n-space justify="end">
+        <n-button size="small" @click="showPhoneVerifyModal = false">取消</n-button>
+        <n-button size="small" type="primary" :disabled="!phoneForm.verifyCode" @click="handlePhoneUpdate">
+          确认
+        </n-button>
+      </n-space>
+    </template>
+  </n-modal>
+  <!-- 验证原手机号弹窗 -->
+  <n-modal v-model:show="showVerifyOldPhoneModal" preset="card" title="验证原手机号" style="width: 500px">
+    <n-form :model="oldPhoneForm" :rules="oldPhoneRules" ref="oldPhoneFormRef">
+      <n-form-item label="原手机号" path="oldPhone">
+        <n-input v-model:value="oldPhoneForm.oldPhone" placeholder="请输入原手机号" disabled />
+      </n-form-item>
+      <n-form-item label="验证码" path="verifyCode">
+        <n-input-group>
+          <n-input v-model:value="oldPhoneForm.verifyCode" placeholder="请输入验证码" />
+          <n-button :disabled="oldPhoneForm.oldPhone == undefined" type="primary" ghost @click="handleSendOldPhoneCode">
+            {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
           </n-button>
-        </n-space>
-      </template>
-    </n-modal>
-    <!-- 验证原手机号弹窗 -->
-    <n-modal v-model:show="showVerifyOldPhoneModal" preset="card" title="验证原手机号" style="width: 500px">
-      <n-form :model="oldPhoneForm" :rules="oldPhoneRules" ref="oldPhoneFormRef">
-        <n-form-item label="原手机号" path="oldPhone">
-          <n-input v-model:value="oldPhoneForm.oldPhone" placeholder="请输入原手机号" disabled />
-        </n-form-item>
-        <n-form-item label="验证码" path="verifyCode">
-          <n-input-group>
-            <n-input v-model:value="oldPhoneForm.verifyCode" placeholder="请输入验证码" />
-            <n-button :disabled="oldPhoneForm.oldPhone == undefined" type="primary" ghost
-              @click="handleSendOldPhoneCode">
-              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
-            </n-button>
-          </n-input-group>
-        </n-form-item>
-      </n-form>
-      <template #footer>
-        <n-space justify="end">
-          <n-button size="small" @click="showVerifyOldPhoneModal = false">取消</n-button>
-          <n-button size="small" type="primary" :disabled="!oldPhoneForm.verifyCode"
-            @click="handleVerifyOldPhoneSubmit">
-            确认
-          </n-button>
-        </n-space>
-      </template>
-    </n-modal>
+        </n-input-group>
+      </n-form-item>
+    </n-form>
+    <template #footer>
+      <n-space justify="end">
+        <n-button size="small" @click="showVerifyOldPhoneModal = false">取消</n-button>
+        <n-button size="small" type="primary" :disabled="!oldPhoneForm.verifyCode" @click="handleVerifyOldPhoneSubmit">
+          确认
+        </n-button>
+      </n-space>
+    </template>
+  </n-modal>
 
 
 </template>
@@ -193,7 +192,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
 import { getUserInfo, updateUserInfo, getUserAvatar } from '@/api/auth';
-import { switchTwoFactorAuth, getTwoFactorAuthSecretQRCode } from '@/api/mfa';
+import { switchTwoFactorAuth, getTwoFactorAuthSecretQRCode, getTwoFactorAuthStatus } from '@/api/mfa';
 import { sendSmsCodeByToken, sendVerificationCode, verifyCode } from '@/api/sms';
 import { generatePresignUrl } from "@/api/avatar"
 import axios from 'axios';
@@ -205,6 +204,7 @@ import UseLockByPasswordModal from '@/components/modal/UseLockByPasswordModal.vu
 import UseLockByTotpModal from '@/components/modal/UseLockByTOTPModal.vue';
 import TwoFactorAuthManageModal from '@/components/modal/TwoFactorAuthManageModal.vue';
 import CredentialsManage from '@/components/card/CredentialsManageCard.vue';
+import TwoFactorAuthVerifyModal from '@/components/modal/TwoFactorAuthVerifyModal.vue';
 
 
 const store = useStore();
@@ -212,6 +212,7 @@ const message = useMessage();
 const userInfoForm = ref(null);  // 添加表单引用
 const cardName = ref("个人中心");
 const showLoginOrRegisterModal = ref(false);
+const showSelectVerifyMethodModal = ref(false);
 
 // 定义表单初始值
 const userInfo = ref({
@@ -223,8 +224,25 @@ const userInfo = ref({
   nickname: '',
   phone: '',
   avatar: '',
-  twoFactorAuth: false,
 });
+
+const twoFactorAuthStatus = ref(false);
+
+const handleTwoFactorAuthClick = async () => {
+  if (twoFactorAuthStatus.value) {
+    // 如果已经启用双重认证，选择验证方式
+    showSelectVerifyMethodModal.value = true;
+  } else {
+    // 如果未启用双重认证，则显示密码验证弹窗
+    showLockByPasswordModal.value = true;
+  }
+}
+
+const handleTwoFactorAuthSuccess = async () => {
+  // 处理双重认证成功后的逻辑
+  showSelectVerifyMethodModal.value = false;
+  showTwoFactorAuthManageModal.value = true;
+};
 
 const safeSettingForm = ref({
   salt: ''
@@ -243,9 +261,8 @@ const showChangePasswordModal = ref(false);
 const handleTwoFactorAuthVerifyResult = (isUnlocked) => {
   if (isUnlocked) {
     // 解锁成功，并关闭弹窗
-    showTwoFactorAuthLockByPasswordModal.value = false;
-    // 打开双重认证弹窗
-    showTwoFactorAuthManageModal.value = true;
+    // showTwoFactorAuthLockByPasswordModal.value = false;
+    showTwoFactorAuthManageModal.value = true
   } else {
     saltLockStatus.value = false;
   }
@@ -272,7 +289,6 @@ async function fetchUserInfo() {
       userInfo.value = userData;
       localStorage.removeItem('userAvatar');
       localStorage.setItem('userAvatar', userInfo.value.avatar);
-      // 如果开启了双重认证，获取二维码
       if (userData.twoFactorAuth) {
         await fetchQRCode();
       }
@@ -313,10 +329,9 @@ const handleSubmit = async () => {
 const handleVerifyUserPasswordResult = (isUnlocked) => {
   if (isUnlocked) {
     // 解锁成功，并关闭弹窗
-    saltLockStatus.value = true;
     showLockByPasswordModal.value = false;
+    showTwoFactorAuthManageModal.value = true
   } else {
-    saltLockStatus.value = false;  // 解锁失败，继续显示弹窗
   }
 };
 
@@ -741,10 +756,17 @@ const handleVerifyOldPhoneSubmit = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (InLogin.value) {
     fetchUserInfo();
   }
+  await getTwoFactorAuthStatus().then(res => {
+    if (res.status == 200) {
+      twoFactorAuthStatus.value = res.data;
+    }
+  }).catch(err => {
+    console.error(err)
+  })
 });
 </script>
 

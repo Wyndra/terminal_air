@@ -47,7 +47,7 @@ public class JWTUtil {
         return null;
     }
 
-    public static String generateTwoFactorAuthSecretToken(User user) {
+    public static String generateTwoFactorAuthSecretToken(User user, String twoFactorAuthSecret) {
         // 5分钟过期
         Date expireDate = new Date(System.currentTimeMillis() + 600 * 1000);
         try {
@@ -56,7 +56,7 @@ public class JWTUtil {
                     .withIssuedAt(new Date())
                     .withExpiresAt(expireDate)
                     .withClaim("username", user.getUsername())
-                    .withClaim("twoFactorAuthSecret", AESUtils.encryptToHex(user.getTwoFactorAuthSecret(), user.getSalt()))
+                    .withClaim("twoFactorAuthSecret", AESUtils.encryptToHex(twoFactorAuthSecret, user.getSalt()))
                     .sign(algorithm);
         } catch (JWTCreationException e) {
             log.info(e.getMessage());

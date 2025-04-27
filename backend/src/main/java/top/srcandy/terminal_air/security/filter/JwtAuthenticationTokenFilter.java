@@ -30,7 +30,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     @Autowired
     private RedisService redisService;
 
-    private final List<String> twoFactorAuthTokenWhiteList = List.of("/api/auth/getUserAvatar","/api/auth/loginRequireTwoFactorAuth", "/api/mfa/verifyTwoFactorAuthCode");
+    private final List<String> twoFactorAuthTokenWhiteList = List.of("/api/auth/getUserAvatar","/api/auth/loginRequireTwoFactorAuth");
 
     private final List<String> shortTokenWhiteList = List.of("/api/credentials/update/status/shortToken","/api/credentials/get/status/shortToken/**");
 

@@ -14,9 +14,15 @@ import { useStore } from "vuex";
 import serverConfig from "@/utils/config";
 import { useMessage } from "naive-ui";
 
-const token = localStorage.getItem("token") || "";
-
+const token = localStorage.getItem("token");
 const store = useStore();
+
+watch(() => store.getters.isLoggedIn, (value) => {
+    InLogin.value = value;
+});
+
+const InLogin = ref(store.getters.isLoggedIn);
+
 const message = useMessage();
 
 const socketURI = serverConfig.wsURL + "?token=" + token;
@@ -161,6 +167,9 @@ const sendToggleConnect = () => {
 };
 
 const reconnect = () => {
+    if (!InLogin.value) {
+        return;
+    }
     const baseDelay = 2000; // 每次增加2秒
     const delay = Math.min(baseDelay * failureCount, 30000); // 最多30秒
 
