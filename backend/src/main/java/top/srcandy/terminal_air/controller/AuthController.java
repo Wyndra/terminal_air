@@ -31,7 +31,6 @@ public class AuthController {
     @Operation(summary = "用户登录")
     public ResponseResult<LoginResultVo> login(@Valid @RequestBody(required = false) @NonNull LoginRequest request) {
         log.info("login user:{}", request);
-        // 请求转到SpringSecurity的认证
         return authService.loginSecurity(request);
     }
 

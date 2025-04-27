@@ -9,6 +9,7 @@
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
     "@vicons/ionicons4": "^0.13.0",
+    "@vicons/material": "^0.13.0",
     "axios": "^1.7.3",
     "core-js": "^3.8.3",
     "highlight.js": "^11.11.1",

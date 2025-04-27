@@ -1397,6 +1397,11 @@
   "resolved" "https://registry.npmmirror.com/@vicons/ionicons5/-/ionicons5-0.12.0.tgz"
   "version" "0.12.0"
 
+"@vicons/material@^0.13.0":
+  "integrity" "sha512-lKVxFNprM+CaBkUH3gt6VjIeiMsKQl2zARQMwTCZruQl2vRHzyeZiKeCflWS99CEfv2JzX/6y697smxlzyxcVw=="
+  "resolved" "https://registry.npmmirror.com/@vicons/material/-/material-0.13.0.tgz"
+  "version" "0.13.0"
+
 "@vicons/tabler@^0.13.0":
   "integrity" "sha512-AykuhiqjszkIoAL/7knIFm6RDOBS1ZmQdJfQ+RNLEah0fVsxykUFCfMBSNZh8lOzC85EtdD1k5g/sv5GYk0Ohg=="
   "resolved" "https://registry.npmmirror.com/@vicons/tabler/-/tabler-0.13.0.tgz"
