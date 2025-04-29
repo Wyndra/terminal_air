@@ -25,6 +25,11 @@ const routes = [
     path: '/privacy-policy',
     name: 'privacy-policy',
     component: () => import('../views/PrivacyPolicyView.vue'),
+  },
+  {
+    path: '/inv',
+    name: "SessionRedirect",
+    component: () => import('../views/SessionRedirect.vue'),
   }
 ]
 
