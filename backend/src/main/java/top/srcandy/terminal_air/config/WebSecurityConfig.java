@@ -130,6 +130,10 @@ public class WebSecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
+                            String ip = request.getHeader("X-Forwarded-For");
+                            if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+                                ip = request.getRemoteAddr();
+                            }
                             if (authException instanceof BadCredentialsException) {
                                 response.setCharacterEncoding("UTF-8");
                                 response.setContentType("application/json;charset=UTF-8");
@@ -142,7 +146,8 @@ public class WebSecurityConfig {
                                 response.setCharacterEncoding("UTF-8");
                                 response.setContentType("application/json;charset=UTF-8");
                                 response.setStatus(401);
-                                log.warn("未认证请求：{}", request.getRequestURI());
+                                // 识别到可能为攻击的
+                                log.error("来自 {} 未认证请求：{} ", ip, request.getRequestURI());
                                 ObjectMapper mapper = new ObjectMapper();
                                 ResponseResult<?> result = ResponseResult.unauthorized("未登录，请先登录");
                                 response.getWriter().write(mapper.writeValueAsString(result));

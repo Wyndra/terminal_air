@@ -38,13 +38,17 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, ServiceException {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
         String token = request.getHeader("Authorization");
 
         if (StringUtils.isBlank(token)){
             filterChain.doFilter(request, response);
             return;
         }
-        log.info("{} 访问了接口: {}", Optional.ofNullable(JWTUtil.getTokenClaimMap(token.substring(7)).get("username").asString()).orElse("匿名用户"), request.getRequestURI());
+        log.info("{} 访问了接口: {}", Optional.ofNullable(JWTUtil.getTokenClaimMap(token.substring(7)).get("username").asString()).orElse("匿名用户" + ip), request.getRequestURI());
         if (twoFactorAuthTokenWhiteList.contains(request.getRequestURI())) {
             JWTUtil.validateTwoFactorAuthSecretToken(token.substring(7));
             filterChain.doFilter(request, response);

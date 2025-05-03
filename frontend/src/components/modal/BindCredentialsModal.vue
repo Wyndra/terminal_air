@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineProps,watch } from "vue";
+import { ref, defineEmits,watch } from "vue";
 import { IosLink } from "@vicons/ionicons4";
 import serverConfig from "@/utils/config";
 import { list } from "@/api/connection"
