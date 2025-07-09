@@ -28,7 +28,7 @@ import java.util.ArrayList;
 @Slf4j
 @Validated
 @RequestMapping("/api/mfa")
-@Tag(name = "Multi Factor Authentication Service", description = "多因素认证接口")
+@Tag(name = "多因素认证接口", description = "多因素认证接口")
 public class MultiFactorAuthenticationController {
 
     @Autowired
@@ -40,55 +40,55 @@ public class MultiFactorAuthenticationController {
     @Autowired
     private TwoFactorAuthMapper twoFactorAuthMapper;
 
-    @GetMapping("/switchTwoFactorAuth")
+    @GetMapping("/switch")
     @Operation(summary = "关闭/开启两步验证")
     public ResponseResult<Boolean> switchTwoFactorAuth() {
         return ResponseResult.success(multiFactorAuthenticationService.switchTwoFactorAuth());
     }
 
-    @GetMapping("/twoFactorAuth/init")
+    @GetMapping("/init")
     @Operation(summary = "初始化用户两步验证")
     public ResponseResult<String> initTwoFactorAuth() {
         return ResponseResult.success(multiFactorAuthenticationService.initTwoFactorAuth());
     }
 
-    @PostMapping("/twoFactorAuth/enable")
+    @PostMapping("/enable")
     @Operation(summary = "开启两步验证")
     public ResponseResult<EnableTwoFactorAuthVo> enableTwoFactorAuth(@RequestBody(required = false) EnableTwoFactorAuthCodeRequest request){
         return ResponseResult.success(multiFactorAuthenticationService.enableTwoFactorAuth(request));
     }
 
-    @GetMapping("/twoFactorAuth/backup")
+    @GetMapping("/backup")
     @Operation(summary = "下载一次性验证码备份")
     public ResponseEntity<Resource> downloadOneTimeCodeBackup() {
         return multiFactorAuthenticationService.downloadOneTimeCodeBackup();
     }
 
-    @GetMapping("/twoFactorAuth/status")
+    @GetMapping("/status")
     @Operation(summary = "获取当前用户两步验证状态")
     public ResponseResult<Boolean> getCurrentTwoFactorAuthStatus(){
         return ResponseResult.success(multiFactorAuthenticationService.getCurrentTwoFactorAuthStatus());
     }
 
-    @GetMapping("/getTwoFactorAuthSecretQRCode")
+    @GetMapping("/qrcode")
     @Operation(summary = "获取两步验证二维码")
     public ResponseResult<String> getTwoFactorAuthSecretQRCode() {
         return ResponseResult.success(multiFactorAuthenticationService.getTwoFactorAuthSecretQRCode());
     }
 
-    @PostMapping("/verifyTwoFactorAuthCode")
+    @PostMapping("/verify")
     @Operation(summary = "验证两步验证验证码")
     public ResponseResult<Boolean> verifyTwoFactorAuthCode(@RequestBody(required = false) VerifyTwoFactorAuthCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return ResponseResult.success(multiFactorAuthenticationService.verifyTwoFactorAuthCode(request));
     }
 
-    @PostMapping("/verifyOneTimeBackupCode")
+    @PostMapping("/one-time-code-backup/verify")
     @Operation(summary = "验证一次性备份验证码")
     public ResponseResult<Boolean> verifyOneTimeBackupCode(@RequestBody(required = false) VerifyOneTimeBackupCodeRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         return ResponseResult.success(multiFactorAuthenticationService.verifyOneTimeBackupCode(request));
     }
 
-    @GetMapping("/getTwoFactorAuthTitle")
+    @GetMapping("/title")
     @Operation(summary = "获取身份验证器的名称")
     public ResponseResult<String> getTwoFactorAuthTitle() {
         return ResponseResult.success(multiFactorAuthenticationService.getTwoFactorAuthTitle());
@@ -102,13 +102,13 @@ public class MultiFactorAuthenticationController {
         return ResponseResult.success(JWTUtil.generateTwoFactorAuthSecretToken(authService.getUserByUsername(username),twoFactorAuthMapper.getUserTwoFactorAuthSecret(SecuritySessionUtils.getUserId())));
     }
 
-    @GetMapping("/refreshOneTimeCodeBackup")
+    @GetMapping("/one-time-code-backup/refresh")
     @Operation(summary = "刷新一次性备份验证码")
     public ResponseResult<ArrayList<String>> refreshOneTimeCodeBackup() throws GeneralSecurityException, UnsupportedEncodingException {
         return ResponseResult.success(multiFactorAuthenticationService.refreshOneTimeCodeBackupList());
     }
 
-    @GetMapping("/disableTwoFactorAuth")
+    @GetMapping("/disable")
     @Operation(summary = "关闭两步验证")
     public ResponseResult<Void> disableTwoFactorAuth() {
         multiFactorAuthenticationService.disableTwoFactorAuth();

@@ -4,8 +4,8 @@
       show-trigger="bar" show-collapsed-content="false">
       <!-- 判断是否未登录 -->
       <div v-if="!InLogin"
-        style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center;">
-        <p>请登录以查看连接信息。</p>
+        style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center;gap:8px">
+        <p>登录以查看连接信息。</p>
         <n-button @click="openLoginModal" type="primary">登录</n-button>
       </div>
 
@@ -58,7 +58,7 @@
 import { ref, onMounted, watch, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useMessage } from 'naive-ui';
-import { list } from '@/api/connection';
+import { list,list2 } from '@/api/connection';
 
 import CreateConnectionButton from '@/components/CreateConnectionButton.vue';
 import ConnectionItem from '@/components/ConnectionItem.vue';

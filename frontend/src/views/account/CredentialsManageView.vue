@@ -1,5 +1,5 @@
 <template>
-    <n-card title="凭证中心" style="min-width: 1000px;max-height: 625px;height: 100vh;" 
+    <n-card title="凭证中心" :style="{ height: 'calc(100% - 200px)' }"
         content-style="display: flex; flex-direction: column;gap: 20px;">
         <template #header-extra>
             <div style="display: flex;align-items: center;">
@@ -17,7 +17,7 @@
                     @click="createCredentialsModalVisible = true">创建凭证</n-button>
             </div>
             <div class="other-area">
-                <n-button circle size="small" @click="() => {fetchCredentials();loading();message.success('刷新成功');}">
+                <n-button circle size="small" @click="() => { fetchCredentials(); loading(); message.success('刷新成功'); }">
                     <n-icon>
                         <RefreshSharp />
                     </n-icon>
@@ -120,7 +120,7 @@ const credentialsColumns = [
         className: 'columns',
         render(row) {
             if (!row.tags) return h('div', '')
-            const tags = row.tags.split('|') 
+            const tags = row.tags.split('|')
             return h(
                 'div',
                 tags.map((tag) =>
@@ -173,7 +173,7 @@ const credentialsColumnsOptions = [
     { label: '凭证状态', value: 'status' },
     { label: '凭证标签', value: 'tags' },
     { label: '凭证创建时间', value: 'createTime' },
-    { label: '操作', value: 'actions'}
+    { label: '操作', value: 'actions' }
 ]
 
 // 当前选中的列（默认全部）

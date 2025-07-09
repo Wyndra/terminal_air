@@ -20,7 +20,7 @@ import java.util.Objects;
 @Slf4j
 @Validated
 @RequestMapping("/api/turnstile")
-@Tag(name = "Turnstile Service", description = "Cloudflare Turnstile 认证服务")
+@Tag(name = "Cloudflare Turnstile 认证服务", description = "Cloudflare Turnstile 认证服务")
 public class TurnstileController {
 
     @Autowired

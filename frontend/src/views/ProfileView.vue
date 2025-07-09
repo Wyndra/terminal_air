@@ -889,12 +889,10 @@ span {
     h2 {
       margin: 0;
       font-size: 24px;
-      color: #333;
     }
 
     .user-id {
       margin: 4px 0 0;
-      color: #666;
       font-size: 14px;
       font-family: ui-sans-serif, -apple-system, system-ui;
     }
@@ -911,7 +909,6 @@ span {
     h3 {
       margin: 0;
       font-size: 18px;
-      color: #333;
     }
   }
 }

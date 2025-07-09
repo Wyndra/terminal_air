@@ -8,7 +8,7 @@
                     编辑连接
                 </span>
             </template>
-            <n-card bordered style="background-color: #fff;">
+            <n-card bordered>
                 <n-form label-position="top" :model="connectionForm" ref="connectionFormRef"
                     :rules="connectionFormRule">
                     <n-form-item label="连接名称" path="name">
@@ -36,7 +36,7 @@
                                 show-password-on="mousedown" style="width: 100%;" />
                             <!-- 说明文字 -->
                             <span style="font-size: 12px; color: #999; margin-top: 4px;">
-                                此处显示加密后的密码，Terminal Air 遵守我们的
+                                加密后的密码，Terminal Air 遵守我们的
                                 <a href="/privacy-policy" target="_blank"
                                     style="color: #007bff; text-decoration: none;">隐私政策</a> 。
                             </span>

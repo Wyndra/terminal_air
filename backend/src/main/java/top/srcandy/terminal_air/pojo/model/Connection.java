@@ -3,6 +3,7 @@ package top.srcandy.terminal_air.pojo.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
+import top.srcandy.terminal_air.pojo.vo.CredentialVo;
 
 import java.io.Serializable;
 
@@ -11,87 +12,103 @@ import java.io.Serializable;
 public class Connection implements Serializable {
     private static final long serialVersionUID = 5L;
     @Schema(description = "连接id")
-    private Long cid;
+    private Long id;
     @Schema(description = "连接uuid")
-    private String connectionUuid;
+    private String uuid;
     @Schema(description = "连接主机")
-    private String connectHost;
+    private String host;
     @Schema(description = "连接端口")
-    private String connectPort;
+    private String port;
     @Schema(description = "连接用户名")
-    private String connectUsername;
+    private String username;
     @Schema(description = "连接密码")
-    private String connectPwd;
+    private String password;
     @Schema(description = "连接名称")
-    private String connectName;
+    private String name;
     @Schema(description = "连接方式")
-    private String connectMethod;
+    private String method;
     @Schema(description = "凭证ID")
     private Long credentialId;
     @Schema(description = "连接创建者id")
-    private Long connect_creater_uid;
+    private Long user_id;
 
-    public Long getCid() {
-        return cid;
+    public Long getId() {
+        return id;
     }
 
-    public void setCid(Long cid) {
-        this.cid = cid;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public String getConnectHost() {
-        return connectHost;
+    public String getUuid() {
+        return uuid;
     }
 
-    public void setConnectHost(String connectHost) {
-        this.connectHost = connectHost;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
-    public String getConnectPort() {
-        return connectPort;
+    public String getHost() {
+        return host;
     }
 
-    public void setConnectPort(String connectPort) {
-        this.connectPort = connectPort;
+    public void setHost(String host) {
+        this.host = host;
     }
 
-    public String getConnectUsername() {
-        return connectUsername;
+    public String getPort() {
+        return port;
     }
 
-    public void setConnectUsername(String connectUsername) {
-        this.connectUsername = connectUsername;
+    public void setPort(String port) {
+        this.port = port;
     }
 
-    public String getConnectPwd() {
-        return connectPwd;
+    public String getUsername() {
+        return username;
     }
 
-    public void setConnectPwd(String connectPwd) {
-        this.connectPwd = connectPwd;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public String getConnectName() {
-        return connectName;
+    public String getPassword() {
+        return password;
     }
 
-    public void setConnectName(String connectName) {
-        this.connectName = connectName;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    public String getConnectMethod() {
-        return connectMethod;
+    public String getName() {
+        return name;
     }
 
-    public void setConnectMethod(String connectMethod) {
-        this.connectMethod = connectMethod;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public Long getConnect_creater_uid() {
-        return connect_creater_uid;
+    public String getMethod() {
+        return method;
     }
 
-    public void setConnect_creater_uid(Long connect_creater_uid) {
-        this.connect_creater_uid = connect_creater_uid;
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
+    public Long getCredentialId() {
+        return credentialId;
+    }
+
+    public void setCredentialId(Long credentialId) {
+        this.credentialId = credentialId;
+    }
+
+    public Long getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(Long user_id) {
+        this.user_id = user_id;
     }
 }

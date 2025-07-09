@@ -1,5 +1,7 @@
 package top.srcandy.terminal_air.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,9 +12,11 @@ import top.srcandy.terminal_air.mapper.CredentialsMapper;
 import top.srcandy.terminal_air.mapper.UserMapper;
 import top.srcandy.terminal_air.pojo.model.Credential;
 import top.srcandy.terminal_air.pojo.model.User;
+import top.srcandy.terminal_air.pojo.vo.PageQueryResult;
 import top.srcandy.terminal_air.request.CredentialConnectionRequest;
 import top.srcandy.terminal_air.request.CredentialStatusRequest;
 import top.srcandy.terminal_air.request.CredentialStatusShortTokenRequest;
+import top.srcandy.terminal_air.request.PageQueryRequest;
 import top.srcandy.terminal_air.service.CredentialsService;
 import top.srcandy.terminal_air.service.RedisService;
 import top.srcandy.terminal_air.utils.*;
@@ -81,11 +85,23 @@ public class CredentialsServiceImpl implements CredentialsService {
     }
 
     @Override
-    public List<CredentialVo> listCredentials() {
-        log.info("用户 {} 获取凭据列表", SecuritySessionUtils.getUserId());
+    public PageQueryResult<List<CredentialVo>> listCredentials(int current, int pageSize) {
+        // 记录日志
         Long userId = SecuritySessionUtils.getUserId();
-        return credentialConverter.credentialList2VOList(credentialsMapper.selectCredentialsByUserId(userId));
+        log.info("用户 {} 获取凭据列表，第 {} 页，每页 {} 条", userId, current, pageSize);
+        PageHelper.startPage(current, pageSize);
+        List<CredentialVo> list = credentialConverter.credentialList2VOList(
+                credentialsMapper.selectCredentialsByUserId(userId));
+        PageInfo<CredentialVo> pageInfo = new PageInfo<>(list);
+
+        return PageQueryResult.<List<CredentialVo>>builder()
+                .current(pageInfo.getPageNum())
+                .pageSize(pageInfo.getPageSize())
+                .total(pageInfo.getTotal())
+                .result(pageInfo.getList())
+                .build();
     }
+
 
     @Override
     public int countCredentialsByUserId() {

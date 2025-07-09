@@ -14,6 +14,39 @@ const routes = [
         name: 'home',
         component: () => import('../views/HomeView.vue'),
       },
+      
+      {
+        path: '/account',
+        name: 'account',
+        component: () => import('../views/AccountView.vue'),
+        children: [
+          {
+            path: '/account/member',
+            name: 'member',
+            component: () => import('../components/card/MemberCenterCard.vue'),
+          },
+          {
+            path: '/account/overview',
+            name: 'overview',
+            component: () => import('../components/card/AccountOverviewCard.vue'),
+          },
+          {
+            path: '/account/credentials',
+            name: 'credentials',
+            component: () => import('../views/account/CredentialsManageView.vue'),
+          },
+          {
+            path: '/account/termsettings',
+            name: 'termSettings',
+            component: () => import('../views/account/SettingTerminalView.vue'),
+          },
+          {
+            path: '/account/connection',
+            name: 'connectionManage',
+            component: () => import('../views/account/ConnectionManageView.vue'),
+          }
+        ]
+      },
       {
         path: '/profile',
         name: 'profile',

@@ -7,14 +7,9 @@ import java.util.List;
 
 @Data
 @Builder
-public class PageQueryResultVo<T> {
-    private int dataTotal;
-
-    private int page;
-
+public class PageQueryResult<T> {
+    private int current;
     private int pageSize;
-
-    private int pageCount;
-
-    private List<T> result;
+    private long total;
+    private T result;
 }

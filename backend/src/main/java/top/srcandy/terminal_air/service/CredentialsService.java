@@ -1,10 +1,13 @@
 package top.srcandy.terminal_air.service;
 
+import com.github.pagehelper.PageInfo;
 import top.srcandy.terminal_air.pojo.vo.CredentialVo;
 import top.srcandy.terminal_air.pojo.model.Credential;
+import top.srcandy.terminal_air.pojo.vo.PageQueryResult;
 import top.srcandy.terminal_air.request.CredentialConnectionRequest;
 import top.srcandy.terminal_air.request.CredentialStatusRequest;
 import top.srcandy.terminal_air.request.CredentialStatusShortTokenRequest;
+import top.srcandy.terminal_air.request.PageQueryRequest;
 
 import java.util.List;
 
@@ -13,7 +16,7 @@ public interface CredentialsService {
     CredentialVo generateKeyPair(String name, String tags) throws Exception;
 
 
-    List<CredentialVo> listCredentials() throws Exception;
+    PageQueryResult<List<CredentialVo>> listCredentials(int current, int pageSize) throws Exception;
 
     int countCredentialsByUserId();
 

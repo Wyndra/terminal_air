@@ -1,17 +1,16 @@
 <template>
     <n-layout style="height: 100vh; position: relative;">
-        <n-layout-header class="header" bordered>
-            <div style="display: flex; height: 100%; align-items: center">
+        <n-layout-header ref="mainHeaderRef" class="header" bordered>
+            <div class="flex items-center h-full">
                 <img src="@/assets/shell.svg" alt="Terminal Air" style="height: 24px;" />
                 <span @click="router.push('/')" style="cursor: pointer;">
                     Terminal Air
                 </span>
                 <div style="flex: 1;"></div>
-                <div style="height: 100%; display: flex; align-items: center; margin-right: 16px;"
-                    v-if="InLogin && router.currentRoute.value.path === '/'">
-                    <n-tooltip trigger="hover" placement="top">
+                <div style="height: 100%; display: flex; align-items: center; margin-right: 16px;gap:8px">
+                    <n-tooltip trigger="hover" placement="top" v-if="InLogin && router.currentRoute.value.path === '/'">
                         <template #trigger>
-                            <n-button size="large" @click="openTerminalSettings" circle>
+                            <n-button size="large" @click="openTerminalSettings" circle :bordered="false">
                                 <n-icon size="20">
                                     <Terminal />
                                 </n-icon>
@@ -19,11 +18,24 @@
                         </template>
                         终端设置
                     </n-tooltip>
-
+                    <!-- <n-tooltip trigger="hover" placement="top">
+                        <template #trigger>
+                            <n-button size="large" @click="toggleTheme" circle :bordered="false"
+                                :class="currentTheme == 'dark' ? 'rotate-180' : 'rotate-0'">
+                                <n-icon size="20">
+                                    <DarkTheme24Filled />
+                                </n-icon>
+                            </n-button>
+                        </template>
+                        切换主题
+                    </n-tooltip> -->
                 </div>
-                <div style="height: 100%; display: flex; align-items: center">
-                    <n-button v-if="!InLogin" style="margin-right: 24px;" @click="openLoginModal">
+                <div style="height: 100%; display: flex; align-items: center;gap:16px">
+                    <n-button v-if="!InLogin" type="primary" style="" @click="openLoginModal">
                         登录
+                    </n-button>
+                    <n-button v-if="!InLogin" style="margin-right: 24px;" @click="openRegisterModal">
+                        注册
                     </n-button>
                     <n-popover v-else trigger="hover">
                         <template #trigger>
@@ -39,9 +51,13 @@
                                 个人中心
                             </n-text>
                             <n-text @click="gotoHomeView()" depth="1"
-                                v-if="router.currentRoute.value.path === '/profile'">
+                                v-if="router.currentRoute.value.path.includes('/account')">
                                 回到工作区
                             </n-text>
+                            <!-- <n-text @click="gotoHomeView()" depth="1"
+                                v-if="router.currentRoute.value.path.includes('/profile')">
+                                回到工作区
+                            </n-text> -->
                         </template>
                         <template #footer>
                             <div style="display: flex;justify-content: center;">
@@ -55,12 +71,13 @@
         <n-layout class="main-content">
             <router-view />
         </n-layout>
-        <n-layout-footer class="footer" bordered>
+        <n-layout-footer ref="mainFooterRef" class="footer" bordered>
             <div>
                 <span>© 2024 - 2025 Terminal Air 慕垂科技 - 浙ICP备2023031974号 - Commit ID: {{ gitCommitHash }}</span>
             </div>
         </n-layout-footer>
     </n-layout>
+    <!-- 登录组件 -->
     <n-modal v-model:show="showLoginOrRegisterModal" :mask-closable="false">
         <LoginAndRegisterModal @close="showLoginOrRegisterModal = false" />
     </n-modal>
@@ -77,8 +94,12 @@ const store = useStore();
 const message = useMessage();
 const notification = useNotification();
 
+const mainHeaderRef = ref(null);
+const mainFooterRef = ref(null);
+
 const router = useRouter();
 import { Terminal } from '@vicons/ionicons5';
+import { DarkTheme24Filled } from '@vicons/fluent';
 watch(() => store.getters.isLoggedIn, (value) => {
     InLogin.value = value;
 });
@@ -90,8 +111,13 @@ const showLoginOrRegisterModal = ref(false);
 const userInfo = ref({});
 const InLogin = ref(store.getters.isLoggedIn);
 
+const currentTheme = ref(store.getters.currentTheme);
 
 const openLoginModal = () => {
+    showLoginOrRegisterModal.value = true;
+};
+
+const openRegisterModal = () => {
     showLoginOrRegisterModal.value = true;
 };
 
@@ -109,7 +135,9 @@ const logout = async () => {
 };
 
 const gotoProfileView = () => {
-    router.push('/profile');
+    // router.push('/profile');
+    router.push('/account/overview');
+
 };
 
 const gotoHomeView = () => {
@@ -118,6 +146,12 @@ const gotoHomeView = () => {
 
 const openTerminalSettings = () => {
     store.commit('setShowTerminalSettings', true);
+};
+
+const toggleTheme = () => {
+    // dispatch 是 Vuex 的方法，用于触发一个 action
+    currentTheme.value = store.getters.currentTheme === 'dark' ? 'light' : 'dark';
+    store.dispatch('toggleTheme');
 };
 
 async function fetchUserInfo() {
@@ -160,10 +194,12 @@ async function fetchUserInfo() {
 //     event.returnValue = '';
 // };
 
+const mainLayoutHeight = ref()
+
 onMounted(() => {
     fetchUserInfo();
     window.addEventListener('beforeunload', () => {
-    });
+    });;
 });
 </script>
 <style scoped lang="less">
@@ -222,7 +258,7 @@ onMounted(() => {
     margin-top: 60px;
     margin-bottom: 40px;
     height: calc(100vh - 100px);
-    overflow: hidden;
+    overflow: hidden !important;
 }
 
 .username_avatar {

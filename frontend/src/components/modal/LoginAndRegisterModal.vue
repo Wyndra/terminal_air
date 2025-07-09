@@ -1,5 +1,5 @@
 <template>
-    <n-card :title="currentServiceType" bordered style="background-color: #fff;width: 600px;">
+    <n-card :title="currentServiceType" bordered style="width: 600px;">
         <template #header-extra>
             <n-button text @click="closeModal">
                 <n-icon size="20">
@@ -8,8 +8,8 @@
             </n-button>
         </template>
 
-        <n-tabs type="line" animated @before-leave="handleBeforeLeave"
-            v-if="currentServiceType === '登录' && !isTwoFactor">
+        <n-tabs type="segment" animated @before-leave="handleBeforeLeave"
+            v-if="currentServiceType === '登录' && !isTwoFactor" default-value="phoneLogin">
             <n-tab-pane name="usernameLogin" tab="账密登录">
                 <n-form ref="loginFormRef" label-position="top" :model="loginForm" :rules="loginRules">
                     <n-form-item label="用户名" path="username">

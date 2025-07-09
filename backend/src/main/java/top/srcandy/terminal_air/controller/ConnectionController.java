@@ -20,32 +20,34 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/connection")
-@Tag(name = "Connection Service", description = "连接管理服务")
+@Tag(name = "连接信息服务", description = "连接信息服务")
 public class ConnectionController {
+
     @Autowired
-    private ConnectionService connectManageService;
-    @GetMapping("/list")
-    @Operation(summary = "获取用户的连接列表")
+    private ConnectionService connectService;
+
+    @GetMapping("")
+    @Operation(summary = "获取连接列表")
     public ResponseResult<List<ConnectionVo>> selectByConnectCreaterUid() {
-        return connectManageService.list(SecuritySessionUtils.getUserId());
+        return connectService.list(SecuritySessionUtils.getUserId());
     }
 
-    @PostMapping("/add")
+    @PostMapping("")
     @Operation(summary = "添加连接")
-    public ResponseResult<Connection> insertConnect(@RequestBody AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
-        return connectManageService.insertConnect(request);
+    public ResponseResult<ConnectionVo> insertConnect(@ModelAttribute  AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+        return connectService.insertConnect(request);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/{uuid}")
     @Operation(summary = "更新连接")
-    public ResponseResult<ConnectionVo> updateConnect(@RequestBody UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
-        return connectManageService.updateConnect(request);
+    public ResponseResult<ConnectionVo> updateConnect(@ModelAttribute  UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+        return connectService.updateConnect(request);
     }
 
-    @PostMapping ("/delete/{uuid}")
+    @DeleteMapping ("/{uuid}")
     @Operation(summary = "删除连接")
     public ResponseResult<Connection> deleteConnect(@PathVariable String uuid) {
-        return connectManageService.deleteConnect(uuid);
+        return connectService.deleteConnect(uuid);
     }
 
 }

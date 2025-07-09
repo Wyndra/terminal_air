@@ -12,14 +12,14 @@ import top.srcandy.terminal_air.service.MinioService;
 @Slf4j
 @RestController
 @RequestMapping("/api/avatar")
-@Tag(name = "File Service", description = "文件接口")
+@Tag(name = "文件接口", description = "文件接口")
 public class MinioController {
 
     @Autowired
     private MinioService minioService;
 
-    @PostMapping ("/presigned-url")
-    @Operation(summary = "获取上传头像的预签名URL")
+    @GetMapping ("/presigned-url")
+    @Operation(summary = "获取Minio预签名URL")
     public ResponseResult<AvatarUploadVo> getPresignedUrl() {
         return minioService.generatePresignedUrl();
     }

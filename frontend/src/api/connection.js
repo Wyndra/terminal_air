@@ -22,6 +22,13 @@ export const list = () => {
     });
 }
 
+export const list2 = () => {
+    return serviceAxios({
+        url: "/api/connection/list2",
+        method: "get",
+    });
+}
+
 export const del = (data) => {
     return serviceAxios({
         url: "/api/connection/delete/" + data,

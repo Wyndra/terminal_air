@@ -3,6 +3,8 @@ package top.srcandy.terminal_air.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import top.srcandy.terminal_air.mapper.IConnectionDao;
+import top.srcandy.terminal_air.pojo.dto.ConnectionDto;
 import top.srcandy.terminal_air.pojo.vo.ConnectionVo;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.converter.ConnectionConverter;
@@ -29,6 +31,8 @@ public class ConnectionServiceImpl implements ConnectionService {
     @Autowired
     private ConnectionMapper connectionMapper;
 
+    private IConnectionDao connectionDao;
+
     @Autowired
     private ConnectionConverter connectConverter;
 
@@ -36,33 +40,37 @@ public class ConnectionServiceImpl implements ConnectionService {
     private CredentialsService credentialsService;
 
 
+    public ConnectionServiceImpl(IConnectionDao connectionDao) {
+        this.connectionDao = connectionDao;
+    }
+
+    @Override
     public ResponseResult<List<ConnectionVo>> list(Long userid) {
         List<Connection> connections = connectionMapper.selectByConnectCreaterUid(userid);
         connections.forEach(connection -> {
-            if (connection.getConnectionUuid() == null || connection.getConnectionUuid().isEmpty()) {
-                connection.setConnectionUuid(KeyUtils.generateUUID());
+            if (connection.getUuid() == null || connection.getUuid().isEmpty()) {
+                connection.setUuid(KeyUtils.generateUUID());
                 connectionMapper.updateConnectUuid(connection);
             }
         });
-        return ResponseResult.success(connectConverter.connectionList2ConnectionVOList(connections));
+        List<ConnectionVo> res = connectConverter.connectionList2ConnectionVOList(connections);
+        return ResponseResult.success(res);
     }
 
-
     @Override
-    public ResponseResult<List<Connection>> selectByConnectCreaterUid(Long connectCreaterUid) {
-        return ResponseResult.success(connectionMapper.selectByConnectCreaterUid(connectCreaterUid));
+    public ResponseResult<List<ConnectionVo>> list2(Long userid) {
+        List<ConnectionDto> connections = connectionDao.selectCredentialsByUserId(userid);
+        return null;
     }
 
-
-
     @Override
-    public ResponseResult<Connection> insertConnect(AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
+    public ResponseResult<ConnectionVo> insertConnect(AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException {
         User user = SecuritySessionUtils.getUser();
 
         List<Connection> userConnects = connectionMapper.selectByConnectCreaterUid(user.getUid());
 
         for (Connection userConnect : userConnects) {
-            if (userConnect.getConnectHost().equals(request.getHost())) {
+            if (userConnect.getHost().equals(request.getHost())) {
                 return ResponseResult.fail(null, "连接已存在");
             }
         }
@@ -70,17 +78,17 @@ public class ConnectionServiceImpl implements ConnectionService {
         String userSalt = user.getSalt();
         // 插入连接
         Connection connect = Connection.builder()
-                .connect_creater_uid(user.getUid())
-                .connectHost(request.getHost())
-                .connectPort(request.getPort())
-                .connectionUuid(KeyUtils.generateUUID())
-                .connectUsername(request.getUsername())
-                .connectPwd(request.getPassword().equals("") ? "" : AESUtils.encryptToHex(request.getPassword(), userSalt))
-                .connectName(request.getName())
-                .connectMethod(request.getMethod())
+                .user_id(user.getUid())
+                .host(request.getHost())
+                .port(request.getPort())
+                .uuid(KeyUtils.generateUUID())
+                .username(request.getUsername())
+                .password(request.getPassword().equals("") ? "" : AESUtils.encryptToHex(request.getPassword(), userSalt))
+                .name(request.getName())
+                .method(request.getMethod())
                 .build();
         connectionMapper.insertConnect(connect);
-        return ResponseResult.success(connect);
+        return ResponseResult.success(connectConverter.connection2ConnectionVO(connect));
     }
 
     @Override
@@ -93,13 +101,13 @@ public class ConnectionServiceImpl implements ConnectionService {
         Optional<Connection> optionalConnect = connectionMapper
                 .selectByConnectCreaterUid(user.getUid())
                 .stream()
-                .filter(connectInfo -> connectInfo.getCid().equals(request.getCid()))
+                .filter(connectInfo -> connectInfo.getId().equals(request.getCid()))
                 .findFirst();
 
         return optionalConnect.map(connect -> {
             String userSalt = user.getSalt();
             String requestPassword = request.getPassword();
-            String storedPassword = connect.getConnectPwd();
+            String storedPassword = connect.getPassword();
             // 先解密数据库中的密码
             String decryptedStoredPassword;
             try {
@@ -110,7 +118,7 @@ public class ConnectionServiceImpl implements ConnectionService {
             // 明文密码与数据库中的密码不一致，说明密码有更新
             if (!requestPassword.equals(decryptedStoredPassword)) {
                 try {
-                    connect.setConnectPwd(AESUtils.encryptToHex(requestPassword, userSalt));
+                    connect.setPassword(AESUtils.encryptToHex(requestPassword, userSalt));
                 } catch (Exception e) {
                     throw new RuntimeException("密码加密失败", e);
                 }
@@ -118,12 +126,12 @@ public class ConnectionServiceImpl implements ConnectionService {
             // 更新其他字段，但保留可能更新的密码
             Connection updatedConnect = connectConverter.request2connection(request);
             if (requestPassword.equals(storedPassword)) {
-                updatedConnect.setConnectPwd(storedPassword);
+                updatedConnect.setPassword(storedPassword);
             }else {
-                updatedConnect.setConnectPwd(connect.getConnectPwd());
+                updatedConnect.setPassword(connect.getPassword());
             }
             if (requestPassword.equals("")) {
-                updatedConnect.setConnectPwd("");
+                updatedConnect.setPassword("");
             }
             if (request.getMethod().equals("key")){
                 Credential credential = null;
@@ -148,7 +156,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         Optional<Connection> optionalConnectInfo = connectionMapper
                 .selectByConnectCreaterUid(userId)
                 .stream()
-                .filter(c -> c.getConnectionUuid().equals(connectionUuid))
+                .filter(c -> c.getUuid().equals(connectionUuid))
                 .findFirst();
 
         return optionalConnectInfo

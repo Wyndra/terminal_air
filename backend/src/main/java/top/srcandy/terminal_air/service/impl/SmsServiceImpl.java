@@ -1,6 +1,7 @@
 package top.srcandy.terminal_air.service.impl;
 
 import com.aliyun.sdk.service.dysmsapi20170525.models.SendSmsResponse;
+import com.apistd.uni.UniResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,9 @@ import top.srcandy.terminal_air.pojo.model.User;
 import top.srcandy.terminal_air.request.SendVerificationCodeRequest;
 import top.srcandy.terminal_air.service.RedisService;
 import top.srcandy.terminal_air.service.SmsService;
-import top.srcandy.terminal_air.utils.SMSUtils;
+import top.srcandy.terminal_air.utils.AliSMSUtils;
 import top.srcandy.terminal_air.utils.SecuritySessionUtils;
+import top.srcandy.terminal_air.utils.UniSMSUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -138,8 +140,11 @@ public class SmsServiceImpl implements SmsService {
         redisService.set(verifyCodeKey, verifyCodeValue, 5, TimeUnit.MINUTES);
         // Call the SMSUtils.sendSms method to send the verification code via SMS
         try {
-            SendSmsResponse smsResponse = SMSUtils.sendSms(phone, code);
+            // TODO 错误处理兼容UniSMSUtils
+            SendSmsResponse smsResponse = AliSMSUtils.sendSms(phone, code);
+//            UniResponse smsResponse = UniSMSUtils.sendSms(phone, code);
             log.info("短信请求响应: " + smsResponse.getBody().getMessage());
+
             if (smsResponse.getBody().getCode().equals("isv.BUSINESS_LIMIT_CONTROL")) {
                 // If the response contains "BUSINESS_LIMIT_CONTROL", it means the SMS sending limit has been reached
                 log.warn("短信发送频率过快，请稍后再试");

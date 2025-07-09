@@ -185,6 +185,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/webssh/**").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/register").permitAll()
+                        .requestMatchers("/api/user/avatar").permitAll()
                         .requestMatchers("/api/auth/loginBySmsCode").permitAll()
                         .requestMatchers("/api/turnstile/verify").permitAll()
                         .requestMatchers("/api/sms/sendVerificationCode").permitAll()

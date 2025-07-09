@@ -17,25 +17,28 @@ public abstract class ConnectionConverter {
     @Autowired
     protected CredentialsService credentialsService;
 
+    @Autowired
+    protected CredentialConverter credentialConverter;
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "cid", source = "cid")
-    @Mapping(target = "connectHost", source = "host")
-    @Mapping(target = "connectPort", source = "port")
-    @Mapping(target = "connectUsername", source = "username")
-    @Mapping(target = "connectPwd", source = "password")
-    @Mapping(target = "connectName", source = "name")
-    @Mapping(target = "connectMethod", source = "method")
+    @Mapping(target = "id", source = "cid")
+    @Mapping(target = "host", source = "host")
+    @Mapping(target = "port", source = "port")
+    @Mapping(target = "username", source = "username")
+    @Mapping(target = "password", source = "password")
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "method", source = "method")
     public abstract Connection request2connection(UpdateConnectionRequest request);
 
-    @Mapping(target = "cid", source = "cid")
-    @Mapping(target = "connectHost", source = "connectHost")
-    @Mapping(target = "connectPort", source = "connectPort")
-    @Mapping(target = "connectUsername", source = "connectUsername")
-    @Mapping(target = "connectPwd", source = "connectPwd")
-    @Mapping(target = "connectName", source = "connectName")
-    @Mapping(target = "connectMethod", source = "connectMethod")
-    @Mapping(target = "connectionUuid", source = "connectionUuid")
-    @Mapping(target = "connect_creater_uid", source = "connect_creater_uid")
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "host", source = "host")
+    @Mapping(target = "port", source = "port")
+    @Mapping(target = "username", source = "username")
+    @Mapping(target = "password", source = "password")
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "method", source = "method")
+    @Mapping(target = "uuid", source = "uuid")
+    @Mapping(target = "user_id", source = "user_id")
     public abstract ConnectionVo connection2ConnectionVO(Connection connection);
 
     public abstract List<ConnectionVo> connectionList2ConnectionVOList(List<Connection> connections);
@@ -45,6 +48,8 @@ public abstract class ConnectionConverter {
         if (connection.getCredentialId() != null) {
             try {
                 connectionVO.setCredentialUUID(credentialsService.selectCredentialById(connection.getCredentialId()).getUuid());
+                // 将凭证信息转换为VO对象
+                connectionVO.setCredential(credentialConverter.credential2VO(credentialsService.selectCredentialById(connection.getCredentialId())));
             } catch (Exception e) {
                 // 处理异常，例如记录日志或者设置默认值
                 connectionVO.setCredentialUUID(null);

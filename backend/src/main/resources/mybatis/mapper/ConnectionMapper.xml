@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.srcandy.terminal_air.mapper.IConnectionDao">
+
+    <resultMap id="ConnectionResult" type="top.srcandy.terminal_air.pojo.dto.ConnectionDto">
+        <id property="cid" column="cid"/>
+        <result property="connectionUuid" column="connect_uuid"/>
+        <result property="connectHost" column="connect_host"/>
+        <result property="connectPort" column="connect_port"/>
+        <result property="connectUsername" column="connect_username"/>
+        <result property="connectPwd" column="connect_pwd"/>
+        <result property="connectName" column="connect_name"/>
+        <result property="connectMethod" column="connect_method"/>
+        <result property="connect_creater_uid" column="connect_creater_uid"/>
+        <association property="credential" javaType="top.srcandy.terminal_air.pojo.model.Credential">
+            <id property="id" column="credential_id"/>
+            <result property="uuid" column="credential_uuid"/>
+            <result property="name" column="credential_name"/>
+            <result property="tags" column="credential_tags"/>
+            <result property="userId" column="credential_uid"/>
+            <result property="status" column="credential_status"/>
+            <result property="fingerprint" column="credential_fingerprint"/>
+            <result property="publicKey" column="credential_public_key"/>
+            <result property="privateKey" column="credential_private_key"/>
+            <result property="connectId" column="credential_cid"/>
+            <result property="createTime" column="credential_created_at"/>
+            <result property="updateTime" column="credential_updated_at"/>
+        </association>
+    </resultMap>
+
+
+    <select id="selectCredentialsByUserId" parameterType="Long" resultMap="ConnectionResult">
+        SELECT
+            c.cid,
+            c.connect_uuid,
+            c.connect_host,
+            c.connect_port,
+            c.connect_username,
+            c.connect_pwd,
+            c.connect_name,
+            c.connect_method,
+            c.connect_creater_uid,
+            cr.id AS credential_id,
+            cr.uuid AS credential_uuid,
+            cr.name AS credential_name,
+            cr.tags AS credential_tags,
+            cr.uid AS credential_uid,
+            cr.status AS credential_status,
+            cr.fingerprint AS credential_fingerprint,
+            cr.public_key AS credential_public_key,
+            cr.private_key AS credential_private_key,
+            cr.cid AS credential_cid,
+            cr.created_at AS credential_created_at,
+            cr.updated_at AS credential_updated_at
+        FROM Connection c LEFT JOIN Credentials cr ON c.connect_credential = cr.id WHERE c.connect_creater_uid = #{userId}
+    </select>
+
+</mapper>

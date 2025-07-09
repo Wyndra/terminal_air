@@ -8,7 +8,7 @@
                     新增连接
                 </span>
             </template>
-            <n-card bordered style="background-color: #fff;">
+            <n-card bordered>
                 <n-form label-position="top" :model="connectInfoForm" ref="connectFormRef" :rules="formRules">
                     <n-form-item label="连接名称" path="name">
                         <n-input v-model:value="connectInfoForm.name" placeholder="请输入连接名称" />

@@ -192,7 +192,7 @@ onMounted(async () => {
 }
 
 .verify_method_item:hover {
-    background-color: #f7f7f7;
+    /* background-color: #f7f7f7; */
     border: 1px solid #e0e0e0;
     cursor: pointer;
 }

@@ -16,13 +16,13 @@ import top.srcandy.terminal_air.service.SmsService;
 @Slf4j
 @RestController
 @RequestMapping("/api/sms")
-@Tag(name="SMS Service", description = "短信服务相关接口")
+@Tag(name="短信服务相关接口", description = "短信服务相关接口")
 @OpenAPIDefinition
 public class SmsController {
     @Autowired
     private SmsService smsService;
 
-    @PostMapping ("/sendVerificationCode")
+    @PostMapping ("/sendMobileCode")
     @Operation(summary = "发送验证码")
     public ResponseResult<SmsCodeVo> sendVerifyCode(@Valid @RequestBody(required = false) @NotNull SendVerificationCodeRequest request) {
         try {
@@ -33,13 +33,13 @@ public class SmsController {
         return ResponseResult.success(null);
     }
 
-    @PostMapping("/verifyCode")
+    @PostMapping("/verify")
     @Operation(summary = "验证验证码")
     public ResponseResult<Boolean> verifyCode(@Valid @RequestBody(required = false) @NotNull VerifyCodeRequest request) {
         return ResponseResult.success(smsService.verifySmsCode(request.getPhone(), request.getSerial(), request.getCode()));
     }
 
-    @GetMapping("/sendSmsCodeByToken")
+    @GetMapping("/sendMobileCodeByToken")
     @Operation(summary = "通过token发送验证码")
     public ResponseResult<SmsCodeVo> sendSmsCodeByToken() {
         try {

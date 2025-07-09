@@ -1,20 +1,20 @@
 package top.srcandy.terminal_air.controller;
 
+import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Null;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.srcandy.terminal_air.pojo.vo.CredentialVo;
 import top.srcandy.terminal_air.constant.ResponseResult;
 import top.srcandy.terminal_air.pojo.model.Credential;
-import top.srcandy.terminal_air.request.CredentialConnectionRequest;
-import top.srcandy.terminal_air.request.CredentialStatusShortTokenRequest;
-import top.srcandy.terminal_air.request.GenerateKeyPairRequest;
-import top.srcandy.terminal_air.request.CredentialStatusRequest;
+import top.srcandy.terminal_air.pojo.vo.PageQueryResult;
+import top.srcandy.terminal_air.request.*;
 import top.srcandy.terminal_air.service.CredentialsService;
 
 import java.util.List;
@@ -22,25 +22,25 @@ import java.util.List;
 @RestController
 @Slf4j
 @Validated
-@Tag(name = "Credentials Service", description = "凭据接口")
+@Tag(name = "凭据接口", description = "凭据接口")
 @RequestMapping("/api/credentials")
 public class CredentialsController {
     @Autowired
     private CredentialsService credentialsService;
 
     @PostMapping("/generate")
-    @Operation(summary = "生成密钥对", description = "生成密钥对")
+    @Operation(summary = "生成凭据", description = "生成凭据")
     public ResponseResult<CredentialVo> generateKeyPair(@RequestHeader("Authorization") String token, @RequestBody(required = false) @NonNull GenerateKeyPairRequest request) throws Exception {
         return ResponseResult.success(credentialsService.generateKeyPair(request.getName(), request.getTags()));
     }
 
-    @GetMapping("/list")
+    @GetMapping("")
     @Operation(summary = "凭据列表", description = "列出用户当前凭据")
-    public ResponseResult<List<CredentialVo>> listCredentials() throws Exception {
-        return ResponseResult.success(credentialsService.listCredentials());
+    public ResponseResult<PageQueryResult<List<CredentialVo>>> listCredentials(@RequestParam int current, @RequestParam int pageSize) throws Exception {
+        return ResponseResult.success(credentialsService.listCredentials(current,pageSize));
     }
 
-    @GetMapping("/delete/{uuid}")
+    @DeleteMapping("/delete/{uuid}")
     @Operation(summary = "删除凭据", description = "删除指定凭据")
     public ResponseResult<List<Credential>> deleteCredential(@PathVariable String uuid) throws Exception {
         credentialsService.deleteCredential(uuid);

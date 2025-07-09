@@ -10,7 +10,7 @@ import darabonba.core.client.ClientOverrideConfiguration;
 
 import java.util.concurrent.CompletableFuture;
 
-public class SMSUtils {
+public class AliSMSUtils {
 
     // 静态方法，发送短信
     public static SendSmsResponse sendSms(String phoneNumber, String code) throws Exception {

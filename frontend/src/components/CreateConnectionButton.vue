@@ -21,7 +21,7 @@ const handleNewConnect = () => {
 .add_border {
     display: flex;
     text-align: left;
-    background-color: #ebebeb;
+    /* background-color: #ebebeb; */
     padding: 10px;
     border-radius: 8px;
     border: 0.8px solid rgb(52, 53, 54);

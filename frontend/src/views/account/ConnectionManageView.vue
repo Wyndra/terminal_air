@@ -1,12 +1,12 @@
 <template>
-    <n-card title="凭证中心" style="min-width: 1000px;max-height: 625px;height: 100vh;" 
+    <n-card title="连接管理" :style="{ height: 'calc(100% - 200px)' }"
         content-style="display: flex; flex-direction: column;gap: 20px;">
         <template #header-extra>
             <div style="display: flex;align-items: center;">
                 <n-icon :size="18">
                     <QuestionCircle32Regular />
                 </n-icon>
-                <span> 了解 凭证 必读</span>
+                <span> 了解 连接 必读</span>
             </div>
 
         </template>
@@ -14,10 +14,11 @@
 
             <div class="main-area">
                 <n-button type="primary" style="width: 120px;"
-                    @click="createCredentialsModalVisible = true">创建凭证</n-button>
+                    @click="store.state.showAddConnectionDrawer = true;">新增连接</n-button>
             </div>
             <div class="other-area">
-                <n-button circle size="small" @click="() => {fetchCredentials();loading();message.success('刷新成功');}">
+                <n-button circle size="small"
+                    @click="() => { fetchConnections(); loading(); message.success('刷新成功'); }">
                     <n-icon>
                         <RefreshSharp />
                     </n-icon>
@@ -27,7 +28,7 @@
                     <template #header>
                         列展示选择
                     </template>
-                    <n-button circle size="small" @click="() => { fetchCredentials(); loading(); }">
+                    <n-button circle size="small" @click="() => { fetchConnections(); loading(); }">
                         <n-icon>
                             <Settings48Regular />
                         </n-icon>
@@ -38,7 +39,7 @@
         </div>
         <n-spin size="large" :show="onloading">
             <!-- <n-data-table :columns="credentialsColumns" :data="credentialsData" :bordered="false"> -->
-            <n-data-table :columns="filteredColumns" :data="credentialsData" :bordered="false">
+            <n-data-table :columns="filteredColumns" :data="connectionsData" :bordered="false">
                 <template #empty>
                     <div style="text-align: center; font-size: 16px; color: #7f7e7a;">
                         暂无凭证
@@ -54,16 +55,26 @@
 
     <BindCredentialsModal v-model:show="bindCredentialsModalVisible" @close="handleBindClose"
         @refresh="fetchCredentials" :row="currentRow" />
+
+    <!-- 新增连接面板 -->
+    <AddNewConnectionDrawer @refresh_connection_list="fetchConnectionList()" />
+
 </template>
 <script setup>
 import { ref, onMounted, h, computed } from 'vue';
 import { listCredentials, deleteCredentials } from '@/api/credentials';
+import { list,del } from "@/api/connection";
 import { useMessage, NTag, NButton, NPopconfirm, NDataTable } from "naive-ui";
 import { QuestionCircle32Regular, Settings48Regular } from '@vicons/fluent';
 import { RefreshSharp } from "@vicons/ionicons5"
+import { useStore } from 'vuex';
 import CreateCredentialsModal from '@/components/modal/CreateCredentialsModal.vue';
 import BindCredentialsModal from '@/components/modal/BindCredentialsModal.vue';
+import AddNewConnectionDrawer from '@/components/drawer/AddConnectionDrawer.vue';
 import TableActions from '@/components/TableActions.vue';
+import ShowPasswordControl from '@/components/ShowPasswordControl.vue'
+
+const store = useStore();
 
 const message = useMessage();
 const createCredentialsModalVisible = ref(false);
@@ -85,62 +96,61 @@ const loading = () => {
 };
 
 
-const credentialsColumns = [
+const connectionsColumns = [
     {
-        title: '凭证名称',
-        key: 'name',
+        title: '连接名称',
+        key: 'connectName',
         className: 'columns',
+        // align: 'center',
     },
     {
-        title: '凭证指纹',
-        key: 'fingerprint',
+        title: '连接地址',
+        key: 'connectHost',
         className: 'columns',
-    },
-    {
-        title: '凭证状态',
-        key: 'status',
         align: 'center',
-        className: 'columns',
-        render(row) {
-            const status = row.status
-            return h(
-                NTag,
-                {
-                    type: status === 0 ? 'info' : status === 1 ? 'warning' : 'success',
-                    size: 'small',
-                },
-                () => (status === 0 ? '未绑定' : status === 1 ? '服务端绑定' : '绑定成功')
-            )
-        },
     },
     {
-        title: '凭证标签',
-        key: 'tags',
+        title: '连接端口',
+        key: 'connectPort',
+        className: 'columns',
         align: 'center',
-        className: 'columns',
-        render(row) {
-            if (!row.tags) return h('div', '')
-            const tags = row.tags.split('|') 
-            return h(
-                'div',
-                tags.map((tag) =>
-                    h(
-                        NTag,
-                        {
-                            type: 'primary',
-                            size: 'small',
-                            style: { marginRight: '4px' },
-                        },
-                        () => tag
-                    )
-                )
-            )
-        },
     },
     {
-        title: '凭证创建时间',
-        key: 'createTime',
+        title: '登录用户名',
+        key: 'connectUsername',
         className: 'columns',
+        align: 'center',
+    },
+    {
+        title: '认证方式',
+        key: 'connectMethod',
+        className: 'columns',
+        align: 'center',
+        render(row) {
+            return h(NTag, { type:'success',size: "small" }, () => row.connectMethod === "0" ? '密码认证' : '密钥认证')
+        }
+    },
+    {
+        title: '登录密码',
+        key: 'connectPwd',
+        className: 'columns',
+        align: 'center',
+        render(row) {
+            return h(ShowPasswordControl,{
+                text: row.connectPwd,
+            })
+        }
+    },
+    {
+        title: '认证密钥',
+        key: 'credentialUUID',
+        className: 'columns',
+        align: 'center',
+        render(row) {
+            return row.credentialUUID
+                ? h(NTag, { type: 'success', size: "small" }, () => '已绑定密钥')
+                : h(NTag, { type: 'warning', size: "small" }, () => '无绑定密钥')
+        }
     },
     {
         title: '操作',
@@ -157,7 +167,7 @@ const credentialsColumns = [
                         event: 'delete',
                         type: 'error',
                         confirm: true,
-                        confirmText: '确定要删除该凭证吗？',
+                        confirmText: '确定要删除该连接吗？该操作无法恢复',
                     },
                 ],
                 onAction: (event, row) => handleTableAction(event, row),
@@ -168,12 +178,14 @@ const credentialsColumns = [
 
 // 可选列配置（用于列选择器）
 const credentialsColumnsOptions = [
-    { label: '凭证名称', value: 'name' },
-    { label: '凭证指纹', value: 'fingerprint' },
-    { label: '凭证状态', value: 'status' },
-    { label: '凭证标签', value: 'tags' },
-    { label: '凭证创建时间', value: 'createTime' },
-    { label: '操作', value: 'actions'}
+    { label: '凭证名称', value: 'connectName' },
+    { label: '主机地址', value: 'connectHost' },
+    { label: '连接端口', value: 'connectPort' },
+    { label: '登录用户名', value: 'connectUsername' },
+    { label: '认证方式', value: 'connectMethod' },
+    { label: '登录密码', value: 'connectPwd' },
+    { label: '认证密钥', value: 'credentialUUID' },
+    { label: '操作', value: 'actions' }
 ]
 
 // 当前选中的列（默认全部）
@@ -183,7 +195,7 @@ const currentCredentialsColumnsOptions = ref(
 
 // 实际用于展示的列（响应式计算）
 const filteredColumns = computed(() => {
-    return credentialsColumns.filter((col) => {
+    return connectionsColumns.filter((col) => {
         if (!col.key) return true
         return currentCredentialsColumnsOptions.value.includes(col.key)
     })
@@ -195,25 +207,25 @@ const handleTableAction = async (event, row) => {
         currentRow.value = row;
     } else if (event === "delete") {
         try {
-            const res = await deleteCredentials(row.uuid);
+            const res = await del(row.connectionUuid);
             if (res.status === "200") {
-                message.success("凭证删除成功");
-                fetchCredentials();
+                message.success("连接删除成功");
+                fetchConnections(); // 刷新连接列表
             } else {
-                message.error(res.message || "凭证删除失败");
+                message.error(res.message || "连接删除失败");
             }
         } catch (error) {
-            message.error("请求删除凭证时出错");
+            message.error("请求删除连接时出错");
         }
     }
 };
 
-const credentialsData = ref([]);
-const fetchCredentials = async () => {
+const connectionsData = ref([]);
+const fetchConnections = async () => {
     try {
-        await listCredentials().then(res => {
+        await list().then(res => {
             if (res.status === '200') {
-                credentialsData.value = res.data
+                connectionsData.value = res.data
             } else {
                 message.error(res.message || '获取密钥列表失败');
             }
@@ -224,7 +236,7 @@ const fetchCredentials = async () => {
 };
 onMounted(() => {
     loading();
-    fetchCredentials();
+    fetchConnections();
 });
 </script>
 <style>

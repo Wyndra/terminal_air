@@ -104,16 +104,18 @@ public class AuthServiceImpl implements AuthService {
             // 开启两步验证
             log.info("用户 {} 进入了两步验证流程", user.getUsername());
             return ResponseResult.success(LoginResultVo.builder()
-                    .token(JWTUtil.generateTwoFactorAuthSecretToken(user,twoFactorAuthMapper.getUserTwoFactorAuthSecret(user.getUid())))
-                    .requireTwoFactorAuth(true)
+                    .mfaToken(JWTUtil.generateTwoFactorAuthSecretToken(user,twoFactorAuthMapper.getUserTwoFactorAuthSecret(user.getUid())))
+                    .requireMfa(true)
+                    .token("")
                     .build());
         } else {
             // 直接登录
             redisService.setObject("security:" + user.getUsername(), principal, 12, TimeUnit.HOURS);
             log.info("{} 登录成功", user.getUsername());
             return ResponseResult.success(LoginResultVo.builder()
+                    .mfaToken("")
                     .token(JWTUtil.generateToken(user))
-                    .requireTwoFactorAuth(false)
+                    .requireMfa(false)
                     .build());
         }
     }

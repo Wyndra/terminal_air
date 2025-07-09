@@ -128,7 +128,7 @@ const handleDelete = () => {
 .add_border {
     display: flex;
     text-align: left;
-    background-color: #ffffff;
+    background-color: var(--n-color-1);
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 5px;
@@ -136,7 +136,7 @@ const handleDelete = () => {
 }
 
 .add_border:hover {
-    background-color: #edf1f2 !important;
+    /* background-color: #edf1f2 !important; */
     border-radius: 8px;
 }
 

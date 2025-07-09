@@ -14,9 +14,11 @@ public interface ConnectionService {
 
     ResponseResult<List<ConnectionVo>> list(Long userid);
 
-    ResponseResult<List<Connection>> selectByConnectCreaterUid(Long connectCreaterUid);
+    ResponseResult<List<ConnectionVo>> list2(Long userid);
 
-    ResponseResult<Connection> insertConnect(AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
+//    ResponseResult<List<Connection>> selectByConnectCreaterUid(Long connectCreaterUid);
+
+    ResponseResult<ConnectionVo> insertConnect(AddConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
     ResponseResult<ConnectionVo> updateConnect(UpdateConnectionRequest request) throws GeneralSecurityException, UnsupportedEncodingException;
 
